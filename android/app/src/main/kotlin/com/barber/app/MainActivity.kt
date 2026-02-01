@@ -1,4 +1,4 @@
-package com.inventory.home.inventory
+package com.barber.app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,0 +1,20 @@
+{
+  "app_title": "Barber",
+  "logo_path": "",
+  "default_brand_id": "",
+  "font_family": "Poppins",
+  "colors": {
+    "primary": "#6B63FF",
+    "secondary": "#2A2F4A",
+    "background": "#1E2235",
+    "navigation_background": "#1A1D2E",
+    "primary_text": "#FFFFFF",
+    "secondary_text": "#D1D5E0",
+    "caption_text": "#94A3B8",
+    "primary_white": "#FFFFFF",
+    "hint_text": "#A6A9C8",
+    "menu_background": "#252A45",
+    "border": "#393E5B",
+    "error": "#B00020"
+  }
+}

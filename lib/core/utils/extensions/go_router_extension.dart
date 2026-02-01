@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:inventory/core/navigation/data/navigation_config.dart';
+import 'package:barber/core/navigation/data/navigation_config.dart';
 
 extension GoRouterExtension on BuildContext {
   void navigateToTab(int index) {

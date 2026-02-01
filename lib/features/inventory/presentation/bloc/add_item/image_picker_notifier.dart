@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:inventory/core/state/base_notifier.dart';
+import 'package:barber/core/state/base_notifier.dart';
 
 class ImagePickerNotifier extends BaseNotifier<String, String> {
   final ImagePicker _picker = ImagePicker();

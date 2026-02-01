@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "257675957691",
+    "project_id": "barber-shop-whitelabel",
+    "storage_bucket": "barber-shop-whitelabel.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:257675957691:android:b51729fb7de657cdfba09e",
+        "android_client_info": {
+          "package_name": "com.barber.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWSuX46JQEq3VDfSyAFciDMhjpn7YQMUI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

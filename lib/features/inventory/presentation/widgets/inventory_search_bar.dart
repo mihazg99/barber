@@ -3,9 +3,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'dart:async';
-import 'package:inventory/core/widgets/custom_textfield.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
-import 'package:inventory/features/inventory/di.dart';
+import 'package:barber/core/widgets/custom_textfield.dart';
+import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/features/inventory/di.dart';
 import 'search_type_toggle.dart';
 import 'filter_button.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
+import 'package:barber/core/theme/app_sizes.dart';
 
 extension SafePaddingExtensions on BuildContext {
   double get safeTopPadding {

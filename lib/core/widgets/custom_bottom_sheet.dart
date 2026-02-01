@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inventory/core/theme/app_colors.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
-import 'package:inventory/core/theme/app_text_styles.dart';
+import 'package:barber/core/theme/app_colors.dart';
+import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/core/theme/app_text_styles.dart';
 
 class CustomBottomSheet extends StatelessWidget {
   const CustomBottomSheet({

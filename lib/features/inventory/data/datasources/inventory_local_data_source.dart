@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
-import 'package:inventory/core/data/database/app_database.dart';
-import 'package:inventory/core/data/database/box_dao.dart';
-import 'package:inventory/features/inventory/domain/entities/box_entity.dart';
+import 'package:barber/core/data/database/app_database.dart';
+import 'package:barber/core/data/database/box_dao.dart';
+import 'package:barber/features/inventory/domain/entities/box_entity.dart';
 
 class InventoryLocalDataSource {
   final AppDatabase db;

@@ -5,10 +5,10 @@ import 'package:drift_sqflite/drift_sqflite.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import 'package:inventory/features/inventory/data/models/item_table.dart';
-import 'package:inventory/features/inventory/data/models/box_table.dart';
-import 'package:inventory/features/inventory/data/models/location_table.dart';
-import 'package:inventory/features/inventory/data/models/category_table.dart';
+import 'package:barber/features/inventory/data/models/item_table.dart';
+import 'package:barber/features/inventory/data/models/box_table.dart';
+import 'package:barber/features/inventory/data/models/location_table.dart';
+import 'package:barber/features/inventory/data/models/category_table.dart';
 
 part 'app_database.g.dart';
 

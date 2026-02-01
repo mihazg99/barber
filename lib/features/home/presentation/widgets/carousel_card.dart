@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:inventory/core/theme/app_colors.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
-import 'package:inventory/core/theme/app_text_styles.dart';
+import 'package:barber/core/theme/app_colors.dart';
+import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/core/theme/app_text_styles.dart';
 
 class CarouselCard extends StatelessWidget {
   final String text;

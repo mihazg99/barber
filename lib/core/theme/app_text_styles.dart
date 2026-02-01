@@ -1,71 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:inventory/core/theme/app_colors.dart';
+import 'package:barber/core/config/app_brand_config.dart';
+import 'package:barber/core/di.dart';
 
+/// Text styles. Font family from [AppBrandConfig] (whitelabel).
+/// Uses Google Fonts with configurable font.
 class AppTextStyles {
-  final TextStyle headline;
-  final TextStyle h2;
-  final TextStyle h3;
-  final TextStyle h4;
-  final TextStyle body;
-  final TextStyle button;
-  final TextStyle caption;
-  final TextStyle fields;
+  const AppTextStyles._(this._fontFamily, this._colors);
 
-  const AppTextStyles({
-    required this.headline,
-    required this.h2,
-    required this.h3,
-    required this.h4,
-    required this.body,
-    required this.button,
-    required this.caption,
-    required this.fields,
-  });
+  final String _fontFamily;
+  final AppBrandColors _colors;
 
-  static AppTextStyles main(BuildContext context) => AppTextStyles(
-    headline: TextStyle(
-      fontSize: 24,
-      fontWeight: FontWeight.bold,
-      color: Theme.of(context).colorScheme.onBackground,
-    ),
-    body: TextStyle(
-      fontSize: 16,
-      color: Theme.of(context).colorScheme.onBackground,
-    ),
-    button: GoogleFonts.poppins(
-      fontSize: 16,
-      fontWeight: FontWeight.w500,
-      color: context.appColors.primaryWhiteColor,
-    ),
-    h2: GoogleFonts.poppins(
-      fontSize: 14,
-      fontWeight: FontWeight.w400,
-      color: context.appColors.primaryWhiteColor,
-    ),
-    h3: GoogleFonts.poppins(
-      fontSize: 12,
-      fontWeight: FontWeight.w400,
-      color: context.appColors.primaryWhiteColor,
-    ),
-    h4: GoogleFonts.poppins(
-      fontSize: 10,
-      fontWeight: FontWeight.w400,
-      color: context.appColors.primaryWhiteColor,
-    ),
-    caption: GoogleFonts.poppins(
-      fontSize: 14,
-      fontWeight: FontWeight.w400,
-      color: context.appColors.primaryWhiteColor,
-    ),
-    fields: GoogleFonts.poppins(
-      fontSize: 14,
-      fontWeight: FontWeight.w400,
-      color: context.appColors.primaryWhiteColor,
-    ),
-  );
+  TextStyle _base({double? fontSize, FontWeight? fontWeight}) =>
+      GoogleFonts.getFont(_fontFamily).copyWith(
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+      );
+
+  /// h1: 24pt, bold
+  TextStyle get h1 =>
+      _base(fontSize: 24, fontWeight: FontWeight.bold)
+          .copyWith(color: _colors.primaryText);
+
+  /// h2: 14pt, medium
+  TextStyle get h2 =>
+      _base(fontSize: 14, fontWeight: FontWeight.w500)
+          .copyWith(color: _colors.primaryText);
+
+  /// h3: 12pt, regular
+  TextStyle get h3 =>
+      _base(fontSize: 12, fontWeight: FontWeight.w400)
+          .copyWith(color: _colors.primaryText);
+
+  /// h4: 10pt, regular
+  TextStyle get h4 =>
+      _base(fontSize: 10, fontWeight: FontWeight.w400)
+          .copyWith(color: _colors.primaryText);
+
+  /// Bold base style (use copyWith for size/color)
+  TextStyle get bold => _base(fontWeight: FontWeight.bold);
+
+  /// Medium base style (use copyWith for size/color)
+  TextStyle get medium => _base(fontWeight: FontWeight.w500);
+
+  // Backward compatibility
+  TextStyle get headline => h1;
+  TextStyle get body => _base(fontSize: 16).copyWith(color: _colors.primaryText);
+  TextStyle get button =>
+      _base(fontSize: 16, fontWeight: FontWeight.w500)
+          .copyWith(color: _colors.primaryWhite);
+  TextStyle get caption =>
+      _base(fontSize: 14, fontWeight: FontWeight.w400)
+          .copyWith(color: _colors.primaryText);
+  TextStyle get fields =>
+      _base(fontSize: 14, fontWeight: FontWeight.w400)
+          .copyWith(color: _colors.primaryText);
+
+  static AppTextStyles fromBrandConfig(AppBrandConfig config) =>
+      AppTextStyles._(config.fontFamily, config.colors);
 }
 
+/// Provider for text styles (from flavor brand config).
+final appTextStylesProvider = Provider<AppTextStyles>((ref) {
+  final flavor = ref.watch(flavorConfigProvider);
+  return AppTextStyles.fromBrandConfig(flavor.values.brandConfig);
+});
+
 extension AppTextStylesExtension on BuildContext {
-  AppTextStyles get appTextStyles => AppTextStyles.main(this);
+  AppTextStyles get appTextStyles =>
+      ProviderScope.containerOf(this, listen: false).read(appTextStylesProvider);
 }

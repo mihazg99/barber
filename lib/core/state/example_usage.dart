@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dartz/dartz.dart';
-import 'package:inventory/core/errors/failure.dart';
+import 'package:barber/core/errors/failure.dart';
 import 'base_notifier.dart';
 import 'base_state.dart';
 import 'base_provider.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'carousel_card.dart';
 import '../../data/enums/carousel_card_type.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
+import 'package:barber/core/theme/app_sizes.dart';
 
 class CarouselSliderSection extends StatelessWidget {
   const CarouselSliderSection({super.key});

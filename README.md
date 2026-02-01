@@ -1,6 +1,6 @@
-# inventory
+# Barber
 
-Flutter app for home inventory
+Barbershop whitelabel app
 
 ## Getting Started
 

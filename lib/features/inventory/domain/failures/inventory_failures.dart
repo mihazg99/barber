@@ -1,4 +1,4 @@
-import 'package:inventory/core/errors/failure.dart';
+import 'package:barber/core/errors/failure.dart';
 
 /// Database failure for inventory operations
 class DatabaseFailure extends Failure {

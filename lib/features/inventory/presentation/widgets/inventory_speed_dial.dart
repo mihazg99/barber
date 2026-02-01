@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:inventory/core/router/app_routes.dart';
-import 'package:inventory/core/theme/app_colors.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
-import 'package:inventory/core/widgets/custom_bottom_sheet.dart';
-import 'package:inventory/features/inventory/presentation/enums/speed_dial_bottom_sheet_type.dart';
-import 'package:inventory/features/inventory/presentation/widgets/bottom_sheets/add_location_bottom_sheet.dart';
-import 'package:inventory/features/inventory/presentation/widgets/bottom_sheets/add_box_bottom_sheet.dart';
+import 'package:barber/core/router/app_routes.dart';
+import 'package:barber/core/theme/app_colors.dart';
+import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/core/widgets/custom_bottom_sheet.dart';
+import 'package:barber/features/inventory/presentation/enums/speed_dial_bottom_sheet_type.dart';
+import 'package:barber/features/inventory/presentation/widgets/bottom_sheets/add_location_bottom_sheet.dart';
+import 'package:barber/features/inventory/presentation/widgets/bottom_sheets/add_box_bottom_sheet.dart';
 
 class InventorySpeedDial extends StatefulWidget {
   const InventorySpeedDial({super.key});

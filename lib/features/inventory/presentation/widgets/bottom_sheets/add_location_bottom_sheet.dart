@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
-import 'package:inventory/core/widgets/custom_bottom_sheet.dart';
-import 'package:inventory/core/widgets/custom_textfield.dart';
-import 'package:inventory/core/widgets/primary_button.dart';
-import 'package:inventory/features/inventory/domain/entities/location_entity.dart';
-import 'package:inventory/features/inventory/di.dart';
+import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/core/widgets/custom_bottom_sheet.dart';
+import 'package:barber/core/widgets/custom_textfield.dart';
+import 'package:barber/core/widgets/primary_button.dart';
+import 'package:barber/features/inventory/domain/entities/location_entity.dart';
+import 'package:barber/features/inventory/di.dart';
 
 class AddLocationBottomSheet extends HookConsumerWidget {
   const AddLocationBottomSheet({super.key});

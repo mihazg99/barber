@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.inventory.home" "\0"
-            VALUE "FileDescription", "inventory" "\0"
+            VALUE "CompanyName", "com.barber.app" "\0"
+            VALUE "FileDescription", "Barber" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "inventory" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.inventory.home. All rights reserved." "\0"
-            VALUE "OriginalFilename", "inventory.exe" "\0"
-            VALUE "ProductName", "inventory" "\0"
+            VALUE "InternalName", "barber" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 com.barber.app. All rights reserved." "\0"
+            VALUE "OriginalFilename", "barber.exe" "\0"
+            VALUE "ProductName", "Barber" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

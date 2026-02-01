@@ -1,14 +1,14 @@
 import 'package:dartz/dartz.dart';
-import 'package:inventory/core/errors/failure.dart';
-import 'package:inventory/core/utils/generic_mapper.dart';
-import 'package:inventory/features/inventory/data/datasources/inventory_local_data_source.dart';
-import 'package:inventory/features/inventory/data/mappers/entity_mapper.dart';
-import 'package:inventory/features/inventory/domain/entities/location_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/box_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/item_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/category_entity.dart';
-import 'package:inventory/features/inventory/domain/repositories/inventory_repository.dart';
-import 'package:inventory/features/inventory/domain/failures/inventory_failures.dart';
+import 'package:barber/core/errors/failure.dart';
+import 'package:barber/core/utils/generic_mapper.dart';
+import 'package:barber/features/inventory/data/datasources/inventory_local_data_source.dart';
+import 'package:barber/features/inventory/data/mappers/entity_mapper.dart';
+import 'package:barber/features/inventory/domain/entities/location_entity.dart';
+import 'package:barber/features/inventory/domain/entities/box_entity.dart';
+import 'package:barber/features/inventory/domain/entities/item_entity.dart';
+import 'package:barber/features/inventory/domain/entities/category_entity.dart';
+import 'package:barber/features/inventory/domain/repositories/inventory_repository.dart';
+import 'package:barber/features/inventory/domain/failures/inventory_failures.dart';
 
 class InventoryRepositoryImpl implements InventoryRepository {
   final InventoryLocalDataSource _localDataSource;

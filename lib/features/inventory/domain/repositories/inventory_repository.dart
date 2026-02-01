@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
-import 'package:inventory/core/errors/failure.dart';
-import 'package:inventory/features/inventory/domain/entities/location_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/box_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/item_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/category_entity.dart';
+import 'package:barber/core/errors/failure.dart';
+import 'package:barber/features/inventory/domain/entities/location_entity.dart';
+import 'package:barber/features/inventory/domain/entities/box_entity.dart';
+import 'package:barber/features/inventory/domain/entities/item_entity.dart';
+import 'package:barber/features/inventory/domain/entities/category_entity.dart';
 
 abstract class InventoryRepository {
   // ===== LOCATIONS CRUD =====

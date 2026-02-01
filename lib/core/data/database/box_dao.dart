@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 import 'app_database.dart';
-import 'package:inventory/features/inventory/data/models/box_table.dart';
-import 'package:inventory/features/inventory/data/models/item_table.dart';
-import 'package:inventory/features/inventory/domain/entities/box_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/item_entity.dart';
+import 'package:barber/features/inventory/data/models/box_table.dart';
+import 'package:barber/features/inventory/data/models/item_table.dart';
+import 'package:barber/features/inventory/domain/entities/box_entity.dart';
+import 'package:barber/features/inventory/domain/entities/item_entity.dart';
 
 part 'box_dao.g.dart';
 

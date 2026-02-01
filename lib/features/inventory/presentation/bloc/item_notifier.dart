@@ -1,7 +1,7 @@
-import 'package:inventory/core/errors/failure.dart';
-import 'package:inventory/core/state/base_notifier.dart';
-import 'package:inventory/features/inventory/domain/entities/item_entity.dart';
-import 'package:inventory/features/inventory/domain/repositories/inventory_repository.dart';
+import 'package:barber/core/errors/failure.dart';
+import 'package:barber/core/state/base_notifier.dart';
+import 'package:barber/features/inventory/domain/entities/item_entity.dart';
+import 'package:barber/features/inventory/domain/repositories/inventory_repository.dart';
 
 class ItemNotifier extends BaseNotifier<List<ItemEntity>, Failure> {
   final InventoryRepository _repository;

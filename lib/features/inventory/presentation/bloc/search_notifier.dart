@@ -1,6 +1,6 @@
-import 'package:inventory/core/state/base_notifier.dart';
-import 'package:inventory/features/inventory/presentation/widgets/search_type_toggle.dart';
-import 'package:inventory/features/inventory/di.dart';
+import 'package:barber/core/state/base_notifier.dart';
+import 'package:barber/features/inventory/presentation/widgets/search_type_toggle.dart';
+import 'package:barber/features/inventory/di.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SearchNotifier extends BaseNotifier<SearchType, String> {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
-import 'package:inventory/features/inventory/presentation/widgets/search_type_toggle.dart';
-import 'package:inventory/features/inventory/presentation/widgets/items_list.dart';
-import 'package:inventory/features/inventory/presentation/widgets/boxes_list.dart';
-import 'package:inventory/features/inventory/presentation/widgets/locations_list.dart';
+import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/features/inventory/presentation/widgets/search_type_toggle.dart';
+import 'package:barber/features/inventory/presentation/widgets/items_list.dart';
+import 'package:barber/features/inventory/presentation/widgets/boxes_list.dart';
+import 'package:barber/features/inventory/presentation/widgets/locations_list.dart';
 
 class ListSection extends StatelessWidget {
   final SearchType searchType;

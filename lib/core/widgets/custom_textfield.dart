@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:inventory/core/theme/app_colors.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
-import 'package:inventory/core/theme/app_text_styles.dart';
-import 'package:inventory/gen/assets.gen.dart';
+import 'package:barber/core/theme/app_colors.dart';
+import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/gen/assets.gen.dart';
 
 class CustomTextField extends HookWidget {
   final String? hint;

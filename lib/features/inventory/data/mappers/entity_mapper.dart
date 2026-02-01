@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart';
-import 'package:inventory/core/data/database/app_database.dart';
-import 'package:inventory/core/utils/generic_mapper.dart';
-import 'package:inventory/features/inventory/domain/entities/location_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/box_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/item_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/category_entity.dart';
+import 'package:barber/core/data/database/app_database.dart';
+import 'package:barber/core/utils/generic_mapper.dart';
+import 'package:barber/features/inventory/domain/entities/location_entity.dart';
+import 'package:barber/features/inventory/domain/entities/box_entity.dart';
+import 'package:barber/features/inventory/domain/entities/item_entity.dart';
+import 'package:barber/features/inventory/domain/entities/category_entity.dart';
 
 /// Mapping functions for database models to domain entities
 /// Using the generic mapper for cleaner code

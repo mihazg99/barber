@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:inventory/core/navigation/data/navigation_config.dart';
-import 'package:inventory/core/theme/app_colors.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
-import 'package:inventory/core/utils/extensions/go_router_extension.dart';
+import 'package:barber/core/navigation/data/navigation_config.dart';
+import 'package:barber/core/theme/app_colors.dart';
+import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/core/utils/extensions/go_router_extension.dart';
 
 class BottomNavBar extends StatelessWidget {
   const BottomNavBar({super.key});
@@ -12,6 +12,7 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentRouteName = context.currentNavigationRouteName;
+    final textStyles = context.appTextStyles;
 
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
@@ -22,11 +23,11 @@ class BottomNavBar extends StatelessWidget {
       backgroundColor: context.appColors.navigationBackgroundColor,
       selectedItemColor: context.appColors.primaryColor,
       unselectedItemColor: context.appColors.secondaryTextColor,
-      selectedLabelStyle: GoogleFonts.poppins(
+      selectedLabelStyle: textStyles.medium.copyWith(
         fontSize: 12,
         fontWeight: FontWeight.w600,
       ),
-      unselectedLabelStyle: GoogleFonts.poppins(
+      unselectedLabelStyle: textStyles.medium.copyWith(
         fontSize: 12,
         fontWeight: FontWeight.w400,
       ),

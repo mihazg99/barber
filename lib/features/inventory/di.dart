@@ -1,18 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:inventory/core/di.dart';
-import 'package:inventory/core/state/base_state.dart';
-import 'package:inventory/features/inventory/data/datasources/inventory_local_data_source.dart';
-import 'package:inventory/features/inventory/data/repositories/inventory_repository_impl.dart';
-import 'package:inventory/features/inventory/domain/entities/location_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/box_entity.dart';
-import 'package:inventory/features/inventory/domain/entities/item_entity.dart';
-import 'package:inventory/features/inventory/domain/repositories/inventory_repository.dart';
-import 'package:inventory/features/inventory/presentation/bloc/add_item/image_picker_notifier.dart';
-import 'package:inventory/features/inventory/presentation/bloc/location_notifier.dart';
-import 'package:inventory/features/inventory/presentation/bloc/box_notifier.dart';
-import 'package:inventory/features/inventory/presentation/bloc/item_notifier.dart';
-import 'package:inventory/features/inventory/presentation/bloc/search_notifier.dart';
-import 'package:inventory/features/inventory/presentation/widgets/search_type_toggle.dart';
+import 'package:barber/core/di.dart';
+import 'package:barber/core/state/base_state.dart';
+import 'package:barber/features/inventory/data/datasources/inventory_local_data_source.dart';
+import 'package:barber/features/inventory/data/repositories/inventory_repository_impl.dart';
+import 'package:barber/features/inventory/domain/entities/location_entity.dart';
+import 'package:barber/features/inventory/domain/entities/box_entity.dart';
+import 'package:barber/features/inventory/domain/entities/item_entity.dart';
+import 'package:barber/features/inventory/domain/repositories/inventory_repository.dart';
+import 'package:barber/features/inventory/presentation/bloc/add_item/image_picker_notifier.dart';
+import 'package:barber/features/inventory/presentation/bloc/location_notifier.dart';
+import 'package:barber/features/inventory/presentation/bloc/box_notifier.dart';
+import 'package:barber/features/inventory/presentation/bloc/item_notifier.dart';
+import 'package:barber/features/inventory/presentation/bloc/search_notifier.dart';
+import 'package:barber/features/inventory/presentation/widgets/search_type_toggle.dart';
 
 // ===== DATA SOURCE PROVIDER =====
 

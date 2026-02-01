@@ -1,0 +1,32 @@
+---
+description: Clean architecture and Riverpod patterns for this Flutter project
+alwaysApply: true
+---
+
+# Barber app – Clean architecture + Riverpod
+
+- **State:** Riverpod (providers, notifiers). Follow existing patterns in `core/state/` and feature `presentation/bloc/`.
+- **Architecture:** Clean architecture. Each **feature** is a vertical slice.
+
+## Layers
+
+1. **Core** – Shared infrastructure only. No feature-specific domain.
+   - `core/firebase/`: Firebase init, Firestore collection names. No entities here.
+   - `core/value_objects/`: Shared value types used by multiple features (e.g. working hours).
+   - `core/errors/`, `core/theme/`, `core/router/`, `core/di.dart`, etc.
+
+2. **Features** – One folder per feature (e.g. `brand`, `locations`, `auth`, `booking`).
+   - **domain/entities/** – Pure Dart entities (Equatable). No Firestore/HTTP imports.
+   - **domain/repositories/** – Repository interfaces (abstract classes).
+   - **domain/failures/** – Feature-specific failure types.
+   - **data/datasources/** – Remote/local data (Firestore, API, local DB).
+   - **data/mappers/** – External format ↔ entity (e.g. Firestore document ↔ entity). Firestore types stay here.
+   - **data/repositories/** – Repository implementations.
+   - **presentation/** – Pages, widgets, Riverpod notifiers/providers (in `bloc/` or similar).
+
+## Rules
+
+- Do **not** put domain entities in `core/`. Each feature owns its entities.
+- Do **not** import Firestore/HTTP in **domain** layer. Use mappers in **data** to convert to/from entities.
+- New Firebase/Firestore-backed features: add entity in feature `domain/entities/`, add `*FirestoreMapper` in feature `data/mappers/`, use `FirestoreCollections` from `core/firebase/collections.dart` in datasources/repos.
+- Register repositories and datasources in feature `di.dart` and/or `core/di.dart` as needed.

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inventory/core/state/base_state.dart';
-import 'package:inventory/core/theme/app_colors.dart';
-import 'package:inventory/features/inventory/di.dart';
-import 'package:inventory/features/inventory/presentation/widgets/location_list_card.dart';
+import 'package:barber/core/state/base_state.dart';
+import 'package:barber/core/theme/app_colors.dart';
+import 'package:barber/features/inventory/di.dart';
+import 'package:barber/features/inventory/presentation/widgets/location_list_card.dart';
 
 class LocationsList extends ConsumerWidget {
   const LocationsList({super.key});

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inventory/core/state/base_state.dart';
-import 'package:inventory/core/theme/app_colors.dart';
-import 'package:inventory/core/theme/app_sizes.dart';
-import 'package:inventory/core/theme/app_text_styles.dart';
-import 'package:inventory/features/inventory/di.dart';
-import 'package:inventory/features/inventory/domain/entities/location_entity.dart';
+import 'package:barber/core/state/base_state.dart';
+import 'package:barber/core/theme/app_colors.dart';
+import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/features/inventory/di.dart';
+import 'package:barber/features/inventory/domain/entities/location_entity.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class LocationListCard extends ConsumerWidget {

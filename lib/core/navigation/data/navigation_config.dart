@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:inventory/core/router/app_routes.dart';
-import 'package:inventory/gen/assets.gen.dart';
+import 'package:barber/core/router/app_routes.dart';
+import 'package:barber/gen/assets.gen.dart';
 import '../domain/entities/navigation_item.dart';
 
 class NavigationConfig {
