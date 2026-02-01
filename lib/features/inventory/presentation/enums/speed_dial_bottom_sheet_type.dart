@@ -1,0 +1,4 @@
+enum SpeedDialBottomSheetType {
+  addLocation,
+  addBox,
+}

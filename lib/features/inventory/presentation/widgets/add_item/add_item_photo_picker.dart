@@ -1,0 +1,86 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inventory/core/state/base_state.dart';
+import 'package:inventory/core/theme/app_colors.dart';
+import 'package:inventory/core/theme/app_sizes.dart';
+import 'package:inventory/core/theme/app_text_styles.dart';
+import 'package:inventory/features/inventory/di.dart';
+import 'package:inventory/gen/assets.gen.dart';
+
+class ImagePickerSection extends HookConsumerWidget {
+  const ImagePickerSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(imagePickerProvider);
+    final notifier = ref.read(imagePickerProvider.notifier);
+
+    final imagePath =
+        state is BaseData<String> && state.data.isNotEmpty ? state.data : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Photo',
+          style: context.appTextStyles.h2.copyWith(
+            color: context.appColors.secondaryTextColor,
+          ),
+        ),
+        SizedBox(height: context.appSizes.paddingSmall),
+        GestureDetector(
+          onTap: imagePath == null ? notifier.pickImage : null,
+          child: Container(
+            height: 140,
+            decoration: BoxDecoration(
+              color: context.appColors.secondaryColor,
+              borderRadius: BorderRadius.circular(
+                context.appSizes.borderRadius,
+              ),
+            ),
+            child: Center(
+              child:
+                  imagePath == null
+                      ? SvgPicture.asset(Assets.icons.photo)
+                      : Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              context.appSizes.borderRadius,
+                            ),
+                            child: Image.file(
+                              File(imagePath),
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              height: 140,
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: GestureDetector(
+                              onTap: notifier.removeImage,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
