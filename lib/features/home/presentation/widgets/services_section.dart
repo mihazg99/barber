@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,13 +7,47 @@ import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/widgets/shimmer_placeholder.dart';
+import 'package:barber/features/home/di.dart';
 import 'package:barber/features/home/presentation/widgets/home_section_title.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
 
+const _servicesSectionSpacing = 28.0;
+
+/// Services list on home: shimmer when loading, list when loaded, nothing when empty.
+/// Same pattern as [LocationsList] — one main widget + shimmer.
+class ServicesSection extends ConsumerWidget {
+  const ServicesSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final servicesAsync = ref.watch(servicesForHomeProvider);
+
+    return switch (servicesAsync) {
+      AsyncLoading() => const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _ServicesSectionShimmer(),
+            Gap(_servicesSectionSpacing),
+          ],
+        ),
+      AsyncData(:final value) => value.isEmpty
+          ? const SizedBox.shrink()
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _ServicesContent(services: value, title: 'Popular services'),
+                Gap(_servicesSectionSpacing),
+              ],
+            ),
+      _ => const SizedBox.shrink(),
+    };
+  }
+}
+
 /// Horizontal list of service cards for quick-action booking.
-class ServicesSection extends StatelessWidget {
-  const ServicesSection({
-    super.key,
+class _ServicesContent extends StatelessWidget {
+  const _ServicesContent({
     required this.services,
     this.title = 'Services',
   });
@@ -22,8 +57,6 @@ class ServicesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (services.isEmpty) return const SizedBox.shrink();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -51,6 +84,63 @@ class ServicesSection extends StatelessWidget {
 
   void _openBookingWithService(BuildContext context, String serviceId) {
     context.push('${AppRoute.booking.path}?serviceId=$serviceId');
+  }
+}
+
+class _ServicesSectionShimmer extends StatelessWidget {
+  const _ServicesSectionShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    const cardWidth = 160.0;
+    const cardHeight = 124.0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const HomeSectionTitle(title: 'Popular services'),
+        Gap(context.appSizes.paddingSmall),
+        SizedBox(
+          height: cardHeight,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.only(right: context.appSizes.paddingMedium),
+            itemCount: 3,
+            separatorBuilder: (_, __) => Gap(context.appSizes.paddingSmall),
+            itemBuilder: (_, __) => ShimmerWrapper(
+              child: Container(
+                width: cardWidth,
+                padding: EdgeInsets.all(context.appSizes.paddingMedium),
+                decoration: BoxDecoration(
+                  color: context.appColors.menuBackgroundColor,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ShimmerPlaceholder(
+                      width: 100,
+                      height: 16,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    ShimmerPlaceholder(
+                      width: 120,
+                      height: 14,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    ShimmerPlaceholder(
+                      width: 80,
+                      height: 12,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
