@@ -42,13 +42,12 @@ class HomePage extends HookConsumerWidget {
             BaseInitial() => _buildLoading(context),
             BaseLoading() => _buildLoading(context),
             BaseData(:final data) => _buildContent(
-                context,
-                brandName: data.brandName,
-                logoPath: brandConfig.logoPath.isNotEmpty
-                    ? brandConfig.logoPath
-                    : null,
-                locations: data.locations,
-              ),
+              context,
+              brandName: data.brandName,
+              logoPath:
+                  brandConfig.logoPath.isNotEmpty ? brandConfig.logoPath : null,
+              locations: data.locations,
+            ),
             BaseError(:final message) => _buildError(context, ref, message),
           },
         ),
@@ -59,21 +58,11 @@ class HomePage extends HookConsumerWidget {
 
   Widget _buildLoading(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              context.appColors.primaryColor,
-            ),
-          ),
-          Gap(context.appSizes.paddingMedium),
-          Text(
-            'Loading...',
-            style: TextStyle(color: context.appColors.secondaryTextColor),
-          ),
-        ],
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        valueColor: AlwaysStoppedAnimation<Color>(
+          context.appColors.primaryColor,
+        ),
       ),
     );
   }
@@ -91,7 +80,9 @@ class HomePage extends HookConsumerWidget {
           HomeHeader(brandName: brandName, logoPath: logoPath),
           Gap(context.appSizes.paddingMedium),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: context.appSizes.paddingMedium),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.appSizes.paddingMedium,
+            ),
             child: Column(
               children: [
                 QuickActionCard(
@@ -146,8 +137,7 @@ class HomePage extends HookConsumerWidget {
           ),
           Gap(context.appSizes.paddingMedium),
           TextButton.icon(
-            onPressed: () =>
-                ref.read(homeNotifierProvider.notifier).refresh(),
+            onPressed: () => ref.read(homeNotifierProvider.notifier).refresh(),
             icon: Icon(Icons.refresh, color: context.appColors.primaryColor),
             label: Text(
               'Retry',

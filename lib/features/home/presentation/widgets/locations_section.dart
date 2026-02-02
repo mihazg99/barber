@@ -31,7 +31,9 @@ class LocationsSection extends StatelessWidget {
             ),
           ),
           Gap(context.appSizes.paddingSmall),
-          ...locations.take(3).map(
+          ...locations
+              .take(3)
+              .map(
                 (loc) => Padding(
                   padding: EdgeInsets.only(
                     bottom: context.appSizes.paddingSmall,

@@ -71,21 +71,11 @@ class _OnboardingLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              context.appColors.primaryColor,
-            ),
-          ),
-          Gap(context.appSizes.paddingMedium),
-          Text(
-            'Loading...',
-            style: TextStyle(color: context.appColors.secondaryTextColor),
-          ),
-        ],
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        valueColor: AlwaysStoppedAnimation<Color>(
+          context.appColors.primaryColor,
+        ),
       ),
     );
   }

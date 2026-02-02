@@ -16,16 +16,33 @@ class UserEntity extends Equatable {
   final String phone;
   final String fcmToken;
   final String brandId;
+
   /// Single loyalty card: points for this user (brand).
   final int loyaltyPoints;
 
+  UserEntity copyWith({
+    String? userId,
+    String? fullName,
+    String? phone,
+    String? fcmToken,
+    String? brandId,
+    int? loyaltyPoints,
+  }) => UserEntity(
+    userId: userId ?? this.userId,
+    fullName: fullName ?? this.fullName,
+    phone: phone ?? this.phone,
+    fcmToken: fcmToken ?? this.fcmToken,
+    brandId: brandId ?? this.brandId,
+    loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
+  );
+
   @override
   List<Object?> get props => [
-        userId,
-        fullName,
-        phone,
-        fcmToken,
-        brandId,
-        loyaltyPoints,
-      ];
+    userId,
+    fullName,
+    phone,
+    fcmToken,
+    brandId,
+    loyaltyPoints,
+  ];
 }

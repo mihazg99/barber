@@ -36,6 +36,9 @@ final appColorsProvider = Provider<AppColors>((ref) {
 
 extension AppColorsExtension on BuildContext {
   AppColors get appColors {
-    return ProviderScope.containerOf(this, listen: false).read(appColorsProvider);
+    return ProviderScope.containerOf(
+      this,
+      listen: false,
+    ).read(appColorsProvider);
   }
 }

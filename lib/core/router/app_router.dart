@@ -1,21 +1,60 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import 'package:barber/core/state/base_state.dart';
+import 'package:barber/features/auth/di.dart';
+import 'package:barber/features/auth/domain/entities/auth_step.dart';
 import 'package:barber/features/home/presentation/pages/home_page.dart';
 import 'package:barber/features/inventory/presentation/pages/add_item_page.dart';
 import 'package:barber/features/inventory/presentation/pages/inventory_page.dart';
 import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_page.dart';
 
+import 'package:barber/features/auth/presentation/pages/auth_page.dart';
+
 import 'app_routes.dart';
 
+class _AuthRefreshNotifier extends ChangeNotifier {
+  void notify() => notifyListeners();
+}
+
+/// Notify to re-run router redirect (e.g. after profile update).
+final routerRefreshNotifierProvider = ChangeNotifierProvider<_AuthRefreshNotifier>((ref) {
+  return _AuthRefreshNotifier();
+});
+
 final goRouterProvider = Provider<GoRouter>((ref) {
+  final refreshNotifier = ref.watch(routerRefreshNotifierProvider);
+
+  // Do NOT notify redirect on auth state change. That races with verifyOtp's setData(profile step):
+  // Firebase auth stream fires → redirect runs before notifier updates → user sent to home.
+  // Redirect runs on navigation and when profile is submitted (submitProfile calls notify).
+
   return GoRouter(
+    refreshListenable: refreshNotifier,
     redirect: (context, state) {
-      final completed = ref.read(onboardingHasCompletedProvider);
-      if (!completed && state.uri.path != AppRoute.onboarding.path) {
+      // Read fresh state on every redirect so we never use stale values after OTP success.
+      final onboardingCompleted = ref.read(onboardingHasCompletedProvider);
+      final isAuthenticated = ref.read(isAuthenticatedProvider).valueOrNull ?? false;
+      final isProfileComplete = ref.read(isProfileCompleteProvider);
+      final authState = ref.read(authNotifierProvider);
+      final authData = authState is BaseData ? (authState as BaseData).data : null;
+      final isInProfileStep = authData is AuthFlowData && authData.isProfileInfo;
+
+      final path = state.uri.path;
+      if (!onboardingCompleted && path != AppRoute.onboarding.path) {
         return AppRoute.onboarding.path;
       }
-      if (completed && state.uri.path == AppRoute.onboarding.path) {
+      if (onboardingCompleted && path == AppRoute.onboarding.path) {
+        return isAuthenticated ? AppRoute.home.path : AppRoute.auth.path;
+      }
+      if (onboardingCompleted && !isAuthenticated && path != AppRoute.auth.path) {
+        return AppRoute.auth.path;
+      }
+      if (isAuthenticated && path == AppRoute.auth.path) {
+        // Stay on auth when profile incomplete or when showing profile step (avoid redirect race).
+        if (isInProfileStep || !isProfileComplete) return null;
         return AppRoute.home.path;
       }
       return null;
@@ -26,6 +65,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.onboarding.path,
         pageBuilder: (context, state) =>
             NoTransitionPage(child: const OnboardingPage()),
+      ),
+      GoRoute(
+        name: AppRoute.auth.name,
+        path: AppRoute.auth.path,
+        pageBuilder: (context, state) =>
+            NoTransitionPage(child: const AuthPage()),
       ),
       GoRoute(
         name: AppRoute.home.name,

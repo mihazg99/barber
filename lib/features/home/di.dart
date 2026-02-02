@@ -9,11 +9,11 @@ import 'package:barber/features/locations/di.dart';
 
 final homeNotifierProvider =
     StateNotifierProvider<HomeNotifier, BaseState<HomeData>>((ref) {
-  final flavor = ref.watch(flavorConfigProvider);
-  final brandId = flavor.values.brandConfig.defaultBrandId;
-  return HomeNotifier(
-    ref.watch(brandRepositoryProvider),
-    ref.watch(locationRepositoryProvider),
-    brandId,
-  );
-});
+      final flavor = ref.watch(flavorConfigProvider);
+      final brandId = flavor.values.brandConfig.defaultBrandId;
+      return HomeNotifier(
+        ref.watch(brandRepositoryProvider),
+        ref.watch(locationRepositoryProvider),
+        brandId,
+      );
+    });

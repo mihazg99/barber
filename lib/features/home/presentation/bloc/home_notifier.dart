@@ -26,8 +26,9 @@ class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
 
     setLoading();
     final brandResult = await _brandRepository.getById(_defaultBrandId);
-    final locationsResult =
-        await _locationRepository.getByBrandId(_defaultBrandId);
+    final locationsResult = await _locationRepository.getByBrandId(
+      _defaultBrandId,
+    );
 
     final brand = brandResult.fold<BrandEntity?>((_) => null, (b) => b);
     final locations = locationsResult.fold<List<LocationEntity>>(

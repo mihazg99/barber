@@ -31,7 +31,9 @@ class HomeHeader extends StatelessWidget {
         children: [
           if (hasLogo)
             ClipRRect(
-              borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
+              borderRadius: BorderRadius.circular(
+                context.appSizes.borderRadius,
+              ),
               child: Image.asset(
                 logoPath!,
                 width: 48,

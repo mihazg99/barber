@@ -118,11 +118,13 @@ class PrimaryButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
     );
 
+    // Loading is always shown inside the button (spinner only, no loading text).
+    final double indicatorSize = isBig ? 24 : 20;
     final Widget content =
         loading
             ? SizedBox(
-              width: 24,
-              height: 24,
+              width: indicatorSize,
+              height: indicatorSize,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(
