@@ -7,28 +7,40 @@ import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/widgets/shimmer_placeholder.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/home/di.dart';
-import 'package:barber/features/home/domain/entities/home_data.dart';
 
 /// Professional home header: brand left, notifications right; greeting + date below.
-/// Reads brand, logo and user from DI (flavor + home + auth providers).
+/// Shows shimmer when loading; content when data is ready (same pattern as [LocationsList]).
 class HomeHeader extends ConsumerWidget {
   const HomeHeader({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeNotifierProvider);
+
+    return switch (homeState) {
+      BaseInitial() => const _HeaderShimmer(),
+      BaseLoading() => const _HeaderShimmer(),
+      BaseData(:final data) => _HeaderContent(brandName: data.brandName),
+      _ => const SizedBox.shrink(),
+    };
+  }
+}
+
+class _HeaderContent extends ConsumerWidget {
+  const _HeaderContent({required this.brandName});
+
+  final String brandName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final flavor = ref.watch(flavorConfigProvider);
     final brandConfig = flavor.values.brandConfig;
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
-
-    final brandName = homeState is BaseData<HomeData>
-        ? (homeState.data.brandName)
-        : 'Barber';
     final logoPath = brandConfig.logoPath.isNotEmpty ? brandConfig.logoPath : null;
     final userFirstName = _firstName(currentUser?.fullName);
-
     final hasLogo = logoPath != null && logoPath.isNotEmpty;
     final greeting =
         userFirstName != null && userFirstName.isNotEmpty
@@ -106,37 +118,95 @@ class HomeHeader extends ConsumerWidget {
       ),
     );
   }
+}
 
-  static String? _firstName(String? fullName) {
-    if (fullName == null || fullName.trim().isEmpty) return null;
-    final parts = fullName.trim().split(RegExp(r'\s+'));
-    return parts.isNotEmpty ? parts.first : null;
-  }
+String? _firstName(String? fullName) {
+  if (fullName == null || fullName.trim().isEmpty) return null;
+  final parts = fullName.trim().split(RegExp(r'\s+'));
+  return parts.isNotEmpty ? parts.first : null;
+}
 
-  static String _formatDate(DateTime d) {
-    const weekdays = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday',
-      'Friday', 'Saturday', 'Sunday',
-    ];
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}';
-  }
+String _formatDate(DateTime d) {
+  const weekdays = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+    'Friday', 'Saturday', 'Sunday',
+  ];
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+  return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}';
+}
 
-  Widget _buildPlaceholderIcon(BuildContext context) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: context.appColors.menuBackgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Icon(
-        Icons.store,
-        color: context.appColors.primaryColor,
-        size: 22,
+Widget _buildPlaceholderIcon(BuildContext context) {
+  return Container(
+    width: 40,
+    height: 40,
+    decoration: BoxDecoration(
+      color: context.appColors.menuBackgroundColor,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Icon(
+      Icons.store,
+      color: context.appColors.primaryColor,
+      size: 22,
+    ),
+  );
+}
+
+class _HeaderShimmer extends StatelessWidget {
+  const _HeaderShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = context.appSizes.paddingMedium;
+    return ShimmerWrapper(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          padding,
+          padding,
+          padding,
+          context.appSizes.paddingSmall,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                ShimmerPlaceholder(
+                  width: 40,
+                  height: 40,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: ShimmerPlaceholder(
+                    width: double.infinity,
+                    height: 20,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                ShimmerPlaceholder(
+                  width: 44,
+                  height: 44,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+              ],
+            ),
+            Gap(padding),
+            ShimmerPlaceholder(
+              width: 180,
+              height: 28,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            Gap(context.appSizes.paddingSmall / 2),
+            ShimmerPlaceholder(
+              width: 220,
+              height: 14,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ],
+        ),
       ),
     );
   }

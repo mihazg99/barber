@@ -1,19 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:barber/core/router/app_routes.dart';
+import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/value_objects/working_hours.dart';
+import 'package:barber/core/widgets/shimmer_placeholder.dart';
+import 'package:barber/features/home/di.dart';
+import 'package:barber/features/home/domain/entities/home_data.dart';
 import 'package:barber/features/home/presentation/widgets/home_section_title.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 
+/// Nearby locations on home: shimmer when loading, grid when loaded.
+/// Same pattern as [LocationsList] — one main widget + shimmer.
+class NearbyLocationsSection extends ConsumerWidget {
+  const NearbyLocationsSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final homeState = ref.watch(homeNotifierProvider);
+
+    return switch (homeState) {
+      BaseInitial() => const _NearbyLocationsShimmer(),
+      BaseLoading() => const _NearbyLocationsShimmer(),
+      BaseData(:final data) => _NearbyLocationsContent(
+          locations: data.locations,
+          title: 'Nearby barbershop',
+        ),
+      _ => const SizedBox.shrink(),
+    };
+  }
+}
+
 /// Section title + grid of location cards with image placeholder, hours, "Book Now" pill.
-class NearbyLocationsSection extends StatelessWidget {
-  const NearbyLocationsSection({
-    super.key,
+class _NearbyLocationsContent extends StatelessWidget {
+  const _NearbyLocationsContent({
     required this.locations,
     this.title = 'NEARBY BARBERSHOP',
   });
@@ -47,6 +72,93 @@ class NearbyLocationsSection extends StatelessWidget {
                         child: _LocationCard(location: loc),
                       ))
                   .toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _NearbyLocationsShimmer extends StatelessWidget {
+  const _NearbyLocationsShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    const cardRadius = 20.0;
+    final spacing = context.appSizes.paddingSmall;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const HomeSectionTitle(title: 'Nearby barbershop'),
+        Gap(context.appSizes.paddingSmall),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            const crossAxisCount = 2;
+            final width =
+                (constraints.maxWidth - spacing * (crossAxisCount - 1)) /
+                    crossAxisCount;
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: List.generate(
+                4,
+                (_) => SizedBox(
+                  width: width,
+                  child: ShimmerWrapper(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: context.appColors.menuBackgroundColor,
+                        borderRadius: BorderRadius.circular(cardRadius),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 1.4,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: context.appColors.menuBackgroundColor,
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(cardRadius),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(
+                              context.appSizes.paddingSmall + 2,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ShimmerPlaceholder(
+                                  width: 80,
+                                  height: 10,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                Gap(4),
+                                ShimmerPlaceholder(
+                                  width: double.infinity,
+                                  height: 14,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                Gap(context.appSizes.paddingSmall),
+                                ShimmerPlaceholder(
+                                  width: 70,
+                                  height: 28,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             );
           },
         ),

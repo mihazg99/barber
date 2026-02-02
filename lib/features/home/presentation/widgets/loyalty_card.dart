@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -7,14 +8,46 @@ import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/widgets/shimmer_placeholder.dart';
+import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
 
+const _sectionSpacing = 28.0;
+
+/// Loyalty block on home: shows shimmer when loading, card when user is present, nothing otherwise.
+/// Same pattern as [LocationsList] — one main widget + shimmer.
+class LoyaltyCard extends ConsumerWidget {
+  const LoyaltyCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUserAsync = ref.watch(currentUserProvider);
+
+    return switch (currentUserAsync) {
+      AsyncLoading() => const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _LoyaltyCardShimmer(),
+            Gap(_sectionSpacing),
+          ],
+        ),
+      AsyncData(:final value) => value == null
+          ? const SizedBox.shrink()
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _LoyaltyCardContent(user: value),
+                Gap(_sectionSpacing),
+              ],
+            ),
+      _ => const SizedBox.shrink(),
+    };
+  }
+}
+
 /// Premium loyalty card with large, scannable QR for barbers + points and rewards entry.
-class LoyaltyCard extends StatelessWidget {
-  const LoyaltyCard({
-    super.key,
-    required this.user,
-  });
+class _LoyaltyCardContent extends StatelessWidget {
+  const _LoyaltyCardContent({required this.user});
 
   final UserEntity user;
 
@@ -139,6 +172,61 @@ class LoyaltyCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LoyaltyCardShimmer extends StatelessWidget {
+  const _LoyaltyCardShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    const cardRadius = 20.0;
+    const qrSize = 96.0;
+    return ShimmerWrapper(
+      child: Container(
+        padding: EdgeInsets.all(context.appSizes.paddingMedium),
+        decoration: BoxDecoration(
+          color: context.appColors.menuBackgroundColor,
+          borderRadius: BorderRadius.circular(cardRadius),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ShimmerPlaceholder(
+              width: qrSize,
+              height: qrSize,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            Gap(context.appSizes.paddingMedium),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ShimmerPlaceholder(
+                    width: 70,
+                    height: 12,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  Gap(6),
+                  ShimmerPlaceholder(
+                    width: 90,
+                    height: 18,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  Gap(6),
+                  ShimmerPlaceholder(
+                    width: 80,
+                    height: 14,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

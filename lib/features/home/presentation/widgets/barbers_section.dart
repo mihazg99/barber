@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,13 +7,47 @@ import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/widgets/shimmer_placeholder.dart';
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
+import 'package:barber/features/home/di.dart';
 import 'package:barber/features/home/presentation/widgets/home_section_title.dart';
 
+const _barbersSectionSpacing = 28.0;
+
+/// Barbers list on home: shimmer when loading, list when loaded, nothing when empty.
+/// Same pattern as [LocationsList] — one main widget + shimmer.
+class BarbersSection extends ConsumerWidget {
+  const BarbersSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final barbersAsync = ref.watch(barbersForHomeProvider);
+
+    return switch (barbersAsync) {
+      AsyncLoading() => const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _BarbersSectionShimmer(),
+            Gap(_barbersSectionSpacing),
+          ],
+        ),
+      AsyncData(:final value) => value.isEmpty
+          ? const SizedBox.shrink()
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _BarbersContent(barbers: value, title: 'Book with a barber'),
+                Gap(_barbersSectionSpacing),
+              ],
+            ),
+      _ => const SizedBox.shrink(),
+    };
+  }
+}
+
 /// Horizontal list of barber circles for quick-action booking.
-class BarbersSection extends StatelessWidget {
-  const BarbersSection({
-    super.key,
+class _BarbersContent extends StatelessWidget {
+  const _BarbersContent({
     required this.barbers,
     this.title = 'Your barbers',
   });
@@ -22,8 +57,6 @@ class BarbersSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (barbers.isEmpty) return const SizedBox.shrink();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -51,6 +84,54 @@ class BarbersSection extends StatelessWidget {
 
   void _openBookingWithBarber(BuildContext context, String barberId) {
     context.push('${AppRoute.booking.path}?barberId=$barberId');
+  }
+}
+
+class _BarbersSectionShimmer extends StatelessWidget {
+  const _BarbersSectionShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const HomeSectionTitle(title: 'Book with a barber'),
+        Gap(context.appSizes.paddingSmall),
+        SizedBox(
+          height: 132,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.only(right: context.appSizes.paddingMedium),
+            itemCount: 4,
+            separatorBuilder: (_, __) => Gap(context.appSizes.paddingMedium),
+            itemBuilder: (_, __) => ShimmerWrapper(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ShimmerPlaceholder(
+                    width: 80,
+                    height: 80,
+                    borderRadius: BorderRadius.circular(40),
+                  ),
+                  Gap(8),
+                  ShimmerPlaceholder(
+                    width: 60,
+                    height: 12,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  Gap(2),
+                  ShimmerPlaceholder(
+                    width: 32,
+                    height: 11,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
