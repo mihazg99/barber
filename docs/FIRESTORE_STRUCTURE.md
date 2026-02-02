@@ -70,7 +70,21 @@ Employees assigned to specific locations.
 | `name` | String | Barber display name |
 | `photo_url` | String | URL of barber photo |
 | `active` | Boolean | Whether the barber is active |
-| `working_hours_override` | Map (optional) | Same format as location [working hours](#working-hours-map); overrides location hours for this barber |
+| `working_hours_override` | Map (optional) | **Barber shift.** Same format as location [working hours](#working-hours-map); overrides location hours for this barber. When absent, barber is assumed to work the location’s hours. |
+
+### Where is barber shift stored?
+
+**Barber shift = when a barber can take appointments.**
+
+- **Default:** Use the **location’s** `working_hours` (barber works whenever the shop is open).
+- **Override:** Set **barber’s** `working_hours_override` (e.g. only Tue–Sat 09:00–17:00).
+
+There is **no** separate `shifts` collection. Shifts are:
+
+1. **Location** `working_hours` → shop’s recurring weekly schedule (default for all barbers at that location).
+2. **Barber** `working_hours_override` → that barber’s recurring weekly schedule (optional).
+
+Both are **recurring by weekday** (mon–sun). There is no date-specific shift (e.g. “Luka off on 2026-02-05”) in the current schema.
 
 ---
 
@@ -134,3 +148,14 @@ Detailed records of all bookings.
   - Users → `features/auth/`  
   - Availability & Appointments → `features/booking/`  
 - **Working hours value type:** `lib/core/value_objects/working_hours.dart`
+
+---
+
+## Barber shift summary
+
+| Stored in Firestore? | Where | Format |
+|----------------------|--------|--------|
+| **Shop hours** (default for all barbers) | `locations/{id}.working_hours` | Map: `mon`–`sun` → `{ open, close }` or `null` |
+| **Barber shift** (optional override) | `barbers/{id}.working_hours_override` | Same map; overrides location for that barber |
+
+**Not in schema (yet):** date-specific shifts, time-off, or swap shifts (would require e.g. a `shifts` or `time_off` collection).

@@ -185,13 +185,6 @@ class _ServiceCard extends StatelessWidget {
             border: Border.all(
               color: context.appColors.borderColor.withValues(alpha: 0.4),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: context.appColors.primaryTextColor.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

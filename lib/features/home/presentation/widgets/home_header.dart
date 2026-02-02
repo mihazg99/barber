@@ -23,30 +23,44 @@ class HomeHeader extends ConsumerWidget {
     return switch (homeState) {
       BaseInitial() => const _HeaderShimmer(),
       BaseLoading() => const _HeaderShimmer(),
-      BaseData(:final data) => _HeaderContent(brandName: data.brandName),
+      BaseData(:final data) => _HeaderContent(
+        brandName: data.brandName,
+        brandLogoUrl: data.brand?.logoUrl,
+      ),
       _ => const SizedBox.shrink(),
     };
   }
 }
 
 class _HeaderContent extends ConsumerWidget {
-  const _HeaderContent({required this.brandName});
+  const _HeaderContent({
+    required this.brandName,
+    this.brandLogoUrl,
+  });
 
   final String brandName;
+  final String? brandLogoUrl;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final flavor = ref.watch(flavorConfigProvider);
     final brandConfig = flavor.values.brandConfig;
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
-    final logoPath = brandConfig.logoPath.isNotEmpty ? brandConfig.logoPath : null;
+    final logoPath =
+        brandConfig.logoPath.isNotEmpty ? brandConfig.logoPath : null;
+    final logoUrl = brandLogoUrl?.isNotEmpty == true ? brandLogoUrl : null;
     final userFirstName = _firstName(currentUser?.fullName);
-    final hasLogo = logoPath != null && logoPath.isNotEmpty;
+    final hasLogo =
+        (logoPath != null && logoPath.isNotEmpty) ||
+        (logoUrl != null && logoUrl.isNotEmpty);
     final greeting =
         userFirstName != null && userFirstName.isNotEmpty
             ? 'Hey, $userFirstName 👋'
             : 'Hey there 👋';
     final date = _formatDate(DateTime.now());
+
+    const _logoHeight = 40.0;
+    final _logoWidth = logoUrl != null ? 120.0 : 40.0;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -59,28 +73,37 @@ class _HeaderContent extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (hasLogo)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    logoPath,
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _buildPlaceholderIcon(context),
-                  ),
-                ),
-              if (hasLogo) const Gap(12),
               Expanded(
-                child: Text(
-                  brandName.toUpperCase(),
-                  style: context.appTextStyles.h2.copyWith(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                    color: context.appColors.primaryTextColor,
-                  ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (hasLogo) ...[
+                      _BrandLogo(
+                        logoUrl: logoUrl,
+                        logoPath: logoPath,
+                        width: _logoWidth,
+                        height: _logoHeight,
+                      ),
+                      const Gap(14),
+                    ],
+                    Flexible(
+                      child: Text(
+                        brandName,
+                        style: context.appTextStyles.h2.copyWith(
+                          fontSize: hasLogo ? 17 : 20,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                          color: context.appColors.primaryTextColor,
+                          height: 1.25,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               IconButton(
@@ -120,6 +143,60 @@ class _HeaderContent extends ConsumerWidget {
   }
 }
 
+/// Brand logo: network or asset, with consistent sizing and error handling.
+class _BrandLogo extends StatelessWidget {
+  const _BrandLogo({
+    this.logoUrl,
+    this.logoPath,
+    required this.width,
+    required this.height,
+  });
+
+  final String? logoUrl;
+  final String? logoPath;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: logoUrl != null
+            ? Image.network(
+                logoUrl!,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => _buildPlaceholder(context),
+              )
+            : Image.asset(
+                logoPath!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildPlaceholder(context),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: context.appColors.menuBackgroundColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.store_rounded,
+        color: context.appColors.primaryColor,
+        size: 22,
+      ),
+    );
+  }
+}
+
 String? _firstName(String? fullName) {
   if (fullName == null || fullName.trim().isEmpty) return null;
   final parts = fullName.trim().split(RegExp(r'\s+'));
@@ -128,30 +205,29 @@ String? _firstName(String? fullName) {
 
 String _formatDate(DateTime d) {
   const weekdays = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday',
-    'Friday', 'Saturday', 'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
   ];
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
   return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}';
-}
-
-Widget _buildPlaceholderIcon(BuildContext context) {
-  return Container(
-    width: 40,
-    height: 40,
-    decoration: BoxDecoration(
-      color: context.appColors.menuBackgroundColor,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Icon(
-      Icons.store,
-      color: context.appColors.primaryColor,
-      size: 22,
-    ),
-  );
 }
 
 class _HeaderShimmer extends StatelessWidget {
@@ -172,17 +248,18 @@ class _HeaderShimmer extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 ShimmerPlaceholder(
-                  width: 40,
+                  width: 120,
                   height: 40,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const Gap(12),
+                const Gap(14),
                 Expanded(
                   child: ShimmerPlaceholder(
                     width: double.infinity,
-                    height: 20,
+                    height: 18,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),

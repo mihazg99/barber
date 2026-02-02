@@ -1,9 +1,22 @@
+import 'package:barber/core/value_objects/working_hours.dart';
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
 
 /// Mock barbers and services for testing the home UI when Firestore is empty.
 const String _brandId = 'mock-brand';
 const String _locationId = 'mock-location';
+
+/// Custom shift for James Wilson: Tue–Sat 09:00–17:00, closed Mon & Sun.
+/// Use this barber to test that override limits available slots vs location hours.
+const WorkingHoursMap _jamesWilsonShift = {
+  'mon': null,
+  'tue': DayWorkingHours(open: '09:00', close: '17:00'),
+  'wed': DayWorkingHours(open: '09:00', close: '17:00'),
+  'thu': DayWorkingHours(open: '09:00', close: '17:00'),
+  'fri': DayWorkingHours(open: '09:00', close: '17:00'),
+  'sat': DayWorkingHours(open: '09:00', close: '17:00'),
+  'sun': null,
+};
 
 final mockBarbersForHome = <BarberEntity>[
   const BarberEntity(
@@ -22,6 +35,7 @@ final mockBarbersForHome = <BarberEntity>[
     name: 'James Wilson',
     photoUrl: '',
     active: true,
+    workingHoursOverride: _jamesWilsonShift,
   ),
   const BarberEntity(
     barberId: 'mock-barber-3',

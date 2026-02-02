@@ -15,7 +15,7 @@ import 'package:barber/features/home/domain/entities/home_data.dart';
 import 'package:barber/features/home/presentation/widgets/home_section_title.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 
-/// Upcoming appointment card: horizontal, location + date/time, white "Book" pill.
+/// Upcoming appointment card: horizontal, location + date/time, accent CTA.
 class UpcomingBookingCard extends StatelessWidget {
   const UpcomingBookingCard({
     super.key,
@@ -26,12 +26,22 @@ class UpcomingBookingCard extends StatelessWidget {
   final AppointmentEntity appointment;
   final String? locationName;
 
-  static const _cardRadius = 20.0;
+  static const _cardRadius = 16.0;
 
   static String _formatDateTime(DateTime dt) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final h = dt.hour;
     final m = dt.minute;
@@ -43,6 +53,7 @@ class UpcomingBookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -51,57 +62,76 @@ class UpcomingBookingCard extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.all(context.appSizes.paddingMedium),
           decoration: BoxDecoration(
-            color: context.appColors.menuBackgroundColor,
+            color: colors.menuBackgroundColor,
             borderRadius: BorderRadius.circular(_cardRadius),
             border: Border.all(
-              color: context.appColors.borderColor.withValues(alpha: 0.4),
+              color: colors.borderColor.withValues(alpha: 0.2),
+              width: 1,
             ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: context.appColors.primaryColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  Icons.calendar_today_rounded,
-                  color: context.appColors.primaryColor,
-                  size: 26,
-                ),
-              ),
-              Gap(context.appSizes.paddingMedium),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      locationName ?? 'Upcoming appointment',
-                      style: context.appTextStyles.h2.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: context.appColors.primaryTextColor,
-                      ),
-                    ),
-                    Gap(4),
-                    Text(
-                      _formatDateTime(appointment.startTime),
-                      style: context.appTextStyles.caption.copyWith(
-                        fontSize: 13,
-                        color: context.appColors.captionTextColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _PillButton(
-                label: 'Manage',
-                onPressed: () => context.push(AppRoute.booking.path),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: colors.primaryColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Gap(context.appSizes.paddingMedium),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: colors.primaryColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.event_available_rounded,
+                    color: colors.primaryColor,
+                    size: 22,
+                  ),
+                ),
+                Gap(context.appSizes.paddingMedium),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        locationName ?? 'Upcoming appointment',
+                        style: context.appTextStyles.h2.copyWith(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: colors.primaryTextColor,
+                        ),
+                      ),
+                      Gap(2),
+                      Text(
+                        _formatDateTime(appointment.startTime),
+                        style: context.appTextStyles.caption.copyWith(
+                          fontSize: 13,
+                          color: colors.captionTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _PillButton(
+                  label: 'Manage',
+                  onPressed: () => context.push(AppRoute.booking.path),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -109,7 +139,7 @@ class UpcomingBookingCard extends StatelessWidget {
   }
 }
 
-/// CTA when user has no upcoming booking. Same card style + white "Book" pill.
+/// CTA when user has no upcoming booking. Same card style + "Book" pill.
 class NoUpcomingBookingCTA extends StatelessWidget {
   const NoUpcomingBookingCTA({
     super.key,
@@ -118,10 +148,11 @@ class NoUpcomingBookingCTA extends StatelessWidget {
 
   final VoidCallback onTap;
 
-  static const _cardRadius = 20.0;
+  static const _cardRadius = 16.0;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -130,54 +161,73 @@ class NoUpcomingBookingCTA extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.all(context.appSizes.paddingMedium),
           decoration: BoxDecoration(
-            color: context.appColors.menuBackgroundColor,
+            color: colors.menuBackgroundColor,
             borderRadius: BorderRadius.circular(_cardRadius),
             border: Border.all(
-              color: context.appColors.borderColor.withValues(alpha: 0.4),
+              color: colors.borderColor.withValues(alpha: 0.2),
+              width: 1,
             ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: context.appColors.primaryColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  Icons.calendar_today_outlined,
-                  color: context.appColors.primaryColor,
-                  size: 26,
-                ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-              Gap(context.appSizes.paddingMedium),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Book your next visit',
-                      style: context.appTextStyles.h2.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: context.appColors.primaryTextColor,
-                      ),
-                    ),
-                    Gap(4),
-                    Text(
-                      'Choose location, service and time',
-                      style: context.appTextStyles.caption.copyWith(
-                        fontSize: 13,
-                        color: context.appColors.captionTextColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _PillButton(label: 'Book', onPressed: onTap),
             ],
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: colors.primaryColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Gap(context.appSizes.paddingMedium),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: colors.primaryColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.add_circle_outline_rounded,
+                    color: colors.primaryColor,
+                    size: 22,
+                  ),
+                ),
+                Gap(context.appSizes.paddingMedium),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Book your next visit',
+                        style: context.appTextStyles.h2.copyWith(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: colors.primaryTextColor,
+                        ),
+                      ),
+                      Gap(2),
+                      Text(
+                        'Choose location, service and time',
+                        style: context.appTextStyles.caption.copyWith(
+                          fontSize: 13,
+                          color: colors.captionTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _PillButton(label: 'Book', onPressed: onTap),
+              ],
+            ),
           ),
         ),
       ),
@@ -185,7 +235,7 @@ class NoUpcomingBookingCTA extends StatelessWidget {
   }
 }
 
-/// White pill CTA (e.g. "Book", "Manage", "Book Now").
+/// Small outlined secondary button with primaryColor.
 class _PillButton extends StatelessWidget {
   const _PillButton({
     required this.label,
@@ -197,25 +247,23 @@ class _PillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: context.appColors.primaryWhiteColor,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(999),
-          child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: context.appSizes.paddingMedium + 4,
-            vertical: context.appSizes.paddingSmall + 2,
-          ),
-          child: Text(
-            label,
-            style: context.appTextStyles.h2.copyWith(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: context.appColors.secondaryColor,
-            ),
-          ),
+    final colors = context.appColors;
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: colors.primaryColor,
+        side: BorderSide(color: colors.primaryColor),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        minimumSize: const Size(0, 36),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
+      child: Text(
+        label,
+        style: context.appTextStyles.h2.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: colors.primaryColor,
         ),
       ),
     );
@@ -234,7 +282,9 @@ class UpcomingBooking extends ConsumerWidget {
     final upcomingAsync = ref.watch(upcomingAppointmentProvider);
     final homeState = ref.watch(homeNotifierProvider);
     final locations =
-        homeState is BaseData<HomeData> ? homeState.data.locations : <LocationEntity>[];
+        homeState is BaseData<HomeData>
+            ? homeState.data.locations
+            : <LocationEntity>[];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -244,17 +294,18 @@ class UpcomingBooking extends ConsumerWidget {
         Gap(context.appSizes.paddingSmall),
         switch (upcomingAsync) {
           AsyncLoading() => const _UpcomingShimmer(),
-          AsyncData(:final value) => value == null
-              ? NoUpcomingBookingCTA(
+          AsyncData(:final value) =>
+            value == null
+                ? NoUpcomingBookingCTA(
                   onTap: () => context.push(AppRoute.booking.path),
                 )
-              : UpcomingBookingCard(
+                : UpcomingBookingCard(
                   appointment: value,
                   locationName: _locationNameFor(locations, value.locationId),
                 ),
           _ => NoUpcomingBookingCTA(
-              onTap: () => context.push(AppRoute.booking.path),
-            ),
+            onTap: () => context.push(AppRoute.booking.path),
+          ),
         },
         Gap(_upcomingSectionSpacing),
       ],
@@ -264,9 +315,7 @@ class UpcomingBooking extends ConsumerWidget {
 
 String? _locationNameFor(List<LocationEntity> locations, String locationId) {
   try {
-    return locations
-        .firstWhere((l) => l.locationId == locationId)
-        .name;
+    return locations.firstWhere((l) => l.locationId == locationId).name;
   } catch (_) {
     return null;
   }
@@ -277,7 +326,7 @@ class _UpcomingShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const cardRadius = 20.0;
+    const cardRadius = 16.0;
     return ShimmerWrapper(
       child: Container(
         padding: EdgeInsets.all(context.appSizes.paddingMedium),
@@ -288,9 +337,15 @@ class _UpcomingShimmer extends StatelessWidget {
         child: Row(
           children: [
             ShimmerPlaceholder(
-              width: 52,
-              height: 52,
-              borderRadius: BorderRadius.circular(14),
+              width: 4,
+              height: 44,
+              borderRadius: BorderRadius.circular(2),
+            ),
+            Gap(context.appSizes.paddingMedium),
+            ShimmerPlaceholder(
+              width: 44,
+              height: 44,
+              borderRadius: BorderRadius.circular(12),
             ),
             Gap(context.appSizes.paddingMedium),
             Expanded(
@@ -300,7 +355,7 @@ class _UpcomingShimmer extends StatelessWidget {
                 children: [
                   ShimmerPlaceholder(
                     width: 140,
-                    height: 16,
+                    height: 15,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   Gap(4),
@@ -313,9 +368,9 @@ class _UpcomingShimmer extends StatelessWidget {
               ),
             ),
             ShimmerPlaceholder(
-              width: 72,
+              width: 64,
               height: 36,
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(8),
             ),
           ],
         ),

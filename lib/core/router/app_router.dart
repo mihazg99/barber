@@ -43,11 +43,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
-      // Read fresh state on every redirect so we never use stale values after OTP success.
-      final onboardingCompleted = ref.read(onboardingHasCompletedProvider);
-      final isAuthenticated = ref.read(isAuthenticatedProvider).valueOrNull ?? false;
-      final isProfileComplete = ref.read(isProfileCompleteProvider);
-      final authState = ref.read(authNotifierProvider);
+      // Use container from context so we don't use ref during "dependency changed"
+      // (e.g. when refreshNotifier.notify() runs from ref.listen), which would throw.
+      final container = ProviderScope.containerOf(context);
+      final onboardingCompleted = container.read(onboardingHasCompletedProvider);
+      final isAuthenticated = container.read(isAuthenticatedProvider).valueOrNull ?? false;
+      final isProfileComplete = container.read(isProfileCompleteProvider);
+      final authState = container.read(authNotifierProvider);
       final authData = authState is BaseData ? (authState as BaseData).data : null;
       final isInProfileStep = authData is AuthFlowData && authData.isProfileInfo;
 

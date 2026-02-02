@@ -1,4 +1,5 @@
 import 'package:barber/core/state/base_notifier.dart';
+import 'package:barber/features/brand/data/mock_brand_data.dart';
 import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 import 'package:barber/features/brand/domain/repositories/brand_repository.dart';
 import 'package:barber/features/home/domain/entities/home_data.dart';
@@ -17,10 +18,10 @@ class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
   final String _defaultBrandId;
 
   /// Load home data (brand + locations).
-  /// If [defaultBrandId] is empty, emits [HomeData] with null brand and empty locations.
+  /// If [defaultBrandId] is empty, emits [HomeData] with mock brand and empty locations.
   Future<void> load() async {
     if (_defaultBrandId.isEmpty) {
-      setData(const HomeData());
+      setData(HomeData(brand: mockBrand, locations: const []));
       return;
     }
 
@@ -30,7 +31,10 @@ class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
       _defaultBrandId,
     );
 
-    final brand = brandResult.fold<BrandEntity?>((_) => null, (b) => b);
+    final brand = brandResult.fold<BrandEntity?>(
+      (_) => mockBrand,
+      (b) => b ?? mockBrand,
+    );
     final locations = locationsResult.fold<List<LocationEntity>>(
       (_) => [],
       (list) => list,

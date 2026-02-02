@@ -13,7 +13,7 @@ class BrandFirestoreMapper {
       logoUrl: data['logo_url'] as String? ?? '',
       contactEmail: data['contact_email'] as String? ?? '',
       slotInterval: (data['slot_interval'] as num?)?.toInt() ?? 30,
-      bufferTime: (data['buffer_time'] as num?)?.toInt() ?? 5,
+      bufferTime: (data['buffer_time'] as num?)?.toInt() ?? 0,
     );
   }
 

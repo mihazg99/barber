@@ -18,6 +18,30 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Barbers and services: read-only for signed-in users (home, booking).
+    match /barbers/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /services/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // Appointments: signed-in users can create and read their own.
+    match /appointments/{appointmentId} {
+      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Availability: read for slot display; write when creating a booking (client updates booked_slots).
+    match /availability/{document=**} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null;
+      allow delete: if false;
+    }
+
     // Deny all other collections by default.
     match /{document=**} {
       allow read, write: if false;
