@@ -84,13 +84,10 @@ class _BarberCircle extends StatelessWidget {
               height: _circleSize + 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: context.appColors.primaryTextColor.withValues(alpha: 0.04),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                border: Border.all(
+                  color: context.appColors.primaryTextColor.withValues(alpha: 0.12),
+                  width: 1,
+                ),
               ),
               child: Center(
                 child: ClipOval(
