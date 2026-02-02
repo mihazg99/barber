@@ -71,13 +71,14 @@ class CountryCodeSelector extends StatelessWidget {
           top: Radius.circular(context.appSizes.borderRadius * 1.5),
         ),
       ),
-      builder: (context) => _CountryCodePickerSheet(
-        selected: selected,
-        onSelected: (country) {
-          Navigator.of(context).pop(country);
-          onChanged(country);
-        },
-      ),
+      builder:
+          (context) => _CountryCodePickerSheet(
+            selected: selected,
+            onSelected: (country) {
+              Navigator.of(context).pop(country);
+              onChanged(country);
+            },
+          ),
     );
   }
 }
@@ -92,7 +93,8 @@ class _CountryCodePickerSheet extends StatefulWidget {
   final ValueChanged<CountryCode> onSelected;
 
   @override
-  State<_CountryCodePickerSheet> createState() => _CountryCodePickerSheetState();
+  State<_CountryCodePickerSheet> createState() =>
+      _CountryCodePickerSheetState();
 }
 
 class _CountryCodePickerSheetState extends State<_CountryCodePickerSheet> {
@@ -119,14 +121,15 @@ class _CountryCodePickerSheetState extends State<_CountryCodePickerSheet> {
       if (q.isEmpty) {
         _filtered = List.from(kCountryCodes);
       } else {
-        _filtered = kCountryCodes
-            .where(
-              (c) =>
-                  c.name.toLowerCase().contains(q) ||
-                  c.dialCode.contains(q) ||
-                  c.isoCode.toLowerCase().contains(q),
-            )
-            .toList();
+        _filtered =
+            kCountryCodes
+                .where(
+                  (c) =>
+                      c.name.toLowerCase().contains(q) ||
+                      c.dialCode.contains(q) ||
+                      c.isoCode.toLowerCase().contains(q),
+                )
+                .toList();
       }
     });
   }
@@ -152,7 +155,9 @@ class _CountryCodePickerSheetState extends State<_CountryCodePickerSheet> {
             ),
             Gap(context.appSizes.paddingMedium),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: context.appSizes.paddingMedium),
+              padding: EdgeInsets.symmetric(
+                horizontal: context.appSizes.paddingMedium,
+              ),
               child: TextField(
                 onChanged: (v) => _query.value = v,
                 decoration: InputDecoration(
@@ -168,7 +173,9 @@ class _CountryCodePickerSheetState extends State<_CountryCodePickerSheet> {
                   filled: true,
                   fillColor: context.appColors.secondaryColor,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
+                    borderRadius: BorderRadius.circular(
+                      context.appSizes.borderRadius,
+                    ),
                   ),
                   contentPadding: EdgeInsets.symmetric(
                     vertical: context.appSizes.paddingSmall,
@@ -187,7 +194,10 @@ class _CountryCodePickerSheetState extends State<_CountryCodePickerSheet> {
                   final country = _filtered[index];
                   final isSelected = country.isoCode == widget.selected.isoCode;
                   return ListTile(
-                    leading: Text(country.flag, style: const TextStyle(fontSize: 24)),
+                    leading: Text(
+                      country.flag,
+                      style: const TextStyle(fontSize: 24),
+                    ),
                     title: Text(
                       country.name,
                       style: context.appTextStyles.body.copyWith(

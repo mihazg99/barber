@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/auth/domain/entities/auth_step.dart';
+import 'package:barber/features/booking/presentation/pages/booking_page.dart';
 import 'package:barber/features/home/presentation/pages/home_page.dart';
 import 'package:barber/features/inventory/presentation/pages/add_item_page.dart';
 import 'package:barber/features/inventory/presentation/pages/inventory_page.dart';
+import 'package:barber/features/loyalty/presentation/pages/loyalty_page.dart';
 import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_page.dart';
 
@@ -27,9 +29,16 @@ final routerRefreshNotifierProvider = ChangeNotifierProvider<_AuthRefreshNotifie
 final goRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = ref.watch(routerRefreshNotifierProvider);
 
-  // Do NOT notify redirect on auth state change. That races with verifyOtp's setData(profile step):
-  // Firebase auth stream fires → redirect runs before notifier updates → user sent to home.
-  // Redirect runs on navigation and when profile is submitted (submitProfile calls notify).
+  ref.listen(isAuthenticatedProvider, (prev, next) {
+    if (next.valueOrNull == true) {
+      ref.invalidate(currentUserProvider);
+      // Delay so verifyOtp's setData(profile step) runs first for new users; then redirect
+      // sends returning users (profile complete) to home and keeps new users on auth for profile step.
+      Future.delayed(const Duration(milliseconds: 200), () {
+        refreshNotifier.notify();
+      });
+    }
+  });
 
   return GoRouter(
     refreshListenable: refreshNotifier,
@@ -77,6 +86,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.home.path,
         pageBuilder:
             (context, state) => NoTransitionPage(child: const HomePage()),
+      ),
+      GoRoute(
+        name: AppRoute.booking.name,
+        path: AppRoute.booking.path,
+        pageBuilder:
+            (context, state) => NoTransitionPage(child: const BookingPage()),
+      ),
+      GoRoute(
+        name: AppRoute.loyalty.name,
+        path: AppRoute.loyalty.path,
+        pageBuilder:
+            (context, state) => NoTransitionPage(child: const LoyaltyPage()),
       ),
     GoRoute(
       name: AppRoute.inventory.name,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:barber/core/theme/app_colors.dart';
 import 'base_state.dart';
 import 'example_usage.dart';
 
@@ -52,7 +53,7 @@ class UserProfileWidget extends HookConsumerWidget {
                 Icon(
                   Icons.error_outline,
                   size: 64,
-                  color: Colors.red[300],
+                  color: context.appColors.errorColor,
                 ),
                 const SizedBox(height: 16),
                 Text(

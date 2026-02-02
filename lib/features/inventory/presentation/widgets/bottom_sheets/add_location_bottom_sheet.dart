@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/widgets/custom_bottom_sheet.dart';
 import 'package:barber/core/widgets/custom_textfield.dart';
@@ -38,7 +39,7 @@ class _AddLocationContent extends HookConsumerWidget {
     final nameController = useTextEditingController();
     final colorController = useTextEditingController();
     final formKey = useMemoized(() => GlobalKey<FormState>());
-    final selectedColor = useState<Color>(Colors.grey);
+    final selectedColor = useState<Color>(context.appColors.borderColor);
 
     final locationNotifier = ref.read(locationNotifierProvider.notifier);
 
@@ -122,7 +123,7 @@ class _AddLocationContent extends HookConsumerWidget {
               decoration: BoxDecoration(
                 color: selectedColor.value,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey[400]!),
+                border: Border.all(color: context.appColors.borderColor),
               ),
             ),
           ),
@@ -134,7 +135,7 @@ class _AddLocationContent extends HookConsumerWidget {
                 child: PrimaryButton.small(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text('Cancel'),
-                  color: Colors.grey[600],
+                  color: context.appColors.captionTextColor,
                 ),
               ),
               Gap(context.appSizes.paddingMedium),

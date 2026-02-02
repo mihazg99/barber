@@ -19,12 +19,16 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
     setData(current.copyWith(isLoading: true, errorMessage: null));
     final result = await _authRepository.sendOtp(phone);
     result.fold(
-      (failure) => setData(current.copyWith(isLoading: false, errorMessage: failure.message)),
-      (verificationId) => setData(AuthFlowData(
-        step: AuthStep.otpVerification,
-        phone: phone.trim(),
-        verificationId: verificationId,
-      )),
+      (failure) => setData(
+        current.copyWith(isLoading: false, errorMessage: failure.message),
+      ),
+      (verificationId) => setData(
+        AuthFlowData(
+          step: AuthStep.otpVerification,
+          phone: phone.trim(),
+          verificationId: verificationId,
+        ),
+      ),
     );
   }
 
@@ -32,8 +36,10 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
   Future<void> verifyOtp(String code) async {
     final current = data;
     if (current == null || current.verificationId == null) {
-      setData((current ?? const AuthFlowData(step: AuthStep.otpVerification))
-          .copyWith(errorMessage: const AuthInvalidOtpFailure().message));
+      setData(
+        (current ?? const AuthFlowData(step: AuthStep.otpVerification))
+            .copyWith(errorMessage: const AuthInvalidOtpFailure().message),
+      );
       return;
     }
     setData(current.copyWith(isLoading: true, errorMessage: null));
@@ -42,7 +48,9 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
       code: code,
     );
     result.fold(
-      (failure) => setData(current.copyWith(isLoading: false, errorMessage: failure.message)),
+      (failure) => setData(
+        current.copyWith(isLoading: false, errorMessage: failure.message),
+      ),
       (user) {
         final needsProfile = user.fullName.trim().isEmpty;
         setData(
@@ -61,18 +69,33 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
     final current = data;
     final trimmed = fullName.trim();
     if (trimmed.isEmpty) {
-      setData((current ?? const AuthFlowData(step: AuthStep.profileInfo))
-          .copyWith(errorMessage: 'Please enter your name'));
+      setData(
+        (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
+          errorMessage: 'Please enter your name',
+        ),
+      );
       return;
     }
-    setData((current ?? const AuthFlowData(step: AuthStep.profileInfo))
-        .copyWith(isLoading: true, errorMessage: null));
+    setData(
+      (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
+        isLoading: true,
+        errorMessage: null,
+      ),
+    );
     final result = await _userRepository.set(user.copyWith(fullName: trimmed));
     result.fold(
-      (failure) => setData((current ?? const AuthFlowData(step: AuthStep.profileInfo))
-          .copyWith(isLoading: false, errorMessage: failure.message)),
-      (_) => setData((current ?? const AuthFlowData(step: AuthStep.profileInfo))
-          .copyWith(isLoading: false, errorMessage: null)),
+      (failure) => setData(
+        (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        ),
+      ),
+      (_) => setData(
+        (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
+          isLoading: false,
+          errorMessage: null,
+        ),
+      ),
     );
   }
 
@@ -80,11 +103,13 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
   void backToPhoneInput() {
     final current = data;
     if (current == null) return;
-    setData(current.copyWith(
-      step: AuthStep.phoneInput,
-      verificationId: null,
-      errorMessage: null,
-    ));
+    setData(
+      current.copyWith(
+        step: AuthStep.phoneInput,
+        verificationId: null,
+        errorMessage: null,
+      ),
+    );
   }
 
   /// Resets to initial phone input state.

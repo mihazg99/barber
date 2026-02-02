@@ -73,7 +73,7 @@ class CustomBottomSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[600],
+                  color: context.appColors.captionTextColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

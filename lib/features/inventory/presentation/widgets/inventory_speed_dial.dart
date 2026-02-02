@@ -117,7 +117,7 @@ class _InventorySpeedDialState extends State<InventorySpeedDial>
           child: AnimatedRotation(
             turns: _isOpen ? 0.125 : 0,
             duration: const Duration(milliseconds: 200),
-            child: Icon(Icons.add, size: 32, color: Colors.white),
+            child: Icon(Icons.add, size: 32, color: context.appColors.primaryWhiteColor),
           ),
         ),
       ],
@@ -154,13 +154,13 @@ class _SpeedDialAction extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.18),
+                    color: context.appColors.primaryTextColor.withValues(alpha: 0.18),
                     blurRadius: 12,
                     offset: Offset(0, 4),
                   ),
                 ],
               ),
-              child: Center(child: Icon(icon, color: Colors.white, size: 24)),
+              child: Center(child: Icon(icon, color: context.appColors.primaryWhiteColor, size: 24)),
             ),
           ),
           const Gap(8),
@@ -175,7 +175,7 @@ class _SpeedDialAction extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha((0.18 * 255).toInt()),
+                    color: context.appColors.primaryTextColor.withValues(alpha: 0.18),
                     blurRadius: 16,
                     offset: Offset(0, 6),
                   ),

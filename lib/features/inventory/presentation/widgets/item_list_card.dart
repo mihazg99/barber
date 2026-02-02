@@ -12,7 +12,7 @@ class ItemListCard extends ConsumerWidget {
 
   const ItemListCard({super.key, required this.item});
 
-  Color _parseColor(String colorString) {
+  Color _parseColor(String colorString, BuildContext context) {
     try {
       // Remove # if present and ensure it's a valid hex color
       final cleanColor = colorString.replaceAll('#', '');
@@ -20,9 +20,9 @@ class ItemListCard extends ConsumerWidget {
         return Color(int.parse('0xFF$cleanColor'));
       }
     } catch (e) {
-      // Fallback to grey if parsing fails
+      // Fallback from theme if parsing fails
     }
-    return Colors.grey;
+    return context.appColors.captionTextColor;
   }
 
   @override
@@ -38,8 +38,8 @@ class ItemListCard extends ConsumerWidget {
 
     Widget imageWidget = Container(
       width: 72,
-      color: Colors.grey[800],
-      child: const Icon(Icons.image, color: Colors.white54, size: 32),
+      color: context.appColors.menuBackgroundColor,
+      child: Icon(Icons.image, color: context.appColors.captionTextColor, size: 32),
     );
 
     return InkWell(
@@ -87,8 +87,8 @@ class ItemListCard extends ConsumerWidget {
                           ),
                           backgroundColor:
                               location != null
-                                  ? _parseColor(location.color)
-                                  : Colors.grey,
+                                  ? _parseColor(location.color, context)
+                                  : context.appColors.captionTextColor,
                           shape: const StadiumBorder(),
                           side: BorderSide.none,
                           padding: const EdgeInsets.symmetric(
@@ -100,7 +100,7 @@ class ItemListCard extends ConsumerWidget {
                           Gap(context.appSizes.paddingSmall),
                           Icon(
                             Icons.inventory_2_outlined,
-                            color: Colors.white54,
+                            color: context.appColors.captionTextColor,
                             size: 20,
                           ),
                           const SizedBox(width: 4),

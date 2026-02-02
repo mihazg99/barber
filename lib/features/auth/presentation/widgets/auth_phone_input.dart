@@ -100,16 +100,17 @@ class AuthPhoneInput extends HookConsumerWidget {
           ],
           Gap(context.appSizes.paddingLarge),
           PrimaryButton.big(
-            onPressed: isLoading
-                ? null
-                : () {
-                    if (formKey.currentState?.validate() ?? false) {
-                      final digits = _digitsOnly(controller.text);
-                      final fullPhone =
-                          selectedCountry.value.dialCode + digits;
-                      onSendOtp(fullPhone);
-                    }
-                  },
+            onPressed:
+                isLoading
+                    ? null
+                    : () {
+                      if (formKey.currentState?.validate() ?? false) {
+                        final digits = _digitsOnly(controller.text);
+                        final fullPhone =
+                            selectedCountry.value.dialCode + digits;
+                        onSendOtp(fullPhone);
+                      }
+                    },
             loading: isLoading,
             child: const Text('Send code'),
           ),
@@ -118,6 +119,5 @@ class AuthPhoneInput extends HookConsumerWidget {
     );
   }
 
-  static String _digitsOnly(String s) =>
-      s.replaceAll(RegExp(r'[^0-9]'), '');
+  static String _digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
 }

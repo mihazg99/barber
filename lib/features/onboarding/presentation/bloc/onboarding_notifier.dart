@@ -15,7 +15,8 @@ class OnboardingNotifier extends BaseNotifier<OnboardingData, dynamic> {
 
   void goToPage(int index) {
     final currentData = data;
-    if (currentData == null || index < 0 || index >= currentData.pages.length) return;
+    if (currentData == null || index < 0 || index >= currentData.pages.length)
+      return;
     setData(currentData.copyWith(currentPageIndex: index));
   }
 
@@ -23,14 +24,18 @@ class OnboardingNotifier extends BaseNotifier<OnboardingData, dynamic> {
     final currentData = data;
     if (currentData == null) return;
     if (currentData.isLastPage) return;
-    setData(currentData.copyWith(currentPageIndex: currentData.currentPageIndex + 1));
+    setData(
+      currentData.copyWith(currentPageIndex: currentData.currentPageIndex + 1),
+    );
   }
 
   void previousPage() {
     final currentData = data;
     if (currentData == null) return;
     if (currentData.isFirstPage) return;
-    setData(currentData.copyWith(currentPageIndex: currentData.currentPageIndex - 1));
+    setData(
+      currentData.copyWith(currentPageIndex: currentData.currentPageIndex - 1),
+    );
   }
 
   /// Marks onboarding as completed (persists and keeps current state).

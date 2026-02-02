@@ -41,10 +41,10 @@ class ItemsList extends ConsumerWidget {
                   background: Container(
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    color: Colors.red,
-                    child: const Icon(
+                    color: context.appColors.errorColor,
+                    child: Icon(
                       Icons.delete,
-                      color: Colors.white,
+                      color: context.appColors.primaryWhiteColor,
                       size: 32,
                     ),
                   ),

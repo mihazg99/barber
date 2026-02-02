@@ -17,7 +17,9 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
       final completed = await _localDataSource.hasCompletedOnboarding();
       return Right(completed);
     } catch (e) {
-      return Left(OnboardingStorageFailure('Failed to read onboarding state: $e'));
+      return Left(
+        OnboardingStorageFailure('Failed to read onboarding state: $e'),
+      );
     }
   }
 
@@ -27,7 +29,9 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
       await _localDataSource.setOnboardingCompleted(true);
       return const Right(null);
     } catch (e) {
-      return Left(OnboardingStorageFailure('Failed to save onboarding state: $e'));
+      return Left(
+        OnboardingStorageFailure('Failed to save onboarding state: $e'),
+      );
     }
   }
 
@@ -36,12 +40,14 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
     return [
       OnboardingPageEntity(
         title: 'Book appointments',
-        description: 'Schedule your visit in a few taps and manage your bookings easily.',
+        description:
+            'Schedule your visit in a few taps and manage your bookings easily.',
         iconCodePoint: Icons.calendar_today.codePoint,
       ),
       OnboardingPageEntity(
         title: 'Scan QR codes',
-        description: 'Quick check-in and access to services by scanning QR codes at the location.',
+        description:
+            'Quick check-in and access to services by scanning QR codes at the location.',
         iconCodePoint: Icons.qr_code_scanner.codePoint,
       ),
       OnboardingPageEntity(

@@ -24,9 +24,9 @@ class AuthPage extends HookConsumerWidget {
     final data = switch (authState) {
       BaseData(:final data) => data,
       BaseError(:final message) => AuthFlowData(
-            step: AuthStep.phoneInput,
-            errorMessage: message,
-          ),
+        step: AuthStep.phoneInput,
+        errorMessage: message,
+      ),
       _ => const AuthFlowData(step: AuthStep.phoneInput),
     };
 
@@ -62,13 +62,15 @@ class _AuthStepContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAuthenticated = ref.watch(isAuthenticatedProvider).valueOrNull ?? false;
+    final isAuthenticated =
+        ref.watch(isAuthenticatedProvider).valueOrNull ?? false;
     final isProfileComplete = ref.watch(isProfileCompleteProvider);
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
 
     // Profile step: show when (a) we're in profile step with user (right after OTP, before auth stream updates)
     // or (b) authenticated but profile incomplete. Use data.user first so we don't flash loading.
-    final showProfile = (data.isProfileInfo && data.user != null) ||
+    final showProfile =
+        (data.isProfileInfo && data.user != null) ||
         (isAuthenticated && !isProfileComplete);
     if (showProfile) {
       final user = data.user ?? currentUser;
@@ -116,7 +118,9 @@ class _AuthLoading extends StatelessWidget {
         padding: EdgeInsets.all(context.appSizes.paddingXxl),
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(context.appColors.primaryColor),
+          valueColor: AlwaysStoppedAnimation<Color>(
+            context.appColors.primaryColor,
+          ),
         ),
       ),
     );

@@ -78,7 +78,9 @@ class AuthProfileInput extends HookConsumerWidget {
             ),
             decoration: BoxDecoration(
               color: context.appColors.secondaryColor,
-              borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
+              borderRadius: BorderRadius.circular(
+                context.appSizes.borderRadius,
+              ),
               border: Border.all(color: context.appColors.borderColor),
             ),
             child: Text(
@@ -100,13 +102,14 @@ class AuthProfileInput extends HookConsumerWidget {
           ],
           Gap(context.appSizes.paddingLarge),
           PrimaryButton.big(
-            onPressed: isLoading
-                ? null
-                : () async {
-                    if (formKey.currentState?.validate() ?? false) {
-                      await onSubmit(controller.text.trim());
-                    }
-                  },
+            onPressed:
+                isLoading
+                    ? null
+                    : () async {
+                      if (formKey.currentState?.validate() ?? false) {
+                        await onSubmit(controller.text.trim());
+                      }
+                    },
             loading: isLoading,
             child: const Text('Continue'),
           ),

@@ -31,15 +31,18 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 final authNotifierProvider =
     StateNotifierProvider<AuthNotifier, BaseState<AuthFlowData>>((ref) {
-  return AuthNotifier(
-    ref.watch(authRepositoryProvider),
-    ref.watch(userRepositoryProvider),
-  );
-});
+      return AuthNotifier(
+        ref.watch(authRepositoryProvider),
+        ref.watch(userRepositoryProvider),
+      );
+    });
 
 /// True when user is signed in. Used by router redirect.
 final isAuthenticatedProvider = StreamProvider<bool>((ref) {
-  return ref.watch(authRepositoryProvider).authStateChanges.map((uid) => uid != null);
+  return ref
+      .watch(authRepositoryProvider)
+      .authStateChanges
+      .map((uid) => uid != null);
 });
 
 /// Current user when authenticated. Invalidated after profile update.

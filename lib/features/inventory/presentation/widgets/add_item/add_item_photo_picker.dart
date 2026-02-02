@@ -65,12 +65,12 @@ class ImagePickerSection extends HookConsumerWidget {
                               onTap: notifier.removeImage,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.black54,
+                                  color: context.appColors.primaryTextColor.withValues(alpha: 0.7),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.close,
-                                  color: Colors.white,
+                                  color: context.appColors.primaryWhiteColor,
                                 ),
                               ),
                             ),

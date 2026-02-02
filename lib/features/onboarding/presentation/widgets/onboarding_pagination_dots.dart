@@ -26,9 +26,10 @@ class OnboardingPaginationDots extends StatelessWidget {
           width: isActive ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: isActive
-                ? context.appColors.primaryColor
-                : context.appColors.borderColor,
+            color:
+                isActive
+                    ? context.appColors.primaryColor
+                    : context.appColors.borderColor,
             borderRadius: BorderRadius.circular(4),
           ),
         );

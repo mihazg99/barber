@@ -15,17 +15,17 @@ class BoxListCard extends ConsumerWidget {
 
   const BoxListCard({super.key, required this.box});
 
-  /// Parse color from hex string with fallback
-  Color _parseColor(String colorString) {
+  /// Parse color from hex string with fallback from theme
+  Color _parseColor(String colorString, BuildContext context) {
     try {
       final cleanColor = colorString.replaceAll('#', '');
       if (cleanColor.length == 6) {
         return Color(int.parse('0xFF$cleanColor'));
       }
     } catch (e) {
-      // Fallback to purple if parsing fails
+      // Fallback from theme if parsing fails
     }
-    return const Color(0xFF7C5CFA);
+    return context.appColors.primaryColor;
   }
 
   @override
@@ -48,8 +48,8 @@ class BoxListCard extends ConsumerWidget {
 
     final chipColor =
         location != null
-            ? _parseColor(location.color)
-            : const Color(0xFF7C5CFA);
+            ? _parseColor(location.color, context)
+            : context.appColors.primaryColor;
     return InkWell(
       onTap: () {},
       borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
@@ -69,7 +69,7 @@ class BoxListCard extends ConsumerWidget {
                 height: 72,
                 decoration: BoxDecoration(
                   color: Colors.transparent,
-                  border: Border.all(color: Colors.white, width: 1),
+                  border: Border.all(color: context.appColors.primaryWhiteColor, width: 1),
                   borderRadius: BorderRadius.circular(
                     context.appSizes.borderRadius,
                   ),

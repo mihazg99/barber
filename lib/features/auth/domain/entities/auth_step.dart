@@ -38,18 +38,24 @@ class AuthFlowData extends Equatable {
     UserEntity? user,
     String? errorMessage,
     bool? isLoading,
-  }) =>
-      AuthFlowData(
-        step: step ?? this.step,
-        phone: phone ?? this.phone,
-        verificationId: verificationId ?? this.verificationId,
-        user: user ?? this.user,
-        errorMessage: errorMessage,
-        isLoading: isLoading ?? this.isLoading,
-      );
+  }) => AuthFlowData(
+    step: step ?? this.step,
+    phone: phone ?? this.phone,
+    verificationId: verificationId ?? this.verificationId,
+    user: user ?? this.user,
+    errorMessage: errorMessage,
+    isLoading: isLoading ?? this.isLoading,
+  );
 
   AuthFlowData clearError() => copyWith(errorMessage: null);
 
   @override
-  List<Object?> get props => [step, phone, verificationId, user, errorMessage, isLoading];
+  List<Object?> get props => [
+    step,
+    phone,
+    verificationId,
+    user,
+    errorMessage,
+    isLoading,
+  ];
 }

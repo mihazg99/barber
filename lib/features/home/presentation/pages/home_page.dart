@@ -4,17 +4,21 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:barber/core/di.dart';
 import 'package:barber/core/navigation/presentation/widgets/bottom_nav_bar.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/home/di.dart';
+import 'package:barber/features/home/domain/entities/home_data.dart';
+import 'package:barber/features/home/presentation/widgets/barbers_section.dart';
 import 'package:barber/features/home/presentation/widgets/home_header.dart';
-import 'package:barber/features/home/presentation/widgets/locations_section.dart';
-import 'package:barber/features/home/presentation/widgets/quick_action_card.dart';
-import 'package:barber/features/locations/domain/entities/location_entity.dart';
+import 'package:barber/features/home/presentation/widgets/home_section_title.dart';
+import 'package:barber/features/home/presentation/widgets/loyalty_card.dart';
+import 'package:barber/features/home/presentation/widgets/nearby_locations_section.dart';
+import 'package:barber/features/home/presentation/widgets/services_section.dart';
+import 'package:barber/features/home/presentation/widgets/upcoming_booking_card.dart';
 
 class HomePage extends HookConsumerWidget {
   const HomePage({super.key});
@@ -29,8 +33,6 @@ class HomePage extends HookConsumerWidget {
     }, []);
 
     final homeState = ref.watch(homeNotifierProvider);
-    final flavor = ref.watch(flavorConfigProvider);
-    final brandConfig = flavor.values.brandConfig;
 
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
@@ -39,24 +41,23 @@ class HomePage extends HookConsumerWidget {
         onTap: () => FocusScope.of(context).unfocus(),
         child: SafeArea(
           child: switch (homeState) {
-            BaseInitial() => _buildLoading(context),
-            BaseLoading() => _buildLoading(context),
-            BaseData(:final data) => _buildContent(
-              context,
-              brandName: data.brandName,
-              logoPath:
-                  brandConfig.logoPath.isNotEmpty ? brandConfig.logoPath : null,
-              locations: data.locations,
-            ),
-            BaseError(:final message) => _buildError(context, ref, message),
+            BaseInitial() => const _HomeLoading(),
+            BaseLoading() => const _HomeLoading(),
+            BaseData() => const _HomeContent(),
+            BaseError() => const _HomeError(),
           },
         ),
       ),
       bottomNavigationBar: const BottomNavBar(),
     );
   }
+}
 
-  Widget _buildLoading(BuildContext context) {
+class _HomeLoading extends StatelessWidget {
+  const _HomeLoading();
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: CircularProgressIndicator(
         strokeWidth: 2,
@@ -66,56 +67,100 @@ class HomePage extends HookConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildContent(
-    BuildContext context, {
-    required String brandName,
-    String? logoPath,
-    required List<LocationEntity> locations,
-  }) {
+class _HomeContent extends ConsumerWidget {
+  const _HomeContent();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final homeState = ref.watch(homeNotifierProvider);
+    final currentUser = ref.watch(currentUserProvider).valueOrNull;
+    final upcomingAppointment = ref.watch(upcomingAppointmentProvider).valueOrNull;
+    final barbersAsync = ref.watch(barbersForHomeProvider);
+    final servicesAsync = ref.watch(servicesForHomeProvider);
+
+    final data = homeState is BaseData<HomeData> ? homeState.data : const HomeData();
+    final locations = data.locations;
+
+    String? locationName;
+    if (upcomingAppointment != null) {
+      try {
+        locationName = locations
+            .firstWhere(
+              (loc) => loc.locationId == upcomingAppointment.locationId,
+            )
+            .name;
+      } catch (_) {
+        locationName = null;
+      }
+    }
+
+    const horizontalPadding = 20.0;
+    const sectionSpacing = 28.0;
+
+    final barbers = barbersAsync.valueOrNull ?? [];
+    final services = servicesAsync.valueOrNull ?? [];
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          HomeHeader(brandName: brandName, logoPath: logoPath),
-          Gap(context.appSizes.paddingMedium),
+          const HomeHeader(),
           Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: context.appSizes.paddingMedium,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                QuickActionCard(
-                  title: 'Book appointment',
-                  icon: Icons.calendar_today,
-                  onTap: () {
-                    // TODO: Navigate to booking
-                  },
-                ),
+                if (currentUser != null) ...[
+                  LoyaltyCard(user: currentUser),
+                  Gap(sectionSpacing),
+                ],
+                const HomeSectionTitle(title: 'Upcoming'),
                 Gap(context.appSizes.paddingSmall),
-                QuickActionCard(
-                  title: 'Scan QR code',
-                  icon: Icons.qr_code_scanner,
-                  onTap: () => context.go(AppRoute.inventory.path),
+                if (upcomingAppointment != null)
+                  UpcomingBookingCard(
+                    appointment: upcomingAppointment,
+                    locationName: locationName,
+                  )
+                else
+                  NoUpcomingBookingCTA(
+                    onTap: () => context.push(AppRoute.booking.path),
+                  ),
+                Gap(sectionSpacing),
+                if (barbers.isNotEmpty) ...[
+                  BarbersSection(barbers: barbers, title: 'Book with a barber'),
+                  Gap(sectionSpacing),
+                ],
+                if (services.isNotEmpty) ...[
+                  ServicesSection(services: services, title: 'Popular services'),
+                  Gap(sectionSpacing),
+                ],
+                NearbyLocationsSection(
+                  locations: locations,
+                  title: 'Nearby barbershop',
                 ),
-                Gap(context.appSizes.paddingSmall),
-                QuickActionCard(
-                  title: 'Inventory',
-                  icon: Icons.inventory_2,
-                  onTap: () => context.go(AppRoute.inventory.path),
-                ),
+                Gap(context.appSizes.paddingXxl),
               ],
             ),
           ),
-          Gap(context.appSizes.paddingLarge),
-          LocationsSection(locations: locations),
-          Gap(context.appSizes.paddingXxl),
         ],
       ),
     );
   }
+}
 
-  Widget _buildError(BuildContext context, WidgetRef ref, String message) {
+class _HomeError extends ConsumerWidget {
+  const _HomeError();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final homeState = ref.watch(homeNotifierProvider);
+    final message = switch (homeState) {
+      BaseError(:final message) => message,
+      _ => '',
+    };
+
     return Padding(
       padding: EdgeInsets.all(context.appSizes.paddingMedium),
       child: Column(

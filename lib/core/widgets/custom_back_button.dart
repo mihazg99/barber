@@ -4,24 +4,35 @@ import 'package:go_router/go_router.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/gen/assets.gen.dart';
 
+/// Common back button used across screens. Uses [context.pop] when [onPressed] is null.
 class CustomBackButton extends StatelessWidget {
   final String? title;
+  final VoidCallback? onPressed;
 
-  const CustomBackButton._({super.key, this.title});
+  const CustomBackButton._({super.key, this.title, this.onPressed});
 
-  factory CustomBackButton.defaultButton({Key? key}) {
-    return CustomBackButton._(key: key);
+  /// Icon-only back button. [onPressed] defaults to [context.pop].
+  factory CustomBackButton({Key? key, VoidCallback? onPressed}) {
+    return CustomBackButton._(key: key, onPressed: onPressed);
   }
 
-  factory CustomBackButton.withTitle(String title, {Key? key}) {
-    return CustomBackButton._(key: key, title: title);
+  @Deprecated('Use CustomBackButton() instead')
+  factory CustomBackButton.defaultButton({Key? key, VoidCallback? onPressed}) {
+    return CustomBackButton._(key: key, onPressed: onPressed);
   }
+
+  factory CustomBackButton.withTitle(String title, {Key? key, VoidCallback? onPressed}) {
+    return CustomBackButton._(key: key, title: title, onPressed: onPressed);
+  }
+
+  VoidCallback _handlePressed(BuildContext context) =>
+      onPressed ?? () => context.pop();
 
   @override
   Widget build(BuildContext context) {
     if (title == null) {
       return IconButton(
-        onPressed: context.pop,
+        onPressed: _handlePressed(context),
         padding: EdgeInsets.zero,
         icon: SvgPicture.asset(Assets.icons.back),
       );
@@ -34,7 +45,7 @@ class CustomBackButton extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: IconButton(
-              onPressed: context.pop,
+              onPressed: _handlePressed(context),
               padding: EdgeInsets.zero,
               icon: SvgPicture.asset(Assets.icons.back),
             ),

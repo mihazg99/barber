@@ -16,15 +16,15 @@ class CarouselCard extends StatelessWidget {
       horizontal: context.appSizes.paddingMedium,
     );
     
-    final gradientColors = isFirst 
-      ? const [
-          Color(0xE6FFCA8A),
-          Color(0xEBFF9333),
-        ]
-      : const [
-          Color(0xFF8B9FFF), 
-          Color(0xFF2A2F4A),
-        ];
+    final gradientColors = isFirst
+        ? [
+            context.appColors.primaryColor.withValues(alpha: 0.9),
+            context.appColors.primaryColor.withValues(alpha: 0.7),
+          ]
+        : [
+            context.appColors.primaryColor.withValues(alpha: 0.6),
+            context.appColors.secondaryColor,
+          ];
 
     return Container(
       height: 90,

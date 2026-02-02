@@ -30,12 +30,12 @@ class AppBrandConfig {
   }
 
   Map<String, dynamic> toJson() => {
-        'app_title': appTitle,
-        'logo_path': logoPath,
-        'default_brand_id': defaultBrandId,
-        'font_family': fontFamily,
-        'colors': colors.toJson(),
-      };
+    'app_title': appTitle,
+    'logo_path': logoPath,
+    'default_brand_id': defaultBrandId,
+    'font_family': fontFamily,
+    'colors': colors.toJson(),
+  };
 }
 
 @immutable
@@ -90,7 +90,10 @@ class AppBrandColors {
         _Defaults.navigationBackground,
       ),
       primaryText: _parseColor(json['primary_text'], _Defaults.primaryText),
-      secondaryText: _parseColor(json['secondary_text'], _Defaults.secondaryText),
+      secondaryText: _parseColor(
+        json['secondary_text'],
+        _Defaults.secondaryText,
+      ),
       captionText: _parseColor(json['caption_text'], _Defaults.captionText),
       primaryWhite: _parseColor(json['primary_white'], _Defaults.primaryWhite),
       hintText: _parseColor(json['hint_text'], _Defaults.hintText),
@@ -104,20 +107,31 @@ class AppBrandColors {
   }
 
   Map<String, dynamic> toJson() => {
-        'primary': '#${primary.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'secondary': '#${secondary.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'background': '#${background.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'navigation_background':
-            '#${navigationBackground.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'primary_text': '#${primaryText.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'secondary_text': '#${secondaryText.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'caption_text': '#${captionText.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'primary_white': '#${primaryWhite.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'hint_text': '#${hintText.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'menu_background': '#${menuBackground.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'border': '#${border.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-        'error': '#${error.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-      };
+    'primary':
+        '#${primary.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'secondary':
+        '#${secondary.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'background':
+        '#${background.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'navigation_background':
+        '#${navigationBackground.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'primary_text':
+        '#${primaryText.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'secondary_text':
+        '#${secondaryText.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'caption_text':
+        '#${captionText.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'primary_white':
+        '#${primaryWhite.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'hint_text':
+        '#${hintText.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'menu_background':
+        '#${menuBackground.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'border':
+        '#${border.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+    'error':
+        '#${error.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
+  };
 }
 
 class _Defaults {

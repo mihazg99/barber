@@ -17,17 +17,17 @@ class LocationListCard extends ConsumerWidget {
     required this.location,
   });
 
-  /// Parse color from hex string with fallback
-  Color _parseColor(String colorString) {
+  /// Parse color from hex string with fallback from theme
+  Color _parseColor(String colorString, BuildContext context) {
     try {
       final cleanColor = colorString.replaceAll('#', '');
       if (cleanColor.length == 6) {
         return Color(int.parse('0xFF$cleanColor'));
       }
     } catch (e) {
-      // Fallback to amber if parsing fails
+      // Fallback from theme if parsing fails
     }
-    return Colors.amber;
+    return context.appColors.primaryColor;
   }
 
   @override
@@ -68,7 +68,7 @@ class LocationListCard extends ConsumerWidget {
                 width: 15,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: _parseColor(location.color),
+                  color: _parseColor(location.color, context),
                   borderRadius: BorderRadius.circular(
                     context.appSizes.borderRadius,
                   ),

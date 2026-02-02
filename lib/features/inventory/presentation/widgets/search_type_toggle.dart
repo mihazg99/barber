@@ -51,7 +51,7 @@ class SearchTypeToggle extends StatelessWidget {
         foregroundColor: MaterialStateProperty.resolveWith<Color>(
           (states) {
             if (states.contains(MaterialState.selected)) {
-              return Colors.white;
+              return context.appColors.primaryWhiteColor;
             }
             return context.appColors.primaryTextColor;
           },

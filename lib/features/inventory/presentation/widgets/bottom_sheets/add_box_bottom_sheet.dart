@@ -122,7 +122,7 @@ class _AddBoxContent extends HookConsumerWidget {
                 child: PrimaryButton.small(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text('Cancel'),
-                  color: Colors.grey[600],
+                  color: context.appColors.captionTextColor,
                 ),
               ),
               Gap(context.appSizes.paddingMedium),
