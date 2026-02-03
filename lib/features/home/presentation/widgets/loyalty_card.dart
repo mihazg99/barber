@@ -6,7 +6,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
-import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/widgets/shimmer_placeholder.dart';
 import 'package:barber/features/auth/di.dart';
@@ -27,7 +26,10 @@ class LoyaltyCard extends ConsumerWidget {
       AsyncLoading() => const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _LoyaltyCardShimmer(),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: _LoyaltyCardShimmer(),
+            ),
             Gap(_sectionSpacing),
           ],
         ),
@@ -45,135 +47,194 @@ class LoyaltyCard extends ConsumerWidget {
   }
 }
 
-/// Premium loyalty card with large, scannable QR for barbers + points and rewards entry.
+/// Premium loyalty card styled like Amex/Diners: dark gradient, gold accents, credit-card layout.
 class _LoyaltyCardContent extends StatelessWidget {
   const _LoyaltyCardContent({required this.user});
 
   final UserEntity user;
 
-  static const _cardRadius = 20.0;
-  /// QR size: scannable at counter without dominating the card.
-  static const _qrSize = 80.0;
-  /// Quiet zone (padding) around QR improves scanner detection.
-  static const _qrPadding = 8.0;
+  static const _cardRadius = 16.0;
+  static const _cardHeight = 156.0;
+  static const _qrSize = 52.0;
+  static const _qrPadding = 5.0;
+  static const _chipSize = 36.0;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => context.push(AppRoute.loyalty.path),
-        borderRadius: BorderRadius.circular(_cardRadius),
-        child: Container(
-          padding: EdgeInsets.all(context.appSizes.paddingMedium),
-          decoration: BoxDecoration(
-            color: context.appColors.menuBackgroundColor,
-            borderRadius: BorderRadius.circular(_cardRadius),
-            border: Border.all(
-              color: context.appColors.borderColor.withValues(alpha: 0.5),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: context.appColors.primaryTextColor.withValues(alpha: 0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+    final c = context.appColors;
+    const darkStart = Color(0xFF1A1614);
+    const darkEnd = Color(0xFF0D0B0A);
+    final gold = c.primaryColor;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Material(
+        color: Colors.transparent,
+        elevation: 0,
+        child: InkWell(
+          onTap: () => context.push(AppRoute.loyalty.path),
+          borderRadius: BorderRadius.circular(_cardRadius),
+          child: Container(
+            height: _cardHeight,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(_cardRadius),
+              gradient: const LinearGradient(
+                colors: [darkStart, darkEnd],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              /// Scan zone: high-contrast QR on pure white for reliability.
-              Container(
-                padding: const EdgeInsets.all(_qrPadding),
-                decoration: BoxDecoration(
-                  color: context.appColors.primaryWhiteColor,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.appColors.primaryTextColor.withValues(alpha: 0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.06),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: gold.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 6),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                  spreadRadius: -4,
+                ),
+              ],
+            ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// Top row: chip (left) + LOYALTY (right) — like real card
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: _chipSize,
+                      height: _chipSize * 0.75,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        gradient: LinearGradient(
+                          colors: [
+                            gold.withValues(alpha: 0.4),
+                            gold.withValues(alpha: 0.15),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        border: Border.all(
+                          color: gold.withValues(alpha: 0.5),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      'LOYALTY',
+                      style: context.appTextStyles.caption.copyWith(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2.4,
+                        color: c.captionTextColor.withValues(alpha: 0.9),
+                      ),
                     ),
                   ],
                 ),
-                child: QrImageView(
-                  data: user.userId,
-                  version: QrVersions.auto,
-                  size: _qrSize,
-                  backgroundColor: context.appColors.primaryWhiteColor,
-                  eyeStyle: QrEyeStyle(
-                    eyeShape: QrEyeShape.square,
-                    color: context.appColors.secondaryColor,
-                  ),
-                  dataModuleStyle: QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.square,
-                    color: context.appColors.secondaryColor,
-                  ),
-                  gapless: true,
-                  padding: EdgeInsets.zero,
-                ),
-              ),
-              Gap(context.appSizes.paddingMedium),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+                const Spacer(),
+                /// Middle row: points (left, card-number position) + QR (right, scan zone)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Loyalty card',
-                      style: context.appTextStyles.caption.copyWith(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.8,
-                        color: context.appColors.captionTextColor,
-                      ),
-                    ),
-                    Gap(6),
-                    Text(
-                      '${user.loyaltyPoints} points',
+                      '${user.loyaltyPoints} pts',
                       style: context.appTextStyles.h2.copyWith(
-                        fontSize: 18,
+                        fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: context.appColors.primaryTextColor,
-                        height: 1.2,
+                        letterSpacing: 2,
+                        color: c.primaryTextColor,
+                        height: 1.1,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
-                    Gap(6),
+                    Container(
+                      padding: const EdgeInsets.all(_qrPadding),
+                      decoration: BoxDecoration(
+                        color: c.primaryWhiteColor,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: QrImageView(
+                        data: user.userId,
+                        version: QrVersions.auto,
+                        size: _qrSize,
+                        backgroundColor: c.primaryWhiteColor,
+                        eyeStyle: QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: c.secondaryColor,
+                        ),
+                        dataModuleStyle: QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: c.secondaryColor,
+                        ),
+                        gapless: true,
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
+                const Gap(10),
+                /// Bottom row: cardholder name (left) + view rewards (right)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        user.fullName.trim().isEmpty
+                            ? 'MEMBER'
+                            : user.fullName.toUpperCase(),
+                        style: context.appTextStyles.caption.copyWith(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                          color: c.secondaryTextColor.withValues(alpha: 0.95),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           'View rewards',
                           style: context.appTextStyles.caption.copyWith(
-                            fontSize: 14,
-                            color: context.appColors.primaryColor,
+                            fontSize: 11,
+                            color: gold,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Gap(4),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 10,
-                          color: context.appColors.primaryColor,
-                        ),
+                        const Gap(4),
+                        Icon(Icons.arrow_forward_ios, size: 9, color: gold),
                       ],
-                    ),
-                    Gap(4),
-                    Text(
-                      'Show QR at counter',
-                      style: context.appTextStyles.caption.copyWith(
-                        fontSize: 11,
-                        color: context.appColors.captionTextColor,
-                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
+    ),
     );
   }
 }
@@ -181,50 +242,69 @@ class _LoyaltyCardContent extends StatelessWidget {
 class _LoyaltyCardShimmer extends StatelessWidget {
   const _LoyaltyCardShimmer();
 
+  static const _cardRadius = 16.0;
+  static const _cardHeight = 156.0;
+
   @override
   Widget build(BuildContext context) {
-    const cardRadius = 20.0;
-    const qrSize = 96.0;
     return ShimmerWrapper(
       child: Container(
-        padding: EdgeInsets.all(context.appSizes.paddingMedium),
+        height: _cardHeight,
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
         decoration: BoxDecoration(
           color: context.appColors.menuBackgroundColor,
-          borderRadius: BorderRadius.circular(cardRadius),
+          borderRadius: BorderRadius.circular(_cardRadius),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ShimmerPlaceholder(
-              width: qrSize,
-              height: qrSize,
-              borderRadius: BorderRadius.circular(12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ShimmerPlaceholder(
+                  width: 36,
+                  height: 27,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                ShimmerPlaceholder(
+                  width: 60,
+                  height: 10,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ],
             ),
-            Gap(context.appSizes.paddingMedium),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ShimmerPlaceholder(
-                    width: 70,
-                    height: 12,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  Gap(6),
-                  ShimmerPlaceholder(
-                    width: 90,
-                    height: 18,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  Gap(6),
-                  ShimmerPlaceholder(
-                    width: 80,
-                    height: 14,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ],
-              ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ShimmerPlaceholder(
+                  width: 90,
+                  height: 24,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                ShimmerPlaceholder(
+                  width: 62,
+                  height: 62,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ],
+            ),
+            const Gap(10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ShimmerPlaceholder(
+                  width: 100,
+                  height: 12,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                ShimmerPlaceholder(
+                  width: 80,
+                  height: 12,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ],
             ),
           ],
         ),

@@ -1,20 +1,20 @@
 {
-  "app_title": "Barber",
+  "app_title": "Kingsman Barbershop",
   "logo_path": "",
   "default_brand_id": "",
   "font_family": "Poppins",
   "colors": {
-    "primary": "#6B63FF",
-    "secondary": "#2A2F4A",
-    "background": "#1E2235",
-    "navigation_background": "#1A1D2E",
-    "primary_text": "#FFFFFF",
-    "secondary_text": "#D1D5E0",
-    "caption_text": "#94A3B8",
+    "primary": "#9B784A",
+    "secondary": "#1A1614",
+    "background": "#000000",
+    "navigation_background": "#0A0A0A",
+    "primary_text": "#E7E1CC",
+    "secondary_text": "#C4B89E",
+    "caption_text": "#8D8470",
     "primary_white": "#FFFFFF",
-    "hint_text": "#A6A9C8",
-    "menu_background": "#252A45",
-    "border": "#393E5B",
+    "hint_text": "#6B6658",
+    "menu_background": "#1A1A1A",
+    "border": "#3A3530",
     "error": "#B00020"
   }
 }

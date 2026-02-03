@@ -25,9 +25,13 @@ class CalculateFreeSlots {
     final dateStr = _formatDate(date);
     final docId = '${barber.barberId}_$dateStr';
 
-    // Get working hours for the weekday
+    // Get working hours for the weekday.
+    // When barber has no override or an empty override, use location hours (per schema).
     final weekday = _getWeekdayKey(date);
-    final workingHoursMap = barber.workingHoursOverride ?? location.workingHours;
+    final barberOverride = barber.workingHoursOverride;
+    final workingHoursMap = (barberOverride != null && barberOverride.isNotEmpty)
+        ? barberOverride
+        : location.workingHours;
     final dayHours = workingHoursMap[weekday];
 
     if (kDebugMode) {

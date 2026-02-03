@@ -12,8 +12,10 @@ import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/barbers/di.dart' as barbers_di;
 import 'package:barber/features/locations/di.dart';
 import 'package:barber/features/locations/data/mock_location_data.dart';
+import 'package:barber/features/locations/domain/entities/location_entity.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/brand/data/mock_brand_data.dart';
+import 'package:barber/features/home/data/mock_home_data.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final availabilityRepositoryProvider = Provider<AvailabilityRepository>((ref) {
@@ -73,10 +75,23 @@ final availableTimeSlotsProvider = FutureProvider<List<TimeSlot>>((ref) async {
   // Get location for working hours (use mock as fallback)
   final locationResult =
       await ref.watch(locationRepositoryProvider).getById(locationId);
-  final location = locationResult.fold(
+  var location = locationResult.fold(
     (_) => mockLocation,
     (l) => l ?? mockLocation,
   );
+  // If Firestore location has no working_hours, slots would be empty; use default hours.
+  if (location.workingHours.isEmpty) {
+    location = LocationEntity(
+      locationId: location.locationId,
+      brandId: location.brandId,
+      name: location.name,
+      address: location.address,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      phone: location.phone,
+      workingHours: mockLocation.workingHours,
+    );
+  }
 
   final date = selectedDate;
   final slotInterval = brand.slotInterval;
@@ -93,13 +108,22 @@ final availableTimeSlotsProvider = FutureProvider<List<TimeSlot>>((ref) async {
       bufferTimeMinutes: bufferTime,
     );
   } else {
-    final barbersResult =
-        await ref.watch(barbers_di.barberRepositoryProvider).getByLocationId(locationId);
-    final barbers = barbersResult.fold(
-      (_) => <BarberEntity>[],
-      (list) => list.where((b) => b.active).toList(),
-    );
-    if (barbers.isEmpty) return [];
+    // Same barber source as booking UI: Firestore by location, then mock fallback
+    var barbers = await ref
+        .watch(barbers_di.barberRepositoryProvider)
+        .getByLocationId(locationId)
+        .then((result) => result.fold(
+              (_) => <BarberEntity>[],
+              (list) => list.where((b) => b.active).toList(),
+            ));
+    if (barbers.isEmpty) {
+      barbers = mockBarbersForHome
+          .where((b) => b.locationId == locationId)
+          .toList();
+    }
+    if (barbers.isEmpty) {
+      barbers = mockBarbersForHome;
+    }
 
     return calculateFreeSlots.getFreeSlotsForAnyBarber(
       barbers: barbers,

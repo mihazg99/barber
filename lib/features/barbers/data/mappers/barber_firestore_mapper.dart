@@ -4,6 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Maps Firestore documents ↔ [BarberEntity].
 class BarberFirestoreMapper {
+  static String _normalizeWeekdayKey(String key) {
+    final k = key.toLowerCase().trim();
+    if (k.length >= 3) return k.substring(0, 3);
+    return k;
+  }
+
   static BarberEntity fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
     final overrideRaw = data['working_hours_override'] as Map<String, dynamic>?;
@@ -11,7 +17,8 @@ class BarberFirestoreMapper {
     if (overrideRaw != null) {
       override = {};
       for (final e in overrideRaw.entries) {
-        override[e.key] = DayWorkingHours.fromMap(
+        final dayKey = _normalizeWeekdayKey(e.key);
+        override[dayKey] = DayWorkingHours.fromMap(
           (e.value as Map<String, dynamic>?)?.cast<String, dynamic>(),
         );
       }

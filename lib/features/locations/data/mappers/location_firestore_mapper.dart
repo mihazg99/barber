@@ -4,6 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Maps Firestore documents ↔ [LocationEntity].
 class LocationFirestoreMapper {
+  /// Normalize weekday key to 3-letter lowercase (mon, tue, ...) for lookup.
+  static String _normalizeWeekdayKey(String key) {
+    final k = key.toLowerCase().trim();
+    if (k.length >= 3) return k.substring(0, 3);
+    return k;
+  }
+
   static LocationEntity fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
     final geo = data['geo_point'] as GeoPoint?;
@@ -11,7 +18,8 @@ class LocationFirestoreMapper {
     WorkingHoursMap hours = {};
     if (hoursRaw != null) {
       for (final e in hoursRaw.entries) {
-        hours[e.key] = DayWorkingHours.fromMap(
+        final dayKey = _normalizeWeekdayKey(e.key);
+        hours[dayKey] = DayWorkingHours.fromMap(
           (e.value as Map<String, dynamic>?)?.cast<String, dynamic>(),
         );
       }

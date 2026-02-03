@@ -8,10 +8,9 @@ import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/widgets/shimmer_placeholder.dart';
-import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/home/di.dart';
 
-/// Professional home header: brand left, notifications right; greeting + date below.
+/// Slim home header: brand left, notifications right. No greeting/date to make space for premium loyalty card.
 /// Shows shimmer when loading; content when data is ready (same pattern as [LocationsList]).
 class HomeHeader extends ConsumerWidget {
   const HomeHeader({super.key});
@@ -45,19 +44,12 @@ class _HeaderContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final flavor = ref.watch(flavorConfigProvider);
     final brandConfig = flavor.values.brandConfig;
-    final currentUser = ref.watch(currentUserProvider).valueOrNull;
     final logoPath =
         brandConfig.logoPath.isNotEmpty ? brandConfig.logoPath : null;
     final logoUrl = brandLogoUrl?.isNotEmpty == true ? brandLogoUrl : null;
-    final userFirstName = _firstName(currentUser?.fullName);
     final hasLogo =
         (logoPath != null && logoPath.isNotEmpty) ||
         (logoUrl != null && logoUrl.isNotEmpty);
-    final greeting =
-        userFirstName != null && userFirstName.isNotEmpty
-            ? 'Hey, $userFirstName 👋'
-            : 'Hey there 👋';
-    final date = _formatDate(DateTime.now());
 
     const _logoHeight = 40.0;
     final _logoWidth = logoUrl != null ? 120.0 : 40.0;
@@ -119,24 +111,6 @@ class _HeaderContent extends ConsumerWidget {
               ),
             ],
           ),
-          Gap(context.appSizes.paddingMedium),
-          Text(
-            greeting,
-            style: context.appTextStyles.h1.copyWith(
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
-              color: context.appColors.primaryTextColor,
-              height: 1.2,
-            ),
-          ),
-          Gap(context.appSizes.paddingSmall / 2),
-          Text(
-            date,
-            style: context.appTextStyles.caption.copyWith(
-              fontSize: 14,
-              color: context.appColors.captionTextColor,
-            ),
-          ),
         ],
       ),
     );
@@ -197,39 +171,6 @@ class _BrandLogo extends StatelessWidget {
   }
 }
 
-String? _firstName(String? fullName) {
-  if (fullName == null || fullName.trim().isEmpty) return null;
-  final parts = fullName.trim().split(RegExp(r'\s+'));
-  return parts.isNotEmpty ? parts.first : null;
-}
-
-String _formatDate(DateTime d) {
-  const weekdays = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ];
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-  return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}';
-}
-
 class _HeaderShimmer extends StatelessWidget {
   const _HeaderShimmer();
 
@@ -269,18 +210,6 @@ class _HeaderShimmer extends StatelessWidget {
                   borderRadius: BorderRadius.circular(22),
                 ),
               ],
-            ),
-            Gap(padding),
-            ShimmerPlaceholder(
-              width: 180,
-              height: 28,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            Gap(context.appSizes.paddingSmall / 2),
-            ShimmerPlaceholder(
-              width: 220,
-              height: 14,
-              borderRadius: BorderRadius.circular(4),
             ),
           ],
         ),
