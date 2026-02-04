@@ -192,6 +192,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'You already have an upcoming appointment. Cancel or complete it before booking another.';
 
   @override
+  String get bookingStepLocation => 'Location';
+
+  @override
+  String get bookingSelectLocation => 'Select Location';
+
+  @override
   String get bookingStepService => 'Service';
 
   @override
@@ -291,6 +297,113 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loyaltyEarnPointsDescription => 'Earn points and redeem rewards';
+
+  @override
+  String get loyaltyRedeem => 'Redeem';
+
+  @override
+  String get loyaltyMyRewards => 'My rewards';
+
+  @override
+  String get loyaltyInsufficientPoints => 'Not enough points';
+
+  @override
+  String get loyaltyRedeemSuccess =>
+      'Reward claimed! Show this QR at the barber.';
+
+  @override
+  String get dashboardRedeemReward => 'Redeem reward';
+
+  @override
+  String get barberHomeGreetingMorning => 'Good morning';
+
+  @override
+  String get barberHomeGreetingAfternoon => 'Good afternoon';
+
+  @override
+  String get barberHomeGreetingEvening => 'Good evening';
+
+  @override
+  String get barberHomeScanCta => 'Scan QR';
+
+  @override
+  String get barberHomeScanSubtitle => 'Redeem rewards or add loyalty points';
+
+  @override
+  String get barberHomeRedeemReward => 'Redeem reward';
+
+  @override
+  String get barberHomeAddLoyalty => 'Add loyalty points';
+
+  @override
+  String get barberHomeViewBookings => 'View bookings';
+
+  @override
+  String get barberHomeTodayTitle => 'Today';
+
+  @override
+  String get barberHomeTodayEmpty => 'No appointments today';
+
+  @override
+  String get barberHomeUpcomingEmpty => 'No upcoming appointments';
+
+  @override
+  String get barberHomeUpcomingCardTitle => 'Appointments';
+
+  @override
+  String get barberHomeHey => 'Hey 👋';
+
+  @override
+  String barberHomeHeyName(String name) {
+    return 'Hey, $name 👋';
+  }
+
+  @override
+  String get barberHomeQuickActions => 'Quick actions';
+
+  @override
+  String get redeemSuccess => 'Reward redeemed';
+
+  @override
+  String get alreadyRedeemed => 'Already redeemed';
+
+  @override
+  String get scanPointsAwardedTitle => 'Points awarded';
+
+  @override
+  String scanPointsAwardedMessage(String customerName, int pointsAwarded) {
+    return '$customerName received $pointsAwarded loyalty points.';
+  }
+
+  @override
+  String get dashboardNavHome => 'Home';
+
+  @override
+  String get dashboardNavBookings => 'Bookings';
+
+  @override
+  String get dashboardNavShift => 'Shift';
+
+  @override
+  String get dashboardNavBrand => 'Brand';
+
+  @override
+  String get dashboardNavLocations => 'Locations';
+
+  @override
+  String get dashboardNavServices => 'Services';
+
+  @override
+  String get dashboardNavRewards => 'Rewards';
+
+  @override
+  String get dashboardNavBarbers => 'Barbers';
+
+  @override
+  String get dashboardBookingsTitle => 'My Bookings';
+
+  @override
+  String get dashboardShiftTitle => 'My Shift';
 
   @override
   String get addNewItem => 'Add new item';
@@ -444,6 +557,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardBrandCancelHours => 'Cancel minimum hours';
+
+  @override
+  String get dashboardBrandLoyaltyPointsMultiplier => 'Loyalty points per 1€';
+
+  @override
+  String get dashboardBrandLoyaltyPointsMultiplierHint =>
+      'e.g. 10 (30€ → 300 points)';
 
   @override
   String get dashboardBrandMultiLocation => 'Multi location';
@@ -661,6 +781,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardBarberInactive => 'Inactive';
+
+  @override
+  String get dashboardRewardAdd => 'Add Reward';
+
+  @override
+  String get dashboardRewardEdit => 'Edit Reward';
+
+  @override
+  String get dashboardRewardName => 'Name';
+
+  @override
+  String get dashboardRewardNameHint => 'e.g. Free coffee';
+
+  @override
+  String get dashboardRewardNameRequired => 'Name is required';
+
+  @override
+  String get dashboardRewardDescription => 'Description';
+
+  @override
+  String get dashboardRewardDescriptionHint => 'Optional description';
+
+  @override
+  String get dashboardRewardPointsCostLabel => 'Points cost';
+
+  @override
+  String get dashboardRewardPointsCostHint => '100';
+
+  @override
+  String get dashboardRewardPointsInvalid =>
+      'Enter a valid points value (0 or more)';
+
+  @override
+  String dashboardRewardPointsCost(int points) {
+    return '$points pts';
+  }
+
+  @override
+  String get dashboardRewardSortOrder => 'Sort order';
+
+  @override
+  String get dashboardRewardSortOrderHint => '0';
+
+  @override
+  String get dashboardRewardActive => 'Active';
+
+  @override
+  String get dashboardRewardSaved => 'Reward saved';
+
+  @override
+  String get dashboardRewardCreated => 'Reward created';
+
+  @override
+  String get dashboardRewardDeleteConfirm => 'Delete this reward?';
+
+  @override
+  String get dashboardRewardDeleteConfirmMessage => 'This cannot be undone.';
+
+  @override
+  String get dashboardRewardDeleteButton => 'Delete';
+
+  @override
+  String get dashboardRewardDeleted => 'Reward deleted';
+
+  @override
+  String get dashboardRewardEmpty => 'No rewards yet. Tap + to add one.';
+
+  @override
+  String get dashboardRewardInactive => 'Inactive';
 
   @override
   String get closed => 'Closed';

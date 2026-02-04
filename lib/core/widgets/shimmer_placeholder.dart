@@ -29,22 +29,40 @@ class ShimmerPlaceholder extends StatelessWidget {
   }
 }
 
+/// Which shimmer style to use. [home] for user-facing screens, [dashboard] for admin.
+enum ShimmerVariant {
+  home,
+  dashboard,
+}
+
 /// Wraps [child] with [Shimmer.fromColors] using theme-based base and highlight.
 /// Use for loading skeletons; place [ShimmerPlaceholder] widgets inside [child].
+/// [variant] defaults to [ShimmerVariant.home]; use [ShimmerVariant.dashboard] in dashboard tabs.
 class ShimmerWrapper extends StatelessWidget {
   const ShimmerWrapper({
     super.key,
     required this.child,
+    this.variant = ShimmerVariant.home,
   });
 
   final Widget child;
+  final ShimmerVariant variant;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final base = colors.menuBackgroundColor;
-    final highlight = colors.borderColor.withValues(alpha: 0.4);
-
+    final Color base;
+    final Color highlight;
+    switch (variant) {
+      case ShimmerVariant.home:
+        base = colors.menuBackgroundColor;
+        highlight = colors.borderColor.withValues(alpha: 0.4);
+        break;
+      case ShimmerVariant.dashboard:
+        base = colors.primaryColor.withValues(alpha: 0.06);
+        highlight = colors.primaryColor.withValues(alpha: 0.18);
+        break;
+    }
     return Shimmer.fromColors(
       baseColor: base,
       highlightColor: highlight,

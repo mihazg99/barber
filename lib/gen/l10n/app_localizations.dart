@@ -446,6 +446,18 @@ abstract class AppLocalizations {
   /// **'Već imate zakazan termin. Otkazujte ili dovršite ga prije nove rezervacije.'**
   String get bookingAlreadyHasUpcoming;
 
+  /// No description provided for @bookingStepLocation.
+  ///
+  /// In hr, this message translates to:
+  /// **'Lokacija'**
+  String get bookingStepLocation;
+
+  /// No description provided for @bookingSelectLocation.
+  ///
+  /// In hr, this message translates to:
+  /// **'Odaberi lokaciju'**
+  String get bookingSelectLocation;
+
   /// No description provided for @bookingStepService.
   ///
   /// In hr, this message translates to:
@@ -637,6 +649,210 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Zaradite bodove i unovčite nagrade'**
   String get loyaltyEarnPointsDescription;
+
+  /// No description provided for @loyaltyRedeem.
+  ///
+  /// In hr, this message translates to:
+  /// **'Unovči'**
+  String get loyaltyRedeem;
+
+  /// No description provided for @loyaltyMyRewards.
+  ///
+  /// In hr, this message translates to:
+  /// **'Moje nagrade'**
+  String get loyaltyMyRewards;
+
+  /// No description provided for @loyaltyInsufficientPoints.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nedovoljno bodova'**
+  String get loyaltyInsufficientPoints;
+
+  /// No description provided for @loyaltyRedeemSuccess.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nagrada zatražena! Pokažite ovaj QR brijaču.'**
+  String get loyaltyRedeemSuccess;
+
+  /// No description provided for @dashboardRedeemReward.
+  ///
+  /// In hr, this message translates to:
+  /// **'Skeniraj kod'**
+  String get dashboardRedeemReward;
+
+  /// No description provided for @barberHomeGreetingMorning.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dobro jutro'**
+  String get barberHomeGreetingMorning;
+
+  /// No description provided for @barberHomeGreetingAfternoon.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dobar dan'**
+  String get barberHomeGreetingAfternoon;
+
+  /// No description provided for @barberHomeGreetingEvening.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dobra večer'**
+  String get barberHomeGreetingEvening;
+
+  /// No description provided for @barberHomeScanCta.
+  ///
+  /// In hr, this message translates to:
+  /// **'Skeniraj QR'**
+  String get barberHomeScanCta;
+
+  /// No description provided for @barberHomeScanSubtitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Unovči nagrade ili dodaj bodove'**
+  String get barberHomeScanSubtitle;
+
+  /// No description provided for @barberHomeRedeemReward.
+  ///
+  /// In hr, this message translates to:
+  /// **'Unovči nagradu'**
+  String get barberHomeRedeemReward;
+
+  /// No description provided for @barberHomeAddLoyalty.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dodaj bodove'**
+  String get barberHomeAddLoyalty;
+
+  /// No description provided for @barberHomeViewBookings.
+  ///
+  /// In hr, this message translates to:
+  /// **'Pregled termina'**
+  String get barberHomeViewBookings;
+
+  /// No description provided for @barberHomeTodayTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Danas'**
+  String get barberHomeTodayTitle;
+
+  /// No description provided for @barberHomeTodayEmpty.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nema termina danas'**
+  String get barberHomeTodayEmpty;
+
+  /// No description provided for @barberHomeUpcomingEmpty.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nema nadolazećih termina'**
+  String get barberHomeUpcomingEmpty;
+
+  /// No description provided for @barberHomeUpcomingCardTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Termini'**
+  String get barberHomeUpcomingCardTitle;
+
+  /// No description provided for @barberHomeHey.
+  ///
+  /// In hr, this message translates to:
+  /// **'Bok 👋'**
+  String get barberHomeHey;
+
+  /// No description provided for @barberHomeHeyName.
+  ///
+  /// In hr, this message translates to:
+  /// **'Bok, {name} 👋'**
+  String barberHomeHeyName(String name);
+
+  /// No description provided for @barberHomeQuickActions.
+  ///
+  /// In hr, this message translates to:
+  /// **'Brze radnje'**
+  String get barberHomeQuickActions;
+
+  /// No description provided for @redeemSuccess.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nagrada unovčena'**
+  String get redeemSuccess;
+
+  /// No description provided for @alreadyRedeemed.
+  ///
+  /// In hr, this message translates to:
+  /// **'Već unovčeno'**
+  String get alreadyRedeemed;
+
+  /// No description provided for @scanPointsAwardedTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Bodovi dodani'**
+  String get scanPointsAwardedTitle;
+
+  /// No description provided for @scanPointsAwardedMessage.
+  ///
+  /// In hr, this message translates to:
+  /// **'{customerName} je primio {pointsAwarded} bodova lojalnosti.'**
+  String scanPointsAwardedMessage(String customerName, int pointsAwarded);
+
+  /// No description provided for @dashboardNavHome.
+  ///
+  /// In hr, this message translates to:
+  /// **'Početna'**
+  String get dashboardNavHome;
+
+  /// No description provided for @dashboardNavBookings.
+  ///
+  /// In hr, this message translates to:
+  /// **'Termini'**
+  String get dashboardNavBookings;
+
+  /// No description provided for @dashboardNavShift.
+  ///
+  /// In hr, this message translates to:
+  /// **'Smjena'**
+  String get dashboardNavShift;
+
+  /// No description provided for @dashboardNavBrand.
+  ///
+  /// In hr, this message translates to:
+  /// **'Brend'**
+  String get dashboardNavBrand;
+
+  /// No description provided for @dashboardNavLocations.
+  ///
+  /// In hr, this message translates to:
+  /// **'Lokacije'**
+  String get dashboardNavLocations;
+
+  /// No description provided for @dashboardNavServices.
+  ///
+  /// In hr, this message translates to:
+  /// **'Usluge'**
+  String get dashboardNavServices;
+
+  /// No description provided for @dashboardNavRewards.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nagrade'**
+  String get dashboardNavRewards;
+
+  /// No description provided for @dashboardNavBarbers.
+  ///
+  /// In hr, this message translates to:
+  /// **'Brijači'**
+  String get dashboardNavBarbers;
+
+  /// No description provided for @dashboardBookingsTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Moji termini'**
+  String get dashboardBookingsTitle;
+
+  /// No description provided for @dashboardShiftTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Moja smjena'**
+  String get dashboardShiftTitle;
 
   /// No description provided for @addNewItem.
   ///
@@ -925,6 +1141,18 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Min. sati za otkaz'**
   String get dashboardBrandCancelHours;
+
+  /// No description provided for @dashboardBrandLoyaltyPointsMultiplier.
+  ///
+  /// In hr, this message translates to:
+  /// **'Bodovi po 1€'**
+  String get dashboardBrandLoyaltyPointsMultiplier;
+
+  /// No description provided for @dashboardBrandLoyaltyPointsMultiplierHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'npr. 10 (30€ → 300 bodova)'**
+  String get dashboardBrandLoyaltyPointsMultiplierHint;
 
   /// No description provided for @dashboardBrandMultiLocation.
   ///
@@ -1351,6 +1579,138 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Neaktivan'**
   String get dashboardBarberInactive;
+
+  /// No description provided for @dashboardRewardAdd.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dodaj nagradu'**
+  String get dashboardRewardAdd;
+
+  /// No description provided for @dashboardRewardEdit.
+  ///
+  /// In hr, this message translates to:
+  /// **'Uredi nagradu'**
+  String get dashboardRewardEdit;
+
+  /// No description provided for @dashboardRewardName.
+  ///
+  /// In hr, this message translates to:
+  /// **'Naziv'**
+  String get dashboardRewardName;
+
+  /// No description provided for @dashboardRewardNameHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'npr. Besplatna kava'**
+  String get dashboardRewardNameHint;
+
+  /// No description provided for @dashboardRewardNameRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'Naziv je obavezan'**
+  String get dashboardRewardNameRequired;
+
+  /// No description provided for @dashboardRewardDescription.
+  ///
+  /// In hr, this message translates to:
+  /// **'Opis'**
+  String get dashboardRewardDescription;
+
+  /// No description provided for @dashboardRewardDescriptionHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'Opcionalni opis'**
+  String get dashboardRewardDescriptionHint;
+
+  /// No description provided for @dashboardRewardPointsCostLabel.
+  ///
+  /// In hr, this message translates to:
+  /// **'Cijena u bodovima'**
+  String get dashboardRewardPointsCostLabel;
+
+  /// No description provided for @dashboardRewardPointsCostHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'100'**
+  String get dashboardRewardPointsCostHint;
+
+  /// No description provided for @dashboardRewardPointsInvalid.
+  ///
+  /// In hr, this message translates to:
+  /// **'Unesite valjanu vrijednost bodova (0 ili više)'**
+  String get dashboardRewardPointsInvalid;
+
+  /// No description provided for @dashboardRewardPointsCost.
+  ///
+  /// In hr, this message translates to:
+  /// **'{points} bod.'**
+  String dashboardRewardPointsCost(int points);
+
+  /// No description provided for @dashboardRewardSortOrder.
+  ///
+  /// In hr, this message translates to:
+  /// **'Redoslijed'**
+  String get dashboardRewardSortOrder;
+
+  /// No description provided for @dashboardRewardSortOrderHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'0'**
+  String get dashboardRewardSortOrderHint;
+
+  /// No description provided for @dashboardRewardActive.
+  ///
+  /// In hr, this message translates to:
+  /// **'Aktivna'**
+  String get dashboardRewardActive;
+
+  /// No description provided for @dashboardRewardSaved.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nagrada spremljena'**
+  String get dashboardRewardSaved;
+
+  /// No description provided for @dashboardRewardCreated.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nagrada kreirana'**
+  String get dashboardRewardCreated;
+
+  /// No description provided for @dashboardRewardDeleteConfirm.
+  ///
+  /// In hr, this message translates to:
+  /// **'Obrisati ovu nagradu?'**
+  String get dashboardRewardDeleteConfirm;
+
+  /// No description provided for @dashboardRewardDeleteConfirmMessage.
+  ///
+  /// In hr, this message translates to:
+  /// **'Ova radnja se ne može poništiti.'**
+  String get dashboardRewardDeleteConfirmMessage;
+
+  /// No description provided for @dashboardRewardDeleteButton.
+  ///
+  /// In hr, this message translates to:
+  /// **'Obriši'**
+  String get dashboardRewardDeleteButton;
+
+  /// No description provided for @dashboardRewardDeleted.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nagrada obrisana'**
+  String get dashboardRewardDeleted;
+
+  /// No description provided for @dashboardRewardEmpty.
+  ///
+  /// In hr, this message translates to:
+  /// **'Još nema nagrada. Dodajte novu.'**
+  String get dashboardRewardEmpty;
+
+  /// No description provided for @dashboardRewardInactive.
+  ///
+  /// In hr, this message translates to:
+  /// **'Neaktivna'**
+  String get dashboardRewardInactive;
 
   /// No description provided for @closed.
   ///

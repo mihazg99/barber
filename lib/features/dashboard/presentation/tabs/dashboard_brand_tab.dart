@@ -112,6 +112,9 @@ class _BrandForm extends HookConsumerWidget {
     final cancelHoursController = useTextEditingController(
       text: brand != null ? '${brand!.cancelHoursMinimum}' : '48',
     );
+    final loyaltyPointsMultiplierController = useTextEditingController(
+      text: brand != null ? '${brand!.loyaltyPointsMultiplier}' : '10',
+    );
     final isMultiLocation = useState(brand?.isMultiLocation ?? false);
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
@@ -141,20 +144,23 @@ class _BrandForm extends HookConsumerWidget {
         bufferTime: int.tryParse(bufferTimeController.text.trim()) ?? 5,
         cancelHoursMinimum:
             int.tryParse(cancelHoursController.text.trim()) ?? 48,
+        loyaltyPointsMultiplier:
+            int.tryParse(loyaltyPointsMultiplierController.text.trim()) ?? 10,
       );
 
       await notifier.save(entity);
 
       if (messenger != null) {
-        final snackBar = notifier.hasError
-            ? SnackBar(
-                content: Text(notifier.errorMessage ?? 'Error'),
-                backgroundColor: errorColor,
-              )
-            : SnackBar(
-                content: Text(isEdit ? savedMsg : createdMsg),
-                backgroundColor: primaryColor,
-              );
+        final snackBar =
+            notifier.hasError
+                ? SnackBar(
+                  content: Text(notifier.errorMessage ?? 'Error'),
+                  backgroundColor: errorColor,
+                )
+                : SnackBar(
+                  content: Text(isEdit ? savedMsg : createdMsg),
+                  backgroundColor: primaryColor,
+                );
         messenger.showSnackBar(snackBar);
       }
     }
@@ -222,6 +228,13 @@ class _BrandForm extends HookConsumerWidget {
               title: context.l10n.dashboardBrandCancelHours,
               hint: '48',
               controller: cancelHoursController,
+              keyboardType: TextInputType.number,
+            ),
+            Gap(context.appSizes.paddingMedium),
+            CustomTextField.withTitle(
+              title: context.l10n.dashboardBrandLoyaltyPointsMultiplier,
+              hint: context.l10n.dashboardBrandLoyaltyPointsMultiplierHint,
+              controller: loyaltyPointsMultiplierController,
               keyboardType: TextInputType.number,
             ),
             Gap(context.appSizes.paddingMedium),

@@ -76,6 +76,8 @@
   "bookingAppointmentSuccess": "Appointment booked successfully!",
   "bookingUserNotAuthenticated": "User not authenticated",
   "bookingAlreadyHasUpcoming": "You already have an upcoming appointment. Cancel or complete it before booking another.",
+  "bookingStepLocation": "Location",
+  "bookingSelectLocation": "Select Location",
   "bookingStepService": "Service",
   "bookingStepBarber": "Barber",
   "bookingStepTime": "Time",
@@ -121,6 +123,58 @@
   "loyaltyPageTitle": "Loyalty & Rewards",
   "loyaltyRewardsComingSoon": "Rewards coming soon",
   "loyaltyEarnPointsDescription": "Earn points and redeem rewards",
+  "loyaltyRedeem": "Redeem",
+  "loyaltyMyRewards": "My rewards",
+  "loyaltyInsufficientPoints": "Not enough points",
+  "loyaltyRedeemSuccess": "Reward claimed! Show this QR at the barber.",
+  "dashboardRedeemReward": "Redeem reward",
+  "barberHomeGreetingMorning": "Good morning",
+  "barberHomeGreetingAfternoon": "Good afternoon",
+  "barberHomeGreetingEvening": "Good evening",
+  "barberHomeScanCta": "Scan QR",
+  "barberHomeScanSubtitle": "Redeem rewards or add loyalty points",
+  "barberHomeRedeemReward": "Redeem reward",
+  "barberHomeAddLoyalty": "Add loyalty points",
+  "barberHomeViewBookings": "View bookings",
+  "barberHomeTodayTitle": "Today",
+  "barberHomeTodayEmpty": "No appointments today",
+  "barberHomeUpcomingEmpty": "No upcoming appointments",
+  "barberHomeUpcomingCardTitle": "Appointments",
+  "barberHomeHey": "Hey 👋",
+  "barberHomeHeyName": "Hey, {name} 👋",
+  "@barberHomeHeyName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "barberHomeQuickActions": "Quick actions",
+  "redeemSuccess": "Reward redeemed",
+  "alreadyRedeemed": "Already redeemed",
+  "scanPointsAwardedTitle": "Points awarded",
+  "scanPointsAwardedMessage": "{customerName} received {pointsAwarded} loyalty points.",
+  "@scanPointsAwardedMessage": {
+    "placeholders": {
+      "customerName": {
+        "type": "String"
+      },
+      "pointsAwarded": {
+        "type": "int"
+      }
+    }
+  },
+
+  "dashboardNavHome": "Home",
+  "dashboardNavBookings": "Bookings",
+  "dashboardNavShift": "Shift",
+  "dashboardNavBrand": "Brand",
+  "dashboardNavLocations": "Locations",
+  "dashboardNavServices": "Services",
+  "dashboardNavRewards": "Rewards",
+  "dashboardNavBarbers": "Barbers",
+  "dashboardBookingsTitle": "My Bookings",
+  "dashboardShiftTitle": "My Shift",
 
   "addNewItem": "Add new item",
   "addItemTitle": "Title",
@@ -203,6 +257,8 @@
   "dashboardBrandSlotInterval": "Slot interval (minutes)",
   "dashboardBrandBufferTime": "Buffer time (minutes)",
   "dashboardBrandCancelHours": "Cancel minimum hours",
+  "dashboardBrandLoyaltyPointsMultiplier": "Loyalty points per 1€",
+  "dashboardBrandLoyaltyPointsMultiplierHint": "e.g. 10 (30€ → 300 points)",
   "dashboardBrandMultiLocation": "Multi location",
   "dashboardBrandSaved": "Brand saved",
   "dashboardBrandCreated": "Brand created",
@@ -277,6 +333,36 @@
   "dashboardBarberDeleted": "Barber deleted",
   "dashboardBarberEmpty": "No barbers yet. Tap + to add one.",
   "dashboardBarberInactive": "Inactive",
+
+  "dashboardRewardAdd": "Add Reward",
+  "dashboardRewardEdit": "Edit Reward",
+  "dashboardRewardName": "Name",
+  "dashboardRewardNameHint": "e.g. Free coffee",
+  "dashboardRewardNameRequired": "Name is required",
+  "dashboardRewardDescription": "Description",
+  "dashboardRewardDescriptionHint": "Optional description",
+  "dashboardRewardPointsCostLabel": "Points cost",
+  "dashboardRewardPointsCostHint": "100",
+  "dashboardRewardPointsInvalid": "Enter a valid points value (0 or more)",
+  "dashboardRewardPointsCost": "{points} pts",
+  "@dashboardRewardPointsCost": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardRewardSortOrder": "Sort order",
+  "dashboardRewardSortOrderHint": "0",
+  "dashboardRewardActive": "Active",
+  "dashboardRewardSaved": "Reward saved",
+  "dashboardRewardCreated": "Reward created",
+  "dashboardRewardDeleteConfirm": "Delete this reward?",
+  "dashboardRewardDeleteConfirmMessage": "This cannot be undone.",
+  "dashboardRewardDeleteButton": "Delete",
+  "dashboardRewardDeleted": "Reward deleted",
+  "dashboardRewardEmpty": "No rewards yet. Tap + to add one.",
+  "dashboardRewardInactive": "Inactive",
 
   "closed": "Closed",
   "openNow": "OPEN NOW {open} - {close}",

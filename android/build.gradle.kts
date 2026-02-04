@@ -5,6 +5,18 @@ allprojects {
     }
 }
 
+// Force Kotlin 2.1.0 for all subprojects (e.g. mobile_scanner) so compiler matches stdlib.
+subprojects {
+    afterEvaluate {
+        configurations.all {
+            resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
+            resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib-common:2.1.0")
+            resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0")
+            resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
+        }
+    }
+}
+
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 

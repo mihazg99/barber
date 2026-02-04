@@ -26,4 +26,10 @@ abstract final class FirestoreCollections {
   /// One doc per user: { user_id, active_appointment_id }. Used for atomic
   /// "one active appointment per user" check in booking transactions.
   static const String userBookingLocks = 'user_booking_locks';
+
+  /// Loyalty rewards catalog (per brand): redeemable items with points cost.
+  static const String rewards = 'rewards';
+
+  /// User reward redemptions: user spent points to "buy" a reward; doc id used in QR for barber to scan and mark redeemed.
+  static const String rewardRedemptions = 'reward_redemptions';
 }

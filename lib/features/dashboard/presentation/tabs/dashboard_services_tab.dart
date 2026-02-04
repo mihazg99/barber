@@ -40,19 +40,23 @@ class DashboardServicesTab extends HookConsumerWidget {
             BaseInitial() => const _ServicesShimmer(),
             BaseLoading() => const _ServicesShimmer(),
             BaseData(:final data) => _ServicesList(
-                  services: data,
-                  onAdd: () => context.push(AppRoute.dashboardServiceForm.path),
-                  onEdit: (s) => context.push(
+              services: data,
+              onAdd: () => context.push(AppRoute.dashboardServiceForm.path),
+              onEdit:
+                  (s) => context.push(
                     AppRoute.dashboardServiceForm.path,
                     extra: s,
                   ),
-                  onDelete: (s) => _confirmDelete(context, ref, s),
-                ),
+              onDelete: (s) => _confirmDelete(context, ref, s),
+            ),
             BaseError(:final message) => _ServicesError(
-                  message: message,
-                  onRetry: () =>
-                      ref.read(dashboardServicesNotifierProvider.notifier).load(),
-                ),
+              message: message,
+              onRetry:
+                  () =>
+                      ref
+                          .read(dashboardServicesNotifierProvider.notifier)
+                          .load(),
+            ),
           },
           Positioned(
             right: 24,
@@ -75,23 +79,24 @@ class DashboardServicesTab extends HookConsumerWidget {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.dashboardServiceDeleteConfirm),
-        content: Text(context.l10n.dashboardServiceDeleteConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(context.l10n.cancel),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(context.l10n.dashboardServiceDeleteConfirm),
+            content: Text(context.l10n.dashboardServiceDeleteConfirmMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(context.l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: context.appColors.errorColor,
+                ),
+                child: Text(context.l10n.dashboardServiceDeleteButton),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: context.appColors.errorColor,
-            ),
-            child: Text(context.l10n.dashboardServiceDeleteButton),
-          ),
-        ],
-      ),
     );
     if (confirmed == true && context.mounted) {
       await ref
@@ -121,6 +126,7 @@ class _ServicesShimmer extends StatelessWidget {
         (_) => Padding(
           padding: EdgeInsets.only(bottom: context.appSizes.paddingSmall),
           child: ShimmerWrapper(
+            variant: ShimmerVariant.dashboard,
             child: Container(
               height: 72,
               decoration: BoxDecoration(
@@ -230,9 +236,10 @@ class _ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final availabilityLabel = service.availableAtLocations.isEmpty
-        ? context.l10n.dashboardServiceAvailableAtAll
-        : '${context.l10n.dashboardServiceAvailableAtSelected} (${service.availableAtLocations.length})';
+    final availabilityLabel =
+        service.availableAtLocations.isEmpty
+            ? context.l10n.dashboardServiceAvailableAtAll
+            : '${context.l10n.dashboardServiceAvailableAtSelected} (${service.availableAtLocations.length})';
 
     return Card(
       margin: EdgeInsets.only(bottom: context.appSizes.paddingSmall),

@@ -56,5 +56,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Camera and photo library: used only on staff dashboard to scan reward QR codes -->
+	<key>NSCameraUsageDescription</key>
+	<string>Camera is used to scan reward QR codes when redeeming at the barber.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library is used to select an image containing a reward QR code to scan.</string>
 </dict>
 </plist>

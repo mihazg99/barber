@@ -12,6 +12,7 @@ import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/widgets/custom_app_bar.dart';
 import 'package:barber/features/booking/di.dart';
 import 'package:barber/features/booking/presentation/bloc/manage_booking_notifier.dart';
+import 'package:barber/features/barbers/di.dart';
 import 'package:barber/features/booking/presentation/widgets/manage_booking_actions.dart';
 import 'package:barber/features/booking/presentation/widgets/manage_booking_detail_card.dart';
 import 'package:barber/features/booking/presentation/widgets/manage_booking_shimmer.dart';
@@ -30,6 +31,8 @@ class ManageBookingPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(manageBookingNotifierProvider(appointmentId));
+    final currentBarber = ref.watch(currentBarberProvider).valueOrNull;
+    final isBarberView = currentBarber != null;
     final notifier = ref.read(
       manageBookingNotifierProvider(appointmentId).notifier,
     );
@@ -45,6 +48,7 @@ class ManageBookingPage extends ConsumerWidget {
         BaseData(:final data) => _ManageBookingBody(
           data: data,
           notifier: notifier,
+          canEdit: !isBarberView,
           onCancelSuccess: (ctx, r) {
             ScaffoldMessenger.of(ctx).showSnackBar(
               SnackBar(content: Text(ctx.l10n.manageBookingCanceledSnackbar)),
@@ -65,11 +69,13 @@ class _ManageBookingBody extends ConsumerStatefulWidget {
   const _ManageBookingBody({
     required this.data,
     required this.notifier,
+    required this.canEdit,
     required this.onCancelSuccess,
   });
 
   final ManageBookingData data;
   final ManageBookingNotifier notifier;
+  final bool canEdit;
   final _OnCancelSuccess onCancelSuccess;
 
   @override
@@ -122,6 +128,7 @@ class _ManageBookingBodyState extends ConsumerState<_ManageBookingBody> {
             appointmentId: widget.data.appointment.appointmentId,
             isCancelling: _isCancelling,
             canCancel: widget.data.canCancel,
+            canEdit: widget.canEdit,
           ),
           Gap(context.appSizes.paddingXxl),
         ],

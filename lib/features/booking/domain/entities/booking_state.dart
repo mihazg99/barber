@@ -11,6 +11,7 @@ class BookingState extends Equatable {
     this.selectedTimeSlot,
     this.selectedTimeSlotBarberId,
     this.locationId,
+    this.barberChoiceMade = false,
   });
 
   final ServiceEntity? selectedService;
@@ -19,6 +20,9 @@ class BookingState extends Equatable {
   final String? selectedTimeSlot; // e.g. "09:00"
   final String? selectedTimeSlotBarberId; // When "Any Barber" + time selected
   final String? locationId; // Derived or default location
+  /// True when user or quick book has chosen a barber (specific or "Any barber").
+  /// When false with selectedBarber == null, stepper shows barber step as not completed.
+  final bool barberChoiceMade;
 
   bool get isAnyBarber => selectedBarber == null;
 
@@ -44,6 +48,7 @@ class BookingState extends Equatable {
     String? selectedTimeSlot,
     String? selectedTimeSlotBarberId,
     String? locationId,
+    bool? barberChoiceMade,
     bool clearBarber = false,
     bool clearDate = false,
     bool clearTimeSlot = false,
@@ -51,23 +56,28 @@ class BookingState extends Equatable {
   }) {
     return BookingState(
       selectedService: selectedService ?? this.selectedService,
-      selectedBarber: clearBarber ? null : (selectedBarber ?? this.selectedBarber),
+      selectedBarber:
+          clearBarber ? null : (selectedBarber ?? this.selectedBarber),
       selectedDate: clearDate ? null : (selectedDate ?? this.selectedDate),
-      selectedTimeSlot: clearTimeSlot ? null : (selectedTimeSlot ?? this.selectedTimeSlot),
-      selectedTimeSlotBarberId: clearTimeSlotBarberId
-          ? null
-          : (selectedTimeSlotBarberId ?? this.selectedTimeSlotBarberId),
+      selectedTimeSlot:
+          clearTimeSlot ? null : (selectedTimeSlot ?? this.selectedTimeSlot),
+      selectedTimeSlotBarberId:
+          clearTimeSlotBarberId
+              ? null
+              : (selectedTimeSlotBarberId ?? this.selectedTimeSlotBarberId),
       locationId: locationId ?? this.locationId,
+      barberChoiceMade: barberChoiceMade ?? this.barberChoiceMade,
     );
   }
 
   @override
   List<Object?> get props => [
-        selectedService,
-        selectedBarber,
-        selectedDate,
-        selectedTimeSlot,
-        selectedTimeSlotBarberId,
-        locationId,
-      ];
+    selectedService,
+    selectedBarber,
+    selectedDate,
+    selectedTimeSlot,
+    selectedTimeSlotBarberId,
+    locationId,
+    barberChoiceMade,
+  ];
 }

@@ -19,6 +19,7 @@ Root configuration for each client (brand).
 | `slot_interval` | Number | Slot length in minutes (e.g. 15 or 30) |
 | `buffer_time` | Number | Minutes between appointments (e.g. 5) |
 | `cancel_hours_minimum` | Number | Min hours before appointment that cancellation is allowed (e.g. 48 = must cancel ≥48h ahead; 0 = anytime) |
+| `loyalty_points_multiplier` | Number | Points per 1€ when barber scans loyalty QR (e.g. 10 = 30€ → 300 points; default 10) |
 
 ---
 
@@ -179,6 +180,47 @@ Detailed records of all bookings.
 
 ---
 
+## 9. `rewards` (Collection)
+
+Loyalty rewards catalog per brand. Redeemable items with a points cost.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| **doc_id** | — | `reward_id` |
+| `brand_id` | String | Reference to brand |
+| `name` | String | Reward name (e.g. "Free haircut") |
+| `description` | String | Optional description |
+| `points_cost` | Number | Points required to redeem |
+| `sort_order` | Number | Display order (default 0) |
+| `is_active` | Boolean | If false, hidden from catalog (default true) |
+
+**Security:** Read for any signed-in user. Create/update/delete for superadmin only.
+
+---
+
+## 10. `reward_redemptions` (Collection)
+
+User spent points to "buy" a reward. Document ID is encoded in the QR code the customer shows at the barber; barber scans to mark the reward as redeemed.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| **doc_id** | — | `redemption_id` (use in QR payload) |
+| `user_id` | String | User who claimed the reward |
+| `reward_id` | String | Reference to reward |
+| `brand_id` | String | Brand (must match barber’s brand to redeem) |
+| `reward_name` | String | Denormalized for display when scanning |
+| `points_spent` | Number | Points deducted |
+| `status` | String | `pending` (not yet used) or `redeemed` (barber fulfilled) |
+| `created_at` | ServerTimestamp | When user claimed |
+| `redeemed_at` | Timestamp (optional) | When barber scanned and redeemed |
+| `redeemed_by` | String (optional) | User ID of barber who redeemed |
+
+**Flow:** Client app runs a transaction: read `users/{uid}` (check points), create this doc with `status: pending`, update user’s `loyalty_points`. Barber app scans QR (doc id), looks up doc, confirms brand and `status == pending`, then updates doc with `status: redeemed`, `redeemed_at`, `redeemed_by`.
+
+**Security:** User can create only with `user_id == request.auth.uid`. User can read own redemptions. Barber/superadmin can read any and update only when `resource.data.brand_id == barberBrandId()` and `resource.data.status == 'pending'`.
+
+---
+
 ## Code references
 
 - **Collection names:** `lib/core/firebase/collections.dart`
@@ -189,6 +231,7 @@ Detailed records of all bookings.
   - Barbers → `features/barbers/`  
   - Users → `features/auth/`  
   - Availability & Appointments → `features/booking/`  
+  - Rewards & Redemptions → `features/rewards/`  
 - **Working hours value type:** `lib/core/value_objects/working_hours.dart`
 
 ---

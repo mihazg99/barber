@@ -76,6 +76,8 @@
   "bookingAppointmentSuccess": "Rezervacija uspješno zakazana!",
   "bookingUserNotAuthenticated": "Korisnik nije prijavljen",
   "bookingAlreadyHasUpcoming": "Već imate zakazan termin. Otkazujte ili dovršite ga prije nove rezervacije.",
+  "bookingStepLocation": "Lokacija",
+  "bookingSelectLocation": "Odaberi lokaciju",
   "bookingStepService": "Usluga",
   "bookingStepBarber": "Brijač",
   "bookingStepTime": "Vrijeme",
@@ -121,6 +123,58 @@
   "loyaltyPageTitle": "Nagrade i lojalnost",
   "loyaltyRewardsComingSoon": "Nagrade uskoro",
   "loyaltyEarnPointsDescription": "Zaradite bodove i unovčite nagrade",
+  "loyaltyRedeem": "Unovči",
+  "loyaltyMyRewards": "Moje nagrade",
+  "loyaltyInsufficientPoints": "Nedovoljno bodova",
+  "loyaltyRedeemSuccess": "Nagrada zatražena! Pokažite ovaj QR brijaču.",
+  "dashboardRedeemReward": "Skeniraj kod",
+  "barberHomeGreetingMorning": "Dobro jutro",
+  "barberHomeGreetingAfternoon": "Dobar dan",
+  "barberHomeGreetingEvening": "Dobra večer",
+  "barberHomeScanCta": "Skeniraj QR",
+  "barberHomeScanSubtitle": "Unovči nagrade ili dodaj bodove",
+  "barberHomeRedeemReward": "Unovči nagradu",
+  "barberHomeAddLoyalty": "Dodaj bodove",
+  "barberHomeViewBookings": "Pregled termina",
+  "barberHomeTodayTitle": "Danas",
+  "barberHomeTodayEmpty": "Nema termina danas",
+  "barberHomeUpcomingEmpty": "Nema nadolazećih termina",
+  "barberHomeUpcomingCardTitle": "Termini",
+  "barberHomeHey": "Bok 👋",
+  "barberHomeHeyName": "Bok, {name} 👋",
+  "@barberHomeHeyName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "barberHomeQuickActions": "Brze radnje",
+  "redeemSuccess": "Nagrada unovčena",
+  "alreadyRedeemed": "Već unovčeno",
+  "scanPointsAwardedTitle": "Bodovi dodani",
+  "scanPointsAwardedMessage": "{customerName} je primio {pointsAwarded} bodova lojalnosti.",
+  "@scanPointsAwardedMessage": {
+    "placeholders": {
+      "customerName": {
+        "type": "String"
+      },
+      "pointsAwarded": {
+        "type": "int"
+      }
+    }
+  },
+
+  "dashboardNavHome": "Početna",
+  "dashboardNavBookings": "Termini",
+  "dashboardNavShift": "Smjena",
+  "dashboardNavBrand": "Brend",
+  "dashboardNavLocations": "Lokacije",
+  "dashboardNavServices": "Usluge",
+  "dashboardNavRewards": "Nagrade",
+  "dashboardNavBarbers": "Brijači",
+  "dashboardBookingsTitle": "Moji termini",
+  "dashboardShiftTitle": "Moja smjena",
 
   "addNewItem": "Dodaj novu stavku",
   "addItemTitle": "Naslov",
@@ -203,6 +257,8 @@
   "dashboardBrandSlotInterval": "Interval termina (min)",
   "dashboardBrandBufferTime": "Vrijeme između termina (min)",
   "dashboardBrandCancelHours": "Min. sati za otkaz",
+  "dashboardBrandLoyaltyPointsMultiplier": "Bodovi po 1€",
+  "dashboardBrandLoyaltyPointsMultiplierHint": "npr. 10 (30€ → 300 bodova)",
   "dashboardBrandMultiLocation": "Više lokacija",
   "dashboardBrandSaved": "Brend spremljen",
   "dashboardBrandCreated": "Brend kreiran",
@@ -277,6 +333,36 @@
   "dashboardBarberDeleted": "Brijač obrisan",
   "dashboardBarberEmpty": "Još nema brijača. Dodajte novog.",
   "dashboardBarberInactive": "Neaktivan",
+
+  "dashboardRewardAdd": "Dodaj nagradu",
+  "dashboardRewardEdit": "Uredi nagradu",
+  "dashboardRewardName": "Naziv",
+  "dashboardRewardNameHint": "npr. Besplatna kava",
+  "dashboardRewardNameRequired": "Naziv je obavezan",
+  "dashboardRewardDescription": "Opis",
+  "dashboardRewardDescriptionHint": "Opcionalni opis",
+  "dashboardRewardPointsCostLabel": "Cijena u bodovima",
+  "dashboardRewardPointsCostHint": "100",
+  "dashboardRewardPointsInvalid": "Unesite valjanu vrijednost bodova (0 ili više)",
+  "dashboardRewardPointsCost": "{points} bod.",
+  "@dashboardRewardPointsCost": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardRewardSortOrder": "Redoslijed",
+  "dashboardRewardSortOrderHint": "0",
+  "dashboardRewardActive": "Aktivna",
+  "dashboardRewardSaved": "Nagrada spremljena",
+  "dashboardRewardCreated": "Nagrada kreirana",
+  "dashboardRewardDeleteConfirm": "Obrisati ovu nagradu?",
+  "dashboardRewardDeleteConfirmMessage": "Ova radnja se ne može poništiti.",
+  "dashboardRewardDeleteButton": "Obriši",
+  "dashboardRewardDeleted": "Nagrada obrisana",
+  "dashboardRewardEmpty": "Još nema nagrada. Dodajte novu.",
+  "dashboardRewardInactive": "Neaktivna",
 
   "closed": "Zatvoreno",
   "openNow": "OTVORENO SADA {open} - {close}",

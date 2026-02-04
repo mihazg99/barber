@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 
@@ -20,7 +21,7 @@ class DashboardBookingsTab extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'My Bookings',
+            context.l10n.dashboardBookingsTitle,
             style: context.appTextStyles.bold.copyWith(
               fontSize: 24,
               color: context.appColors.primaryTextColor,

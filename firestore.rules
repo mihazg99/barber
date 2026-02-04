@@ -11,19 +11,27 @@ service cloud.firestore {
     // Role security: users cannot escalate role. Only 'user' on create; role unchanged on update.
     // barber/superadmin must be assigned via Firebase Admin SDK (Cloud Functions, admin tool).
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
       allow create: if request.auth != null
         && request.auth.uid == userId
         && (!('role' in request.resource.data) || request.resource.data.role == 'user');
       allow update: if request.auth != null
-        && request.auth.uid == userId
-        && request.resource.data.role == userRole(resource.data);
+        && (request.auth.uid == userId && request.resource.data.role == userRole(resource.data)
+            || isBarberOrSuperadmin() && request.resource.data.role == resource.data.role);
       allow delete: if false;
     }
 
     // Helper: true if current user has superadmin role
     function isSuperadmin() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'superadmin';
+    }
+    // Helper: true if current user is barber or superadmin (can scan and redeem rewards)
+    function isBarberOrSuperadmin() {
+      let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user');
+      return role == 'barber' || role == 'superadmin';
+    }
+    function barberBrandId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('brand_id', '');
     }
 
     // Brands: read for signed-in; write for superadmin only.
@@ -49,10 +57,11 @@ service cloud.firestore {
     }
 
     // Appointments: signed-in users can create, read, and update (cancel) their own.
+    // Barbers can read any and update (mark completed) when scanning loyalty card.
     match /appointments/{appointmentId} {
-      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow read: if request.auth != null && (resource.data.user_id == request.auth.uid || isBarberOrSuperadmin());
       allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
-      allow update: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow update: if request.auth != null && (resource.data.user_id == request.auth.uid || isBarberOrSuperadmin());
       allow delete: if false;
     }
 
@@ -63,9 +72,31 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // User booking lock: one active appointment per user. Each user can read/write only their own lock.
+    // User booking lock: one active appointment per user. User can read/write own lock.
+    // Barber/superadmin can read (to get active_appointment_id when scanning loyalty QR) and update (to clear lock when marking visit complete).
     match /user_booking_locks/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
+      allow create, update: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
+      allow delete: if false;
+    }
+
+    // Rewards catalog (per brand): read for signed-in; write for superadmin only.
+    match /rewards/{rewardId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && isSuperadmin();
+    }
+
+    // Reward redemptions: user spent points to get reward; doc id is used in QR for barber to scan.
+    // User: create (own user_id only), read own. Barber/superadmin: read any, update to redeem (same brand, pending only).
+    match /reward_redemptions/{redemptionId} {
+      allow read: if request.auth != null
+        && (resource.data.user_id == request.auth.uid || isBarberOrSuperadmin());
+      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow update: if request.auth != null
+        && isBarberOrSuperadmin()
+        && resource.data.brand_id == barberBrandId()
+        && resource.data.status == 'pending';
+      allow delete: if false;
     }
 
     // Deny all other collections by default.

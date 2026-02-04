@@ -83,12 +83,24 @@ class _LocationCard extends StatelessWidget {
                 ),
                 if (location.address.isNotEmpty) ...[
                   Gap(context.appSizes.paddingSmall / 2),
-                  Text(
-                    location.address,
-                    style: context.appTextStyles.caption.copyWith(
-                      color: context.appColors.captionTextColor,
-                      fontSize: 12,
-                    ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: context.appColors.captionTextColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          location.address,
+                          style: context.appTextStyles.caption.copyWith(
+                            color: context.appColors.captionTextColor,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ],

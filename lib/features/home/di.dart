@@ -10,6 +10,7 @@ import 'package:barber/features/booking/domain/entities/appointment_entity.dart'
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/home/domain/entities/home_data.dart';
 import 'package:barber/features/home/presentation/bloc/home_notifier.dart';
+import 'package:barber/features/home/presentation/bloc/loyalty_card_notifier.dart';
 import 'package:barber/features/booking/di.dart' as booking_di;
 import 'package:barber/features/locations/di.dart';
 import 'package:barber/features/services/di.dart' as services_di;
@@ -27,6 +28,11 @@ final homeNotifierProvider =
         brandId,
       );
     });
+
+/// Flip state for the loyalty card (front/back). AutoDispose.
+final loyaltyCardNotifierProvider =
+    StateNotifierProvider.autoDispose<LoyaltyCardNotifier, LoyaltyCardState>(
+        (ref) => LoyaltyCardNotifier());
 
 /// Barbers for the default brand. Loaded for quick-action booking.
 final barbersForHomeProvider = FutureProvider<List<BarberEntity>>((ref) async {
@@ -57,24 +63,19 @@ final servicesForHomeProvider = FutureProvider<List<ServiceEntity>>((ref) async 
 });
 
 /// Next upcoming scheduled appointment for the current user, or null.
-/// Depends on [currentUserIdProvider] so it refetches when user logs in (stream emits UID).
-final upcomingAppointmentProvider = FutureProvider<AppointmentEntity?>((ref) async {
+/// Stream so when barber marks visit complete (lock cleared, status updated) the UI updates immediately.
+final upcomingAppointmentProvider = StreamProvider<AppointmentEntity?>((ref) {
   final uidAsync = ref.watch(currentUserIdProvider);
   final uid = uidAsync.valueOrNull;
-  if (uid == null || uid.isEmpty) return null;
+  if (uid == null || uid.isEmpty) return Stream.value(null);
   final repo = ref.watch(booking_di.appointmentRepositoryProvider);
-  final result = await repo.getByUserId(uid);
-  return result.fold(
-    (_) => null,
-    (list) {
-      final now = DateTime.now();
-      final upcoming = list
-          .where((a) =>
-              a.status == AppointmentStatus.scheduled &&
-              a.startTime.isAfter(now))
-          .toList()
-        ..sort((a, b) => a.startTime.compareTo(b.startTime));
-      return upcoming.isEmpty ? null : upcoming.first;
-    },
-  );
+  return repo.watchActiveAppointmentId(uid).asyncExpand((activeId) {
+    if (activeId == null || activeId.isEmpty) return Stream.value(null);
+    return repo.watchAppointment(activeId).map((appointment) {
+      if (appointment == null) return null;
+      if (appointment.status != AppointmentStatus.scheduled) return null;
+      if (!appointment.startTime.isAfter(DateTime.now())) return null;
+      return appointment;
+    });
+  });
 });
