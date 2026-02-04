@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/utils/price_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -25,18 +27,22 @@ class ServicesSection extends ConsumerWidget {
 
     return switch (servicesAsync) {
       AsyncLoading() => const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _ServicesSectionShimmer(),
-            Gap(_servicesSectionSpacing),
-          ],
-        ),
-      AsyncData(:final value) => value.isEmpty
-          ? const SizedBox.shrink()
-          : Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ServicesSectionShimmer(),
+          Gap(_servicesSectionSpacing),
+        ],
+      ),
+      AsyncData(:final value) =>
+        value.isEmpty
+            ? const SizedBox.shrink()
+            : Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _ServicesContent(services: value, title: 'Popular services'),
+                _ServicesContent(
+                  services: value,
+                  title: context.l10n.sectionPopularServices,
+                ),
                 Gap(_servicesSectionSpacing),
               ],
             ),
@@ -73,7 +79,8 @@ class _ServicesContent extends StatelessWidget {
               final service = services[index];
               return _ServiceCard(
                 service: service,
-                onTap: () => _openBookingWithService(context, service.serviceId),
+                onTap:
+                    () => _openBookingWithService(context, service.serviceId),
               );
             },
           ),
@@ -97,7 +104,7 @@ class _ServicesSectionShimmer extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const HomeSectionTitle(title: 'Popular services'),
+        HomeSectionTitle(title: context.l10n.sectionPopularServices),
         Gap(context.appSizes.paddingSmall),
         SizedBox(
           height: cardHeight,
@@ -106,37 +113,38 @@ class _ServicesSectionShimmer extends StatelessWidget {
             padding: EdgeInsets.only(right: context.appSizes.paddingMedium),
             itemCount: 3,
             separatorBuilder: (_, __) => Gap(context.appSizes.paddingSmall),
-            itemBuilder: (_, __) => ShimmerWrapper(
-              child: Container(
-                width: cardWidth,
-                padding: EdgeInsets.all(context.appSizes.paddingMedium),
-                decoration: BoxDecoration(
-                  color: context.appColors.menuBackgroundColor,
-                  borderRadius: BorderRadius.circular(16),
+            itemBuilder:
+                (_, __) => ShimmerWrapper(
+                  child: Container(
+                    width: cardWidth,
+                    padding: EdgeInsets.all(context.appSizes.paddingMedium),
+                    decoration: BoxDecoration(
+                      color: context.appColors.menuBackgroundColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ShimmerPlaceholder(
+                          width: 100,
+                          height: 16,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        ShimmerPlaceholder(
+                          width: 120,
+                          height: 14,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        ShimmerPlaceholder(
+                          width: 80,
+                          height: 12,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ShimmerPlaceholder(
-                      width: 100,
-                      height: 16,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    ShimmerPlaceholder(
-                      width: 120,
-                      height: 14,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    ShimmerPlaceholder(
-                      width: 80,
-                      height: 12,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ),
         ),
       ],
@@ -156,10 +164,8 @@ class _ServiceCard extends StatelessWidget {
   final ServiceEntity service;
   final VoidCallback onTap;
 
-  static String _formatPrice(num price) {
-    if (price == price.toInt()) return '\$${price.toInt()}';
-    return '\$${price.toStringAsFixed(2)}';
-  }
+  String _formatPrice(BuildContext context, num price) =>
+      context.formatPriceWithCurrency(price);
 
   static String _formatDuration(int minutes) {
     if (minutes < 60) return '${minutes}min';
@@ -205,7 +211,7 @@ class _ServiceCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _formatPrice(service.price),
+                    _formatPrice(context, service.price),
                     style: context.appTextStyles.h2.copyWith(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -225,13 +231,13 @@ class _ServiceCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'Book',
+                    context.l10n.book,
                     style: context.appTextStyles.caption.copyWith(
                       fontSize: 12,
                       color: context.appColors.primaryColor,
                       fontWeight: FontWeight.w600,
                     ),
-                    ),
+                  ),
                   Gap(4),
                   Icon(
                     Icons.arrow_forward_ios,

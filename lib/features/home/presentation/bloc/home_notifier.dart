@@ -1,9 +1,6 @@
 import 'package:barber/core/state/base_notifier.dart';
-import 'package:barber/features/brand/data/mock_brand_data.dart';
-import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 import 'package:barber/features/brand/domain/repositories/brand_repository.dart';
 import 'package:barber/features/home/domain/entities/home_data.dart';
-import 'package:barber/features/locations/domain/entities/location_entity.dart';
 import 'package:barber/features/locations/domain/repositories/location_repository.dart';
 
 class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
@@ -17,11 +14,10 @@ class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
   final LocationRepository _locationRepository;
   final String _defaultBrandId;
 
-  /// Load home data (brand + locations).
-  /// If [defaultBrandId] is empty, emits [HomeData] with mock brand and empty locations.
+  /// Load home data (brand + locations) from Firebase.
   Future<void> load() async {
     if (_defaultBrandId.isEmpty) {
-      setData(HomeData(brand: mockBrand, locations: const []));
+      setData(HomeData(brand: null, locations: const []));
       return;
     }
 
@@ -31,16 +27,15 @@ class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
       _defaultBrandId,
     );
 
-    final brand = brandResult.fold<BrandEntity?>(
-      (_) => mockBrand,
-      (b) => b ?? mockBrand,
+    brandResult.fold(
+      (f) => setError(f.message, f),
+      (brand) {
+        locationsResult.fold(
+          (f) => setError(f.message, f),
+          (locations) => setData(HomeData(brand: brand, locations: locations)),
+        );
+      },
     );
-    final locations = locationsResult.fold<List<LocationEntity>>(
-      (_) => [],
-      (list) => list,
-    );
-
-    setData(HomeData(brand: brand, locations: locations));
   }
 
   Future<void> refresh() => load();

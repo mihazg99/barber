@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
@@ -28,9 +29,9 @@ class NearbyLocationsSection extends ConsumerWidget {
       BaseInitial() => const _NearbyLocationsShimmer(),
       BaseLoading() => const _NearbyLocationsShimmer(),
       BaseData(:final data) => _NearbyLocationsContent(
-          locations: data.locations,
-          title: 'Nearby barbershop',
-        ),
+        locations: data.locations,
+        title: context.l10n.sectionNearbyBarbershop,
+      ),
       _ => const SizedBox.shrink(),
     };
   }
@@ -61,17 +62,20 @@ class _NearbyLocationsContent extends StatelessWidget {
             final spacing = context.appSizes.paddingSmall;
             final width =
                 (constraints.maxWidth - spacing * (crossAxisCount - 1)) /
-                    crossAxisCount;
+                crossAxisCount;
             return Wrap(
               spacing: spacing,
               runSpacing: spacing,
-              children: locations
-                  .take(6)
-                  .map((loc) => SizedBox(
-                        width: width,
-                        child: _LocationCard(location: loc),
-                      ))
-                  .toList(),
+              children:
+                  locations
+                      .take(6)
+                      .map(
+                        (loc) => SizedBox(
+                          width: width,
+                          child: _LocationCard(location: loc),
+                        ),
+                      )
+                      .toList(),
             );
           },
         ),
@@ -90,14 +94,14 @@ class _NearbyLocationsShimmer extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const HomeSectionTitle(title: 'Nearby barbershop'),
+        HomeSectionTitle(title: context.l10n.sectionNearbyBarbershop),
         Gap(context.appSizes.paddingSmall),
         LayoutBuilder(
           builder: (context, constraints) {
             const crossAxisCount = 2;
             final width =
                 (constraints.maxWidth - spacing * (crossAxisCount - 1)) /
-                    crossAxisCount;
+                crossAxisCount;
             return Wrap(
               spacing: spacing,
               runSpacing: spacing,
@@ -175,20 +179,26 @@ class _LocationCard extends StatelessWidget {
   final LocationEntity location;
 
   static const _dayKeys = [
-    'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
+    'mon',
+    'tue',
+    'wed',
+    'thu',
+    'fri',
+    'sat',
+    'sun',
   ];
 
-  String _todayHours(WorkingHoursMap hours) {
+  String _todayHours(BuildContext context, WorkingHoursMap hours) {
     final today = DateTime.now().weekday;
     final key = _dayKeys[today - 1];
     final day = hours[key];
-    if (day == null) return 'Closed';
-    return 'OPEN NOW ${day.open} - ${day.close}';
+    if (day == null) return context.l10n.closed;
+    return context.l10n.openNow(day.open, day.close);
   }
 
   @override
   Widget build(BuildContext context) {
-    final hoursLine = _todayHours(location.workingHours);
+    final hoursLine = _todayHours(context, location.workingHours);
 
     return Material(
       color: Colors.transparent,
@@ -235,9 +245,10 @@ class _LocationCard extends StatelessWidget {
                       style: context.appTextStyles.caption.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: hoursLine.startsWith('OPEN')
-                            ? context.appColors.primaryColor
-                            : context.appColors.captionTextColor,
+                        color:
+                            hoursLine != context.l10n.closed
+                                ? context.appColors.primaryColor
+                                : context.appColors.captionTextColor,
                       ),
                     ),
                     Gap(4),
@@ -264,7 +275,9 @@ class _LocationCard extends StatelessWidget {
                       ),
                     ],
                     Gap(context.appSizes.paddingSmall),
-                    _BookNowPill(onTap: () => context.push(AppRoute.booking.path)),
+                    _BookNowPill(
+                      onTap: () => context.push(AppRoute.booking.path),
+                    ),
                   ],
                 ),
               ),
@@ -295,7 +308,7 @@ class _BookNowPill extends StatelessWidget {
               vertical: context.appSizes.paddingSmall,
             ),
             child: Text(
-              'Book Now',
+              context.l10n.bookNow,
               style: context.appTextStyles.h2.copyWith(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,

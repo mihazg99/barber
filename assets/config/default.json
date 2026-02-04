@@ -1,7 +1,8 @@
 {
   "app_title": "Kingsman Barbershop",
   "logo_path": "",
-  "default_brand_id": "",
+  "default_brand_id": "default",
+  "currency": "EUR",
   "font_family": "Poppins",
   "colors": {
     "primary": "#9B784A",

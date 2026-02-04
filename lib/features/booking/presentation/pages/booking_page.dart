@@ -4,13 +4,17 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:barber/core/errors/firestore_failure.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
+import 'package:barber/core/utils/snackbar_helper.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/widgets/custom_app_bar.dart';
 import 'package:barber/core/di.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/booking/di.dart';
+import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_progress_bar.dart';
@@ -25,9 +29,16 @@ import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/home/di.dart';
 
 /// Booking flow: select service, barber, date, and time.
-/// Supports quick-action from home: ?barberId=xxx and ?serviceId=yyy.
+/// Supports quick-action from home: pass [initialBarberId] and [initialServiceId] from route query.
 class BookingPage extends ConsumerStatefulWidget {
-  const BookingPage({super.key});
+  const BookingPage({
+    super.key,
+    this.initialBarberId,
+    this.initialServiceId,
+  });
+
+  final String? initialBarberId;
+  final String? initialServiceId;
 
   @override
   ConsumerState<BookingPage> createState() => _BookingPageState();
@@ -43,12 +54,13 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     super.didChangeDependencies();
     if (!_initialized) {
       _initialized = true;
-      // Capture query params synchronously so we never use context after async.
-      final query = GoRouterState.of(context).uri.queryParameters;
-      _initializeFromQueryParams(
-        barberId: query['barberId'],
-        serviceId: query['serviceId'],
-      );
+      // Defer so we don't modify provider (notifier.initialize) during build/didChangeDependencies.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initializeFromQueryParams(
+          barberId: widget.initialBarberId,
+          serviceId: widget.initialServiceId,
+        );
+      });
     }
   }
 
@@ -58,17 +70,34 @@ class _BookingPageState extends ConsumerState<BookingPage> {
   }) async {
     final servicesAsync = ref.read(servicesForHomeProvider);
     final services = servicesAsync.valueOrNull ?? [];
+    final barbersAsync = ref.read(barbersForHomeProvider);
+    final barbers = barbersAsync.valueOrNull ?? [];
+
     ServiceEntity? preSelectedService;
     if (serviceId != null && services.isNotEmpty) {
       try {
-        preSelectedService = services.firstWhere((s) => s.serviceId == serviceId);
+        preSelectedService = services.firstWhere(
+          (s) => s.serviceId == serviceId,
+        );
       } catch (_) {
         preSelectedService = null;
       }
     }
 
-    await ref.read(bookingNotifierProvider.notifier).initialize(
-          barberId: barberId,
+    BarberEntity? preSelectedBarber;
+    if (barberId != null && barbers.isNotEmpty) {
+      try {
+        preSelectedBarber = barbers.firstWhere((b) => b.barberId == barberId);
+      } catch (_) {
+        preSelectedBarber = null;
+      }
+    }
+
+    await ref
+        .read(bookingNotifierProvider.notifier)
+        .initialize(
+          barberId: preSelectedBarber == null ? barberId : null,
+          preSelectedBarber: preSelectedBarber,
           preSelectedService: preSelectedService,
           allServices: services,
         );
@@ -76,6 +105,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
 
   Future<void> _confirmBooking() async {
     setState(() => _isConfirming = true);
+    final alreadyHasUpcomingMsg = context.l10n.bookingAlreadyHasUpcoming;
 
     try {
       final bookingState = ref.read(bookingNotifierProvider);
@@ -84,29 +114,46 @@ class _BookingPageState extends ConsumerState<BookingPage> {
       final brandId = flavor.values.brandConfig.defaultBrandId;
 
       if (userId == null) {
-        _showError('User not authenticated');
+        _showError(context.l10n.bookingUserNotAuthenticated);
         return;
       }
 
       // Block more than one upcoming appointment per user
-      final existingResult = await ref.read(appointmentRepositoryProvider).getByUserId(userId);
+      final existingResult = await ref
+          .read(appointmentRepositoryProvider)
+          .getByUserId(userId);
       final alreadyHasUpcoming = existingResult.fold(
         (_) => false,
         (list) {
           final now = DateTime.now();
-          return list.any((a) =>
-              a.status == AppointmentStatus.scheduled && a.startTime.isAfter(now));
+          return list.any(
+            (a) =>
+                a.status == AppointmentStatus.scheduled &&
+                a.startTime.isAfter(now),
+          );
         },
       );
       if (alreadyHasUpcoming) {
+        if (!mounted) return;
+        final appt = ref.read(upcomingAppointmentProvider).valueOrNull;
+        // ignore: use_build_context_synchronously
         _showError(
-          'You already have an upcoming appointment. Cancel or complete it before booking another.',
+          alreadyHasUpcomingMsg,
+          actionLabel: appt != null ? context.l10n.manage : null,
+          onAction: appt != null
+              ? () => context.go(
+                    AppRoute.manageBooking.path
+                        .replaceFirst(':appointmentId', appt.appointmentId),
+                  )
+              : null,
         );
         return;
       }
 
       // Get brand for buffer time (used in transaction)
-      final brandResult = await ref.read(brandRepositoryProvider).getById(brandId);
+      final brandResult = await ref
+          .read(brandRepositoryProvider)
+          .getById(brandId);
       final brand = brandResult.fold(
         (_) => null,
         (b) => b,
@@ -114,7 +161,8 @@ class _BookingPageState extends ConsumerState<BookingPage> {
       final bufferTime = brand?.bufferTime ?? 0;
 
       // Generate appointment ID
-      final appointmentId = FirebaseFirestore.instance.collection('appointments').doc().id;
+      final appointmentId =
+          FirebaseFirestore.instance.collection('appointments').doc().id;
 
       // Calculate start and end times
       final dateStr = _formatDate(bookingState.selectedDate!);
@@ -130,7 +178,9 @@ class _BookingPageState extends ConsumerState<BookingPage> {
         hour,
         minute,
       );
-      final endTime = startTime.add(Duration(minutes: bookingState.totalDurationMinutes));
+      final endTime = startTime.add(
+        Duration(minutes: bookingState.totalDurationMinutes),
+      );
 
       // Create appointment entity
       final appointment = AppointmentEntity(
@@ -160,8 +210,25 @@ class _BookingPageState extends ConsumerState<BookingPage> {
 
       await result.fold(
         (failure) async {
-          _showError(failure.message);
-          // Refresh time slots so user sees current availability
+          if (!mounted) return;
+          final isAlreadyHasUpcoming =
+              failure is FirestoreFailure &&
+              failure.code == 'user-has-active-appointment';
+          final message =
+              isAlreadyHasUpcoming ? alreadyHasUpcomingMsg : failure.message;
+          final appt = ref.read(upcomingAppointmentProvider).valueOrNull;
+          _showError(
+            message,
+            actionLabel: isAlreadyHasUpcoming && appt != null
+                ? context.l10n.manage
+                : null,
+            onAction: isAlreadyHasUpcoming && appt != null
+                ? () => context.go(
+                      AppRoute.manageBooking.path
+                          .replaceFirst(':appointmentId', appt.appointmentId),
+                    )
+                : null,
+          );
           ref.invalidate(availableTimeSlotsProvider);
         },
         (_) async {
@@ -178,23 +245,25 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     }
   }
 
-  void _showError(String message) {
+  void _showError(
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: context.appColors.errorColor,
-      ),
+    showErrorSnackBar(
+      context,
+      message: message,
+      actionLabel: actionLabel,
+      onAction: onAction,
     );
   }
 
   void _showSuccess() {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Appointment booked successfully!'),
-        backgroundColor: context.appColors.primaryColor,
-      ),
+    showSuccessSnackBar(
+      context,
+      message: context.l10n.bookingAppointmentSuccess,
     );
   }
 
@@ -220,18 +289,26 @@ class _BookingPageState extends ConsumerState<BookingPage> {
       });
     });
 
-    final services = servicesAsync.valueOrNull ?? [];
+    final allServices = servicesAsync.valueOrNull ?? [];
     final allBarbers = barbersAsync.valueOrNull ?? [];
-    
+
+    // Show only services available at the selected location (empty list = all locations)
+    final services = allServices
+        .where((s) => s.isAvailableAt(bookingState.locationId))
+        .toList();
+
     // Filter barbers by location if we have one
-    final barbers = bookingState.locationId != null
-        ? allBarbers.where((b) => b.locationId == bookingState.locationId).toList()
-        : allBarbers;
+    final barbers =
+        bookingState.locationId != null
+            ? allBarbers
+                .where((b) => b.locationId == bookingState.locationId)
+                .toList()
+            : allBarbers;
 
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
       appBar: CustomAppBar.withTitleAndBackButton(
-        'Book appointment',
+        context.l10n.bookingTitle,
         onBack: () => context.go(AppRoute.home.path),
       ),
       body: Column(
@@ -239,7 +316,8 @@ class _BookingPageState extends ConsumerState<BookingPage> {
           // Progress bar
           BookingProgressBar(
             serviceSelected: bookingState.selectedService != null,
-            barberSelected: bookingState.selectedBarber != null || bookingState.isAnyBarber,
+            barberSelected:
+                bookingState.selectedBarber != null || bookingState.isAnyBarber,
             timeSelected: bookingState.selectedTimeSlot != null,
           ),
 
@@ -247,13 +325,19 @@ class _BookingPageState extends ConsumerState<BookingPage> {
           if (bookingState.selectedBarber != null)
             BookingPreSelectionChip(
               barberName: bookingState.selectedBarber!.name,
-              onClear: () => ref.read(bookingNotifierProvider.notifier).selectAnyBarber(),
+              onClear:
+                  () =>
+                      ref
+                          .read(bookingNotifierProvider.notifier)
+                          .selectAnyBarber(),
             ),
 
           // Scrollable body
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(vertical: context.appSizes.paddingMedium),
+              padding: EdgeInsets.symmetric(
+                vertical: context.appSizes.paddingMedium,
+              ),
               child: Column(
                 children: [
                   // Service selection
@@ -261,7 +345,9 @@ class _BookingPageState extends ConsumerState<BookingPage> {
                     services: services,
                     selectedServiceId: bookingState.selectedService?.serviceId,
                     onServiceSelected: (service) {
-                      ref.read(bookingNotifierProvider.notifier).selectService(service);
+                      ref
+                          .read(bookingNotifierProvider.notifier)
+                          .selectService(service);
                     },
                   ),
                   Gap(context.appSizes.paddingLarge),
@@ -273,10 +359,14 @@ class _BookingPageState extends ConsumerState<BookingPage> {
                       selectedBarberId: bookingState.selectedBarber?.barberId,
                       isAnyBarber: bookingState.isAnyBarber,
                       onBarberSelected: (barber) {
-                        ref.read(bookingNotifierProvider.notifier).selectBarber(barber);
+                        ref
+                            .read(bookingNotifierProvider.notifier)
+                            .selectBarber(barber);
                       },
                       onAnyBarberSelected: () {
-                        ref.read(bookingNotifierProvider.notifier).selectAnyBarber();
+                        ref
+                            .read(bookingNotifierProvider.notifier)
+                            .selectAnyBarber();
                       },
                     ),
                     Gap(context.appSizes.paddingLarge),
@@ -284,11 +374,14 @@ class _BookingPageState extends ConsumerState<BookingPage> {
 
                   // Date selection
                   if (bookingState.selectedService != null &&
-                      (bookingState.selectedBarber != null || bookingState.isAnyBarber)) ...[
+                      (bookingState.selectedBarber != null ||
+                          bookingState.isAnyBarber)) ...[
                     BookingDateSection(
                       selectedDate: bookingState.selectedDate,
                       onDateSelected: (date) {
-                        ref.read(bookingNotifierProvider.notifier).selectDate(date);
+                        ref
+                            .read(bookingNotifierProvider.notifier)
+                            .selectDate(date);
                       },
                     ),
                     Gap(context.appSizes.paddingLarge),
@@ -297,12 +390,15 @@ class _BookingPageState extends ConsumerState<BookingPage> {
                   // Time selection (show last slots while loading to avoid scroll jump on date tap)
                   if (bookingState.selectedDate != null) ...[
                     BookingTimeSection(
-                      timeSlots: timeSlotsAsync.isLoading
-                          ? (_lastTimeSlots ?? [])
-                          : (timeSlotsAsync.valueOrNull ?? []),
+                      timeSlots:
+                          timeSlotsAsync.isLoading
+                              ? (_lastTimeSlots ?? [])
+                              : (timeSlotsAsync.valueOrNull ?? []),
                       selectedTimeSlot: bookingState.selectedTimeSlot,
                       onTimeSlotSelected: (slot) {
-                        ref.read(bookingNotifierProvider.notifier).selectTimeSlot(
+                        ref
+                            .read(bookingNotifierProvider.notifier)
+                            .selectTimeSlot(
                               slot.time,
                               barberId: slot.barberId,
                             );

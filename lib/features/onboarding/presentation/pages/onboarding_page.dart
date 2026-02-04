@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
@@ -24,12 +25,16 @@ class OnboardingPage extends HookConsumerWidget {
 
     useEffect(() {
       Future.microtask(() {
-        ref.read(onboardingNotifierProvider.notifier).load();
+        final locale = Localizations.localeOf(context);
+        ref.read(onboardingNotifierProvider.notifier).load(locale.languageCode);
       });
       return null;
     }, []);
 
-    ref.listen<BaseState<OnboardingData>>(onboardingNotifierProvider, (prev, next) {
+    ref.listen<BaseState<OnboardingData>>(onboardingNotifierProvider, (
+      prev,
+      next,
+    ) {
       switch (next) {
         case BaseData():
           if (isCompleting.value) {
@@ -53,11 +58,11 @@ class OnboardingPage extends HookConsumerWidget {
           BaseInitial() => const _OnboardingLoading(),
           BaseLoading() => const _OnboardingLoading(),
           BaseData(:final data) => _OnboardingContent(
-              data: data,
-              pageController: pageController,
-              isCompleting: isCompleting.value,
-              onCompletingChanged: (v) => isCompleting.value = v,
-            ),
+            data: data,
+            pageController: pageController,
+            isCompleting: isCompleting.value,
+            onCompletingChanged: (v) => isCompleting.value = v,
+          ),
           BaseError(:final message) => _OnboardingError(message: message),
         },
       ),
@@ -169,10 +174,15 @@ class _OnboardingError extends ConsumerWidget {
           ),
           Gap(context.appSizes.paddingMedium),
           TextButton.icon(
-            onPressed: () => ref.read(onboardingNotifierProvider.notifier).load(),
+            onPressed: () {
+              final locale = Localizations.localeOf(context);
+              ref
+                  .read(onboardingNotifierProvider.notifier)
+                  .load(locale.languageCode);
+            },
             icon: Icon(Icons.refresh, color: context.appColors.primaryColor),
             label: Text(
-              'Retry',
+              context.l10n.retry,
               style: TextStyle(color: context.appColors.primaryColor),
             ),
           ),

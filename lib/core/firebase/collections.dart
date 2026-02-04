@@ -22,4 +22,8 @@ abstract final class FirestoreCollections {
 
   /// Detailed records of all bookings.
   static const String appointments = 'appointments';
+
+  /// One doc per user: { user_id, active_appointment_id }. Used for atomic
+  /// "one active appointment per user" check in booking transactions.
+  static const String userBookingLocks = 'user_booking_locks';
 }

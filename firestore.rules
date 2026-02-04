@@ -2,37 +2,58 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // App users (clients): each user can only read/write their own document.
-    // Required for auth profile step and user repository (getById, set).
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // Helper: safe role from document (defaults to 'user' if missing)
+    function userRole(data) {
+      return data.get('role', 'user');
     }
 
-    // Brands and locations: read-only for signed-in users (home page).
+    // App users (clients): each user can only read/write their own document.
+    // Role security: users cannot escalate role. Only 'user' on create; role unchanged on update.
+    // barber/superadmin must be assigned via Firebase Admin SDK (Cloud Functions, admin tool).
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && (!('role' in request.resource.data) || request.resource.data.role == 'user');
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.role == userRole(resource.data);
+      allow delete: if false;
+    }
+
+    // Helper: true if current user has superadmin role
+    function isSuperadmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'superadmin';
+    }
+
+    // Brands: read for signed-in; write for superadmin only.
     match /brands/{document=**} {
       allow read: if request.auth != null;
-      allow write: if false;
+      allow create, update, delete: if request.auth != null && isSuperadmin();
     }
+    // Locations: read for signed-in; write for superadmin only.
     match /locations/{document=**} {
       allow read: if request.auth != null;
-      allow write: if false;
+      allow create, update, delete: if request.auth != null && isSuperadmin();
     }
 
-    // Barbers and services: read-only for signed-in users (home, booking).
+    // Barbers: read for signed-in; write for superadmin only (dashboard).
     match /barbers/{document=**} {
       allow read: if request.auth != null;
-      allow write: if false;
+      allow create, update, delete: if request.auth != null && isSuperadmin();
     }
+    // Services: read for signed-in; write for superadmin only (dashboard).
     match /services/{document=**} {
       allow read: if request.auth != null;
-      allow write: if false;
+      allow create, update, delete: if request.auth != null && isSuperadmin();
     }
 
-    // Appointments: signed-in users can create and read their own.
+    // Appointments: signed-in users can create, read, and update (cancel) their own.
     match /appointments/{appointmentId} {
       allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
-      allow update, delete: if false;
+      allow update: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow delete: if false;
     }
 
     // Availability: read for slot display; write when creating a booking (client updates booked_slots).
@@ -40,6 +61,11 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow create, update: if request.auth != null;
       allow delete: if false;
+    }
+
+    // User booking lock: one active appointment per user. Each user can read/write only their own lock.
+    match /user_booking_locks/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
     // Deny all other collections by default.

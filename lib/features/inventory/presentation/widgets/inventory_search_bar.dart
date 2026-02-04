@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'dart:async';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/widgets/custom_textfield.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/features/inventory/di.dart';
@@ -64,6 +65,7 @@ class InventorySearchBar extends HookConsumerWidget {
                     horizontal: context.appSizes.paddingMedium,
                   ),
                   child: CustomTextField.search(
+                    hint: context.l10n.search,
                     enabled: true,
                     onChanged: (val) {
                       searchQuery.value = val;

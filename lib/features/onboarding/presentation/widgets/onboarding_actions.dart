@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -34,7 +35,7 @@ class OnboardingActions extends StatelessWidget {
             TextButton(
               onPressed: isCompleting ? null : onSkip,
               child: Text(
-                'Skip',
+                context.l10n.skip,
                 style: context.appTextStyles.body.copyWith(
                   color: context.appColors.captionTextColor,
                 ),
@@ -46,12 +47,12 @@ class OnboardingActions extends StatelessWidget {
             PrimaryButton.big(
               onPressed: isCompleting ? null : onGetStarted,
               loading: isCompleting,
-              child: const Text('Get started'),
+              child: Text(context.l10n.getStarted),
             )
           else
             PrimaryButton.big(
               onPressed: isCompleting ? null : onNext,
-              child: const Text('Next'),
+              child: Text(context.l10n.next),
             ),
         ],
       ),

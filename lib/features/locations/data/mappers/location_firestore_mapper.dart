@@ -11,7 +11,9 @@ class LocationFirestoreMapper {
     return k;
   }
 
-  static LocationEntity fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  static LocationEntity fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = doc.data()!;
     final geo = data['geo_point'] as GeoPoint?;
     final hoursRaw = data['working_hours'] as Map<String, dynamic>?;

@@ -24,6 +24,27 @@ class LocationEntity extends Equatable {
   final String phone;
   final WorkingHoursMap workingHours;
 
+  LocationEntity copyWith({
+    String? locationId,
+    String? brandId,
+    String? name,
+    String? address,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    WorkingHoursMap? workingHours,
+  }) =>
+      LocationEntity(
+        locationId: locationId ?? this.locationId,
+        brandId: brandId ?? this.brandId,
+        name: name ?? this.name,
+        address: address ?? this.address,
+        latitude: latitude ?? this.latitude,
+        longitude: longitude ?? this.longitude,
+        phone: phone ?? this.phone,
+        workingHours: workingHours ?? this.workingHours,
+      );
+
   @override
   List<Object?> get props => [
         locationId,

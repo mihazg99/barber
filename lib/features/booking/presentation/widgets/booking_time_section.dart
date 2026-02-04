@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -13,12 +14,14 @@ class BookingTimeSection extends StatelessWidget {
     required this.selectedTimeSlot,
     required this.onTimeSlotSelected,
     required this.isLoading,
+    this.title,
   });
 
   final List<TimeSlot> timeSlots;
   final String? selectedTimeSlot;
   final void Function(TimeSlot) onTimeSlotSelected;
   final bool isLoading;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
@@ -33,20 +36,31 @@ class BookingTimeSection extends StatelessWidget {
     }
 
     // Group by time of day
-    final morningSlots = timeSlots.where((s) => getTimePeriod(s.time) == TimePeriod.morning).toList();
-    final afternoonSlots = timeSlots.where((s) => getTimePeriod(s.time) == TimePeriod.afternoon).toList();
-    final eveningSlots = timeSlots.where((s) => getTimePeriod(s.time) == TimePeriod.evening).toList();
+    final morningSlots =
+        timeSlots
+            .where((s) => getTimePeriod(s.time) == TimePeriod.morning)
+            .toList();
+    final afternoonSlots =
+        timeSlots
+            .where((s) => getTimePeriod(s.time) == TimePeriod.afternoon)
+            .toList();
+    final eveningSlots =
+        timeSlots
+            .where((s) => getTimePeriod(s.time) == TimePeriod.evening)
+            .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: context.appSizes.paddingMedium),
+          padding: EdgeInsets.symmetric(
+            horizontal: context.appSizes.paddingMedium,
+          ),
           child: Row(
             children: [
               Expanded(
                 child: Text(
-                  'Select Time',
+                  title ?? context.l10n.bookingSelectTime,
                   style: context.appTextStyles.h2.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -69,7 +83,7 @@ class BookingTimeSection extends StatelessWidget {
         Gap(context.appSizes.paddingSmall),
         if (morningSlots.isNotEmpty) ...[
           _TimeGroupSection(
-            title: 'Morning',
+            title: context.l10n.timeMorning,
             slots: morningSlots,
             selectedTimeSlot: selectedTimeSlot,
             onTimeSlotSelected: onTimeSlotSelected,
@@ -78,7 +92,7 @@ class BookingTimeSection extends StatelessWidget {
         ],
         if (afternoonSlots.isNotEmpty) ...[
           _TimeGroupSection(
-            title: 'Afternoon',
+            title: context.l10n.timeAfternoon,
             slots: afternoonSlots,
             selectedTimeSlot: selectedTimeSlot,
             onTimeSlotSelected: onTimeSlotSelected,
@@ -87,7 +101,7 @@ class BookingTimeSection extends StatelessWidget {
         ],
         if (eveningSlots.isNotEmpty) ...[
           _TimeGroupSection(
-            title: 'Evening',
+            title: context.l10n.timeEvening,
             slots: eveningSlots,
             selectedTimeSlot: selectedTimeSlot,
             onTimeSlotSelected: onTimeSlotSelected,
@@ -117,7 +131,9 @@ class _TimeGroupSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: context.appSizes.paddingMedium),
+          padding: EdgeInsets.symmetric(
+            horizontal: context.appSizes.paddingMedium,
+          ),
           child: Text(
             title,
             style: context.appTextStyles.caption.copyWith(
@@ -129,18 +145,21 @@ class _TimeGroupSection extends StatelessWidget {
         ),
         Gap(8),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: context.appSizes.paddingMedium),
+          padding: EdgeInsets.symmetric(
+            horizontal: context.appSizes.paddingMedium,
+          ),
           child: Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: slots.map((slot) {
-              final isSelected = slot.time == selectedTimeSlot;
-              return _TimeChip(
-                timeSlot: slot,
-                isSelected: isSelected,
-                onTap: () => onTimeSlotSelected(slot),
-              );
-            }).toList(),
+            children:
+                slots.map((slot) {
+                  final isSelected = slot.time == selectedTimeSlot;
+                  return _TimeChip(
+                    timeSlot: slot,
+                    isSelected: isSelected,
+                    onTap: () => onTimeSlotSelected(slot),
+                  );
+                }).toList(),
           ),
         ),
       ],
@@ -169,14 +188,16 @@ class _TimeChip extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected
-                ? context.appColors.primaryColor
-                : context.appColors.menuBackgroundColor,
+            color:
+                isSelected
+                    ? context.appColors.primaryColor
+                    : context.appColors.menuBackgroundColor,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected
-                  ? context.appColors.primaryColor
-                  : context.appColors.borderColor.withValues(alpha: 0.4),
+              color:
+                  isSelected
+                      ? context.appColors.primaryColor
+                      : context.appColors.borderColor.withValues(alpha: 0.4),
             ),
           ),
           child: Text(
@@ -184,9 +205,10 @@ class _TimeChip extends StatelessWidget {
             style: context.appTextStyles.caption.copyWith(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isSelected
-                  ? context.appColors.primaryWhiteColor
-                  : context.appColors.primaryTextColor,
+              color:
+                  isSelected
+                      ? context.appColors.primaryWhiteColor
+                      : context.appColors.primaryTextColor,
             ),
           ),
         ),
@@ -269,14 +291,14 @@ class _EmptyState extends StatelessWidget {
             ),
             Gap(context.appSizes.paddingSmall),
             Text(
-              'No available times',
+              context.l10n.bookingNoAvailableTimes,
               style: context.appTextStyles.h2.copyWith(
                 color: context.appColors.secondaryTextColor,
               ),
             ),
             Gap(4),
             Text(
-              'Please select a different date',
+              context.l10n.bookingSelectDifferentDate,
               style: context.appTextStyles.caption.copyWith(
                 color: context.appColors.captionTextColor,
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -27,9 +28,11 @@ class BookingBarberSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: context.appSizes.paddingMedium),
+          padding: EdgeInsets.symmetric(
+            horizontal: context.appSizes.paddingMedium,
+          ),
           child: Text(
-            'Select Barber',
+            context.l10n.bookingSelectBarber,
             style: context.appTextStyles.h2.copyWith(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -42,7 +45,9 @@ class BookingBarberSection extends StatelessWidget {
           height: 132,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: context.appSizes.paddingMedium),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.appSizes.paddingMedium,
+            ),
             itemCount: barbers.length + 1, // +1 for "Any Barber"
             separatorBuilder: (_, __) => Gap(context.appSizes.paddingMedium),
             itemBuilder: (context, index) {
@@ -93,13 +98,17 @@ class _AnyBarberCard extends StatelessWidget {
               height: _circleSize + 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected
-                    ? context.appColors.primaryColor
-                    : context.appColors.menuBackgroundColor,
+                color:
+                    isSelected
+                        ? context.appColors.primaryColor
+                        : context.appColors.menuBackgroundColor,
                 border: Border.all(
-                  color: isSelected
-                      ? context.appColors.primaryColor
-                      : context.appColors.primaryTextColor.withValues(alpha: 0.12),
+                  color:
+                      isSelected
+                          ? context.appColors.primaryColor
+                          : context.appColors.primaryTextColor.withValues(
+                            alpha: 0.12,
+                          ),
                   width: isSelected ? 3 : 1,
                 ),
               ),
@@ -107,9 +116,10 @@ class _AnyBarberCard extends StatelessWidget {
                 child: Icon(
                   Icons.people_outline,
                   size: 32,
-                  color: isSelected
-                      ? context.appColors.primaryWhiteColor
-                      : context.appColors.primaryColor,
+                  color:
+                      isSelected
+                          ? context.appColors.primaryWhiteColor
+                          : context.appColors.primaryColor,
                 ),
               ),
             ),
@@ -117,13 +127,14 @@ class _AnyBarberCard extends StatelessWidget {
             SizedBox(
               width: _circleSize + 24,
               child: Text(
-                'Any Barber',
+                context.l10n.bookingAnyBarber,
                 style: context.appTextStyles.caption.copyWith(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: isSelected
-                      ? context.appColors.primaryColor
-                      : context.appColors.primaryTextColor,
+                  color:
+                      isSelected
+                          ? context.appColors.primaryColor
+                          : context.appColors.primaryTextColor,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -132,12 +143,13 @@ class _AnyBarberCard extends StatelessWidget {
             ),
             Gap(2),
             Text(
-              isSelected ? 'Selected' : 'Select',
+              isSelected ? context.l10n.selected : context.l10n.select,
               style: context.appTextStyles.caption.copyWith(
                 fontSize: 11,
-                color: isSelected
-                    ? context.appColors.primaryColor
-                    : context.appColors.captionTextColor,
+                color:
+                    isSelected
+                        ? context.appColors.primaryColor
+                        : context.appColors.captionTextColor,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
@@ -161,9 +173,10 @@ class _BarberCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial = barber.name.isNotEmpty
-        ? barber.name.trim().substring(0, 1).toUpperCase()
-        : '?';
+    final initial =
+        barber.name.isNotEmpty
+            ? barber.name.trim().substring(0, 1).toUpperCase()
+            : '?';
 
     return Material(
       color: Colors.transparent,
@@ -179,29 +192,34 @@ class _BarberCircle extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected
-                      ? context.appColors.primaryColor
-                      : context.appColors.primaryTextColor.withValues(alpha: 0.12),
+                  color:
+                      isSelected
+                          ? context.appColors.primaryColor
+                          : context.appColors.primaryTextColor.withValues(
+                            alpha: 0.12,
+                          ),
                   width: isSelected ? 3 : 1,
                 ),
               ),
               child: Center(
                 child: ClipOval(
-                  child: barber.photoUrl.isEmpty
-                      ? _AvatarPlaceholder(
-                          initial: initial,
-                          size: _circleSize,
-                        )
-                      : Image.network(
-                          barber.photoUrl,
-                          width: _circleSize,
-                          height: _circleSize,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _AvatarPlaceholder(
+                  child:
+                      barber.photoUrl.isEmpty
+                          ? _AvatarPlaceholder(
                             initial: initial,
                             size: _circleSize,
+                          )
+                          : Image.network(
+                            barber.photoUrl,
+                            width: _circleSize,
+                            height: _circleSize,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, __, ___) => _AvatarPlaceholder(
+                                  initial: initial,
+                                  size: _circleSize,
+                                ),
                           ),
-                        ),
                 ),
               ),
             ),
@@ -213,9 +231,10 @@ class _BarberCircle extends StatelessWidget {
                 style: context.appTextStyles.caption.copyWith(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: isSelected
-                      ? context.appColors.primaryColor
-                      : context.appColors.primaryTextColor,
+                  color:
+                      isSelected
+                          ? context.appColors.primaryColor
+                          : context.appColors.primaryTextColor,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -224,12 +243,13 @@ class _BarberCircle extends StatelessWidget {
             ),
             Gap(2),
             Text(
-              isSelected ? 'Selected' : 'Select',
+              isSelected ? context.l10n.selected : context.l10n.select,
               style: context.appTextStyles.caption.copyWith(
                 fontSize: 11,
-                color: isSelected
-                    ? context.appColors.primaryColor
-                    : context.appColors.captionTextColor,
+                color:
+                    isSelected
+                        ? context.appColors.primaryColor
+                        : context.appColors.captionTextColor,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 
@@ -27,19 +28,19 @@ class BookingProgressBar extends StatelessWidget {
           Row(
             children: [
               _StepIndicator(
-                label: 'Service',
+                label: context.l10n.bookingStepService,
                 isCompleted: serviceSelected,
                 isActive: !serviceSelected,
               ),
               _Connector(isCompleted: serviceSelected),
               _StepIndicator(
-                label: 'Barber',
+                label: context.l10n.bookingStepBarber,
                 isCompleted: barberSelected,
                 isActive: serviceSelected && !barberSelected,
               ),
               _Connector(isCompleted: barberSelected),
               _StepIndicator(
-                label: 'Time',
+                label: context.l10n.bookingStepTime,
                 isCompleted: timeSelected,
                 isActive: barberSelected && !timeSelected,
               ),
@@ -64,9 +65,10 @@ class _StepIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isCompleted || isActive
-        ? context.appColors.primaryColor
-        : context.appColors.captionTextColor;
+    final color =
+        isCompleted || isActive
+            ? context.appColors.primaryColor
+            : context.appColors.captionTextColor;
 
     return Column(
       children: [
@@ -75,21 +77,28 @@ class _StepIndicator extends StatelessWidget {
           height: 24,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isCompleted
-                ? context.appColors.primaryColor
-                : Colors.transparent,
+            color:
+                isCompleted
+                    ? context.appColors.primaryColor
+                    : Colors.transparent,
             border: Border.all(color: color, width: 2),
           ),
-          child: isCompleted
-              ? Icon(Icons.check, size: 14, color: context.appColors.primaryWhiteColor)
-              : null,
+          child:
+              isCompleted
+                  ? Icon(
+                    Icons.check,
+                    size: 14,
+                    color: context.appColors.primaryWhiteColor,
+                  )
+                  : null,
         ),
         const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
             fontSize: 11,
-            fontWeight: isActive || isCompleted ? FontWeight.w600 : FontWeight.w400,
+            fontWeight:
+                isActive || isCompleted ? FontWeight.w600 : FontWeight.w400,
             color: color,
           ),
         ),
@@ -109,9 +118,10 @@ class _Connector extends StatelessWidget {
       child: Container(
         height: 2,
         margin: const EdgeInsets.only(bottom: 18),
-        color: isCompleted
-            ? context.appColors.primaryColor
-            : context.appColors.captionTextColor.withValues(alpha: 0.3),
+        color:
+            isCompleted
+                ? context.appColors.primaryColor
+                : context.appColors.captionTextColor.withValues(alpha: 0.3),
       ),
     );
   }

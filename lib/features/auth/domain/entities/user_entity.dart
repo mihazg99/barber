@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:barber/features/auth/domain/entities/user_role.dart';
+
 /// App user (client). doc_id: user_uid (Firebase Auth UID)
 class UserEntity extends Equatable {
   const UserEntity({
@@ -9,6 +11,7 @@ class UserEntity extends Equatable {
     required this.fcmToken,
     required this.brandId,
     required this.loyaltyPoints,
+    this.role = UserRole.user,
   });
 
   final String userId;
@@ -20,6 +23,9 @@ class UserEntity extends Equatable {
   /// Single loyalty card: points for this user (brand).
   final int loyaltyPoints;
 
+  /// User role. Only [UserRole.user] can be self-assigned. barber/superadmin via Admin SDK.
+  final UserRole role;
+
   UserEntity copyWith({
     String? userId,
     String? fullName,
@@ -27,22 +33,26 @@ class UserEntity extends Equatable {
     String? fcmToken,
     String? brandId,
     int? loyaltyPoints,
-  }) => UserEntity(
-    userId: userId ?? this.userId,
-    fullName: fullName ?? this.fullName,
-    phone: phone ?? this.phone,
-    fcmToken: fcmToken ?? this.fcmToken,
-    brandId: brandId ?? this.brandId,
-    loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
-  );
+    UserRole? role,
+  }) =>
+      UserEntity(
+        userId: userId ?? this.userId,
+        fullName: fullName ?? this.fullName,
+        phone: phone ?? this.phone,
+        fcmToken: fcmToken ?? this.fcmToken,
+        brandId: brandId ?? this.brandId,
+        loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
+        role: role ?? this.role,
+      );
 
   @override
   List<Object?> get props => [
-    userId,
-    fullName,
-    phone,
-    fcmToken,
-    brandId,
-    loyaltyPoints,
-  ];
+        userId,
+        fullName,
+        phone,
+        fcmToken,
+        brandId,
+        loyaltyPoints,
+        role,
+      ];
 }

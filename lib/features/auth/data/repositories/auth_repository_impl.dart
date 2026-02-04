@@ -5,20 +5,17 @@ import 'package:barber/core/errors/failure.dart';
 import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
+import 'package:barber/features/auth/domain/entities/user_role.dart';
 import 'package:barber/features/auth/domain/failures/auth_failure.dart';
 import 'package:barber/features/auth/domain/repositories/auth_repository.dart';
 import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl(
-    this._authDataSource,
-    this._userRepository,
-    this._defaultBrandId,
-  );
+  AuthRepositoryImpl(this._authDataSource, this._userRepository, this._brandId);
 
   final AuthRemoteDataSource _authDataSource;
   final UserRepository _userRepository;
-  final String _defaultBrandId;
+  final String _brandId;
 
   @override
   String? get currentUserId => _authDataSource.auth.currentUser?.uid;
@@ -59,8 +56,9 @@ class AuthRepositoryImpl implements AuthRepository {
         fullName: '',
         phone: user.phoneNumber ?? '',
         fcmToken: '',
-        brandId: _defaultBrandId,
+        brandId: _brandId,
         loyaltyPoints: 0,
+        role: UserRole.user,
       );
 
       final existingResult = await _userRepository.getById(user.uid);
@@ -70,6 +68,7 @@ class AuthRepositoryImpl implements AuthRepository {
             ? entity.copyWith(
                 fullName: existing.fullName,
                 loyaltyPoints: existing.loyaltyPoints,
+                role: existing.role,
               )
             : entity,
       );

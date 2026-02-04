@@ -21,6 +21,14 @@ class ServiceEntity extends Equatable {
   final int durationMinutes;
   final String description;
 
+  /// True if this service is offered at [locationId].
+  /// Empty [availableAtLocations] means "all locations".
+  bool isAvailableAt(String? locationId) {
+    if (locationId == null) return true;
+    if (availableAtLocations.isEmpty) return true;
+    return availableAtLocations.contains(locationId);
+  }
+
   @override
   List<Object?> get props => [
         serviceId,

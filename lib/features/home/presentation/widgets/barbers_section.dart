@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -25,18 +26,22 @@ class BarbersSection extends ConsumerWidget {
 
     return switch (barbersAsync) {
       AsyncLoading() => const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _BarbersSectionShimmer(),
-            Gap(_barbersSectionSpacing),
-          ],
-        ),
-      AsyncData(:final value) => value.isEmpty
-          ? const SizedBox.shrink()
-          : Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _BarbersSectionShimmer(),
+          Gap(_barbersSectionSpacing),
+        ],
+      ),
+      AsyncData(:final value) =>
+        value.isEmpty
+            ? const SizedBox.shrink()
+            : Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _BarbersContent(barbers: value, title: 'Book with a barber'),
+                _BarbersContent(
+                  barbers: value,
+                  title: context.l10n.sectionBarbers,
+                ),
                 Gap(_barbersSectionSpacing),
               ],
             ),
@@ -95,7 +100,7 @@ class _BarbersSectionShimmer extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const HomeSectionTitle(title: 'Book with a barber'),
+        HomeSectionTitle(title: context.l10n.sectionBarbers),
         Gap(context.appSizes.paddingSmall),
         SizedBox(
           height: 132,
@@ -104,30 +109,31 @@ class _BarbersSectionShimmer extends StatelessWidget {
             padding: EdgeInsets.only(right: context.appSizes.paddingMedium),
             itemCount: 4,
             separatorBuilder: (_, __) => Gap(context.appSizes.paddingMedium),
-            itemBuilder: (_, __) => ShimmerWrapper(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ShimmerPlaceholder(
-                    width: 80,
-                    height: 80,
-                    borderRadius: BorderRadius.circular(40),
+            itemBuilder:
+                (_, __) => ShimmerWrapper(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ShimmerPlaceholder(
+                        width: 80,
+                        height: 80,
+                        borderRadius: BorderRadius.circular(40),
+                      ),
+                      Gap(8),
+                      ShimmerPlaceholder(
+                        width: 60,
+                        height: 12,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      Gap(2),
+                      ShimmerPlaceholder(
+                        width: 32,
+                        height: 11,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
                   ),
-                  Gap(8),
-                  ShimmerPlaceholder(
-                    width: 60,
-                    height: 12,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  Gap(2),
-                  ShimmerPlaceholder(
-                    width: 32,
-                    height: 11,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ],
-              ),
-            ),
+                ),
           ),
         ),
       ],
@@ -148,9 +154,10 @@ class _BarberCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial = barber.name.isNotEmpty
-        ? barber.name.trim().substring(0, 1).toUpperCase()
-        : '?';
+    final initial =
+        barber.name.isNotEmpty
+            ? barber.name.trim().substring(0, 1).toUpperCase()
+            : '?';
 
     return Material(
       color: Colors.transparent,
@@ -166,27 +173,31 @@ class _BarberCircle extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: context.appColors.primaryTextColor.withValues(alpha: 0.12),
+                  color: context.appColors.primaryTextColor.withValues(
+                    alpha: 0.12,
+                  ),
                   width: 1,
                 ),
               ),
               child: Center(
                 child: ClipOval(
-                  child: barber.photoUrl.isEmpty
-                      ? _AvatarPlaceholder(
-                          initial: initial,
-                          size: _circleSize,
-                        )
-                      : Image.network(
-                          barber.photoUrl,
-                          width: _circleSize,
-                          height: _circleSize,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _AvatarPlaceholder(
+                  child:
+                      barber.photoUrl.isEmpty
+                          ? _AvatarPlaceholder(
                             initial: initial,
                             size: _circleSize,
+                          )
+                          : Image.network(
+                            barber.photoUrl,
+                            width: _circleSize,
+                            height: _circleSize,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, __, ___) => _AvatarPlaceholder(
+                                  initial: initial,
+                                  size: _circleSize,
+                                ),
                           ),
-                        ),
                 ),
               ),
             ),
@@ -207,7 +218,7 @@ class _BarberCircle extends StatelessWidget {
             ),
             Gap(2),
             Text(
-              'Book',
+              context.l10n.book,
               style: context.appTextStyles.caption.copyWith(
                 fontSize: 11,
                 color: context.appColors.primaryColor,

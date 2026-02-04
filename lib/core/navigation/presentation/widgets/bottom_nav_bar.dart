@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:barber/core/navigation/data/navigation_config.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/utils/extensions/go_router_extension.dart';
+
+String _navLabel(BuildContext context, String route) {
+  final l10n = context.l10n;
+  if (route == '/') return l10n.navHome;
+  if (route == '/inventory') return l10n.navInventory;
+  if (route == '/statistics') return l10n.navStatistics;
+  return route;
+}
 
 class BottomNavBar extends StatelessWidget {
   const BottomNavBar({super.key});
@@ -52,7 +61,7 @@ class BottomNavBar extends StatelessWidget {
                   height: 24,
                 ),
               ),
-              label: item.label,
+              label: _navLabel(context, item.route),
             );
           }).toList(),
     );

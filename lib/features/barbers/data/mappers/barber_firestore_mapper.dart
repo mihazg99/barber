@@ -10,7 +10,9 @@ class BarberFirestoreMapper {
     return k;
   }
 
-  static BarberEntity fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  static BarberEntity fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = doc.data()!;
     final overrideRaw = data['working_hours_override'] as Map<String, dynamic>?;
     WorkingHoursMap? override;
@@ -31,6 +33,7 @@ class BarberFirestoreMapper {
       photoUrl: data['photo_url'] as String? ?? '',
       active: data['active'] as bool? ?? true,
       workingHoursOverride: override,
+      userId: data['user_id'] as String?,
     );
   }
 
@@ -42,6 +45,9 @@ class BarberFirestoreMapper {
       'photo_url': entity.photoUrl,
       'active': entity.active,
     };
+    if (entity.userId != null) {
+      map['user_id'] = entity.userId;
+    }
     if (entity.workingHoursOverride != null &&
         entity.workingHoursOverride!.isNotEmpty) {
       final hours = <String, dynamic>{};

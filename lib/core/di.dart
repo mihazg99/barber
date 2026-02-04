@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:barber/core/config/flavor_config.dart';
 import 'package:barber/core/data/database/app_database.dart';
+
+/// Root ScaffoldMessenger key for showing snackbars from anywhere (e.g. dashboard tabs).
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 /// DATA
 

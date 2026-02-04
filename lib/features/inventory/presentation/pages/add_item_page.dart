@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -59,7 +60,7 @@ class AddItemPage extends HookConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Item ${titleController.text.trim()} saved successfully',
+              context.l10n.addItemSavedSuccess(titleController.text.trim()),
             ),
             backgroundColor: context.appColors.primaryColor,
           ),
@@ -80,17 +81,17 @@ class AddItemPage extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Gap(context.appSizes.paddingXxl),
-                CustomBackButton.withTitle('Add new item'),
+                CustomBackButton.withTitle(context.l10n.addNewItem),
                 Gap(context.appSizes.paddingMedium),
                 ImagePickerSection(),
                 Gap(context.appSizes.paddingMedium),
                 CustomTextField.withTitle(
-                  title: 'Title',
-                  hint: 'Enter item title',
+                  title: context.l10n.addItemTitle,
+                  hint: context.l10n.addItemTitleHint,
                   controller: titleController,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Title is required';
+                      return context.l10n.addItemTitleRequired;
                     }
                     return null;
                   },
@@ -101,8 +102,8 @@ class AddItemPage extends HookConsumerWidget {
                 ),
                 Gap(context.appSizes.paddingMedium),
                 CustomTextField.withTitle(
-                  title: 'Category',
-                  hint: 'Enter category',
+                  title: context.l10n.addItemCategory,
+                  hint: context.l10n.addItemCategoryHint,
                   controller: categoryController,
                   onChanged: (value) {
                     // Handle category changes if needed
@@ -115,14 +116,14 @@ class AddItemPage extends HookConsumerWidget {
                     child: CircularProgressIndicator(),
                   ),
                   BaseError(:final message) => Text(
-                    'Error: $message',
+                    context.l10n.addItemError(message),
                     style: TextStyle(color: context.appColors.errorColor),
                   ),
                   BaseData(:final data) => CustomDropdown.withAddNew(
                     items: data.map((location) => location.name).toList(),
                     selectedValue: selectedLocation.value?.name,
-                    label: 'Location',
-                    hint: 'Select location',
+                    label: context.l10n.addItemLocation,
+                    hint: context.l10n.addItemSelectLocation,
                     onChanged: (value) {
                       final location = data.firstWhereOrNull(
                         (c) => c.name == value,
@@ -144,14 +145,14 @@ class AddItemPage extends HookConsumerWidget {
                     child: CircularProgressIndicator(),
                   ),
                   BaseError(:final message) => Text(
-                    'Error: $message',
+                    context.l10n.addItemError(message),
                     style: TextStyle(color: context.appColors.errorColor),
                   ),
                   BaseData(:final data) => CustomDropdown.withAddNew(
                     items: data.map((box) => box.label).toList(),
                     selectedValue: selectedBox.value?.label,
-                    label: 'Box',
-                    hint: 'Select box',
+                    label: context.l10n.addItemBox,
+                    hint: context.l10n.addItemSelectBox,
                     onChanged: (value) {
                       final box = data.firstWhereOrNull(
                         (c) => c.label == value,
@@ -169,8 +170,8 @@ class AddItemPage extends HookConsumerWidget {
                 },
                 Gap(context.appSizes.paddingMedium),
                 CustomTextField.withTitle(
-                  title: 'Price (optional)',
-                  hint: 'Enter price',
+                  title: context.l10n.addItemPriceOptional,
+                  hint: context.l10n.addItemPriceHint,
                   controller: priceController,
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   onChanged: (value) {
@@ -195,7 +196,7 @@ class AddItemPage extends HookConsumerWidget {
         child: PrimaryButton.big(
           onPressed: save,
           loading: isLoading.value,
-          child: const Text('Save'),
+          child: Text(context.l10n.save),
         ),
       ),
     );

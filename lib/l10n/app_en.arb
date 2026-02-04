@@ -1,0 +1,293 @@
+{
+  "@@locale": "en",
+  "retry": "Retry",
+  "skip": "Skip",
+  "next": "Next",
+  "getStarted": "Get started",
+  "save": "Save",
+  "cancel": "Cancel",
+  "search": "Search",
+  "book": "Book",
+  "manage": "Manage",
+  "select": "Select",
+  "selected": "Selected",
+  "continueButton": "Continue",
+  "back": "Back",
+  "logout": "Log out",
+
+  "navHome": "Home",
+  "navInventory": "Inventory",
+  "navStatistics": "Statistics",
+
+  "onboardingBookAppointmentsTitle": "Book appointments",
+  "onboardingBookAppointmentsDescription": "Schedule your visit in a few taps and manage your bookings easily.",
+  "onboardingScanQrTitle": "Scan QR codes",
+  "onboardingScanQrDescription": "Quick check-in and access to services by scanning QR codes at the location.",
+  "onboardingManageInventoryTitle": "Manage inventory",
+  "onboardingManageInventoryDescription": "Keep track of items and boxes across your locations.",
+
+  "authEnterPhone": "Enter your phone number",
+  "authVerificationCodeSent": "We'll send you a verification code",
+  "authPhoneNumber": "Phone number",
+  "authPhoneHint": "123 456 7890",
+  "authPhoneValidation": "Enter a valid phone number",
+  "authSendCode": "Send code",
+  "authEnterVerificationCode": "Enter verification code",
+  "authCodeSentTo": "We sent a code to {phone}",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "authVerificationCode": "Verification code",
+  "authCodeHint": "123456",
+  "authCodeValidation": "Enter the 6-digit code",
+  "authVerify": "Verify",
+  "authCompleteProfile": "Complete your profile",
+  "authProfileDescription": "Add your name so we can personalize your experience",
+  "authFullName": "Full name",
+  "authFullNameHint": "John Doe",
+  "authFullNameValidation": "Please enter your name",
+  "authPhone": "Phone",
+
+  "bookingTitle": "Book appointment",
+  "bookingSelectService": "Select Service",
+  "bookingSelectBarber": "Select Barber",
+  "bookingAnyBarber": "Any Barber",
+  "bookingSelectDate": "Select Date",
+  "bookingSelectTime": "Select Time",
+  "bookingConfirm": "Confirm Booking",
+  "bookingTotal": "Total",
+  "bookingWithBarber": "Booking with {barberName}",
+  "@bookingWithBarber": {
+    "placeholders": {
+      "barberName": {
+        "type": "String"
+      }
+    }
+  },
+  "timeMorning": "Morning",
+  "timeAfternoon": "Afternoon",
+  "timeEvening": "Evening",
+  "bookingNoAvailableTimes": "No available times",
+  "bookingSelectDifferentDate": "Please select a different date",
+  "bookingAppointmentSuccess": "Appointment booked successfully!",
+  "bookingUserNotAuthenticated": "User not authenticated",
+  "bookingAlreadyHasUpcoming": "You already have an upcoming appointment. Cancel or complete it before booking another.",
+  "bookingStepService": "Service",
+  "bookingStepBarber": "Barber",
+  "bookingStepTime": "Time",
+
+  "manageBookingTitle": "Manage booking",
+  "manageBookingReschedule": "Reschedule",
+  "manageBookingCancelAppointment": "Cancel appointment",
+  "manageBookingCancelConfirmTitle": "Cancel appointment?",
+  "manageBookingCancelConfirmMessage": "Are you sure you want to cancel this appointment? This action cannot be undone.",
+  "manageBookingCancelConfirm": "Yes, cancel",
+  "manageBookingCanceledSnackbar": "Appointment canceled",
+  "manageBookingCancelPolicyHours": "Cancellation must be done at least {hours} hours before the appointment.",
+  "manageBookingCancelPeriodPassed": "The cancellation period has passed. You can no longer cancel or reschedule this appointment.",
+  "@manageBookingCancelPolicyHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+
+  "editBookingTitle": "Change date & time",
+  "editBookingSelectNewDate": "Select new date",
+  "editBookingSelectNewTime": "Select new time",
+  "editBookingUpdateButton": "Update appointment",
+  "editBookingSuccessSnackbar": "Appointment updated successfully",
+  "editBookingErrorSnackbar": "Could not update appointment. Please try again.",
+
+  "upcoming": "Upcoming",
+  "upcomingAppointment": "Upcoming appointment",
+  "bookYourNextVisit": "Book your next visit",
+  "chooseLocationServiceTime": "Choose location, service and time",
+  "bookNow": "Book Now",
+
+  "sectionBarbers": "Book with a barber",
+  "sectionPopularServices": "Popular services",
+  "sectionNearbyBarbershop": "NEARBY BARBERSHOP",
+
+  "loyaltyTitle": "LOYALTY",
+  "loyaltyMember": "MEMBER",
+  "loyaltyViewRewards": "View rewards",
+
+  "loyaltyPageTitle": "Loyalty & Rewards",
+  "loyaltyRewardsComingSoon": "Rewards coming soon",
+  "loyaltyEarnPointsDescription": "Earn points and redeem rewards",
+
+  "addNewItem": "Add new item",
+  "addItemTitle": "Title",
+  "addItemTitleHint": "Enter item title",
+  "addItemTitleRequired": "Title is required",
+  "addItemCategory": "Category",
+  "addItemCategoryHint": "Enter category",
+  "addItemLocation": "Location",
+  "addItemSelectLocation": "Select location",
+  "addItemBox": "Box",
+  "addItemSelectBox": "Select box",
+  "addItemPriceOptional": "Price (optional)",
+  "addItemPriceHint": "Enter price",
+  "addItemSavedSuccess": "Item {name} saved successfully",
+  "@addItemSavedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addItemError": "Error: {message}",
+  "@addItemError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+
+  "inventoryItems": "Items",
+  "inventoryBoxes": "Boxes",
+  "inventoryLocations": "Locations",
+
+  "addNewBox": "Add New Box",
+  "addBoxLabel": "Box Label",
+  "addBoxLabelHint": "e.g., Kitchen Utensils, Tools, Documents",
+  "addBoxLabelRequired": "Please enter a box label",
+  "addBoxSuccess": "Box added successfully!",
+  "addBoxError": "Error adding box: {error}",
+  "@addBoxError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "addNewLocation": "Add New Location",
+  "addLocationName": "Location Name",
+  "addLocationNameHint": "e.g., Kitchen, Garage, Office",
+  "addLocationNameRequired": "Please enter a location name",
+  "addLocationColor": "Color",
+  "addLocationColorHint": "#4CAF50",
+  "addLocationColorRequired": "Please enter a color",
+  "addLocationColorInvalid": "Please enter a valid hex color (e.g., #4CAF50)",
+  "addLocationSuccess": "Location added successfully!",
+  "addLocationError": "Error adding location: {error}",
+  "@addLocationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "selectCountry": "Select country",
+  "searchCountryOrCode": "Search country or code",
+
+  "dashboardBrandTitle": "Brand",
+  "dashboardBrandName": "Name",
+  "dashboardBrandNameHint": "e.g. Kingsman Barbershop",
+  "dashboardBrandNameRequired": "Name is required",
+  "dashboardBrandPrimaryColor": "Primary color",
+  "dashboardBrandPrimaryColorHint": "#9B784A",
+  "dashboardBrandLogoUrl": "Logo URL",
+  "dashboardBrandLogoUrlHint": "https://...",
+  "dashboardBrandContactEmail": "Contact email",
+  "dashboardBrandContactEmailHint": "contact@example.com",
+  "dashboardBrandSlotInterval": "Slot interval (minutes)",
+  "dashboardBrandBufferTime": "Buffer time (minutes)",
+  "dashboardBrandCancelHours": "Cancel minimum hours",
+  "dashboardBrandMultiLocation": "Multi location",
+  "dashboardBrandSaved": "Brand saved",
+  "dashboardBrandCreated": "Brand created",
+  "dashboardBrandSetConfigId": "Set default_brand_id in assets/config/default.json",
+
+  "dashboardLocationAdd": "Add Location",
+  "dashboardLocationEdit": "Edit Location",
+  "dashboardLocationName": "Name",
+  "dashboardLocationNameHint": "e.g. Zagreb Centar",
+  "dashboardLocationNameRequired": "Name is required",
+  "dashboardLocationAddress": "Address",
+  "dashboardLocationAddressHint": "Street, city",
+  "dashboardLocationPhone": "Phone",
+  "dashboardLocationPhoneHint": "+385 1 234 5678",
+  "dashboardLocationCoordinates": "Coordinates",
+  "dashboardLocationLatHint": "Latitude (e.g. 45.81)",
+  "dashboardLocationLngHint": "Longitude (e.g. 15.98)",
+  "dashboardLocationWorkingHours": "Working hours",
+  "dashboardLocationTimeFormat": "Use HH:mm (e.g. 14:00)",
+  "dashboardLocationStartBeforeEnd": "Start must be before end",
+  "dashboardLocationDayClosed": "Closed",
+  "dashboardLocationSaved": "Location saved",
+  "dashboardLocationDeleted": "Location deleted",
+  "dashboardLocationDeleteConfirm": "Delete this location?",
+  "dashboardLocationDeleteConfirmMessage": "This cannot be undone.",
+  "dashboardLocationDeleteButton": "Delete",
+  "dashboardLocationEmpty": "No locations yet. Tap + to add one.",
+  "dashboardNoBrand": "No brand configured",
+
+  "dashboardServiceAdd": "Add Service",
+  "dashboardServiceEdit": "Edit Service",
+  "dashboardServiceName": "Name",
+  "dashboardServiceNameHint": "e.g. Haircut & Wash",
+  "dashboardServiceNameRequired": "Name is required",
+  "dashboardServicePrice": "Price",
+  "dashboardServicePriceHint": "0",
+  "dashboardServicePriceInvalid": "Enter a valid price",
+  "dashboardServiceDuration": "Duration (minutes)",
+  "dashboardServiceDurationHint": "30",
+  "dashboardServiceDurationInvalid": "Enter a valid duration (min 1)",
+  "dashboardServiceDescription": "Description",
+  "dashboardServiceDescriptionHint": "Optional description",
+  "dashboardServiceAvailableAt": "Available at",
+  "dashboardServiceAvailableAtAll": "All locations",
+  "dashboardServiceAvailableAtSelected": "Selected locations only",
+  "dashboardServiceSaved": "Service saved",
+  "dashboardServiceCreated": "Service created",
+  "dashboardServiceDeleteConfirm": "Delete this service?",
+  "dashboardServiceDeleteConfirmMessage": "This cannot be undone.",
+  "dashboardServiceDeleteButton": "Delete",
+  "dashboardServiceDeleted": "Service deleted",
+  "dashboardServiceEmpty": "No services yet. Tap + to add one.",
+
+  "dashboardBarberAdd": "Add Barber",
+  "dashboardBarberEdit": "Edit Barber",
+  "dashboardBarberName": "Name",
+  "dashboardBarberNameHint": "e.g. John Smith",
+  "dashboardBarberNameRequired": "Name is required",
+  "dashboardBarberPhotoUrl": "Photo URL",
+  "dashboardBarberPhotoUrlHint": "https://...",
+  "dashboardBarberLocation": "Location",
+  "dashboardBarberLocationRequired": "Select a location",
+  "dashboardBarberNoLocations": "Add locations first in the Locations tab.",
+  "dashboardBarberActive": "Active",
+  "dashboardBarberWorkingHoursOverride": "Custom working hours",
+  "dashboardBarberWorkingHoursOverrideHint": "Override location hours for this barber. Leave empty to use location hours.",
+  "dashboardBarberSaved": "Barber saved",
+  "dashboardBarberCreated": "Barber created",
+  "dashboardBarberDeleteConfirm": "Delete this barber?",
+  "dashboardBarberDeleteConfirmMessage": "This cannot be undone.",
+  "dashboardBarberDeleteButton": "Delete",
+  "dashboardBarberDeleted": "Barber deleted",
+  "dashboardBarberEmpty": "No barbers yet. Tap + to add one.",
+  "dashboardBarberInactive": "Inactive",
+
+  "closed": "Closed",
+  "openNow": "OPEN NOW {open} - {close}",
+  "@openNow": {
+    "placeholders": {
+      "open": {
+        "type": "String"
+      },
+      "close": {
+        "type": "String"
+      }
+    }
+  }
+}

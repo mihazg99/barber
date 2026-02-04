@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -36,7 +37,7 @@ class BookingPreSelectionChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Booking with $barberName',
+              context.l10n.bookingWithBarber(barberName),
               style: context.appTextStyles.caption.copyWith(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,

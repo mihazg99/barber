@@ -12,6 +12,7 @@ class BrandEntity extends Equatable {
     required this.contactEmail,
     required this.slotInterval,
     required this.bufferTime,
+    this.cancelHoursMinimum = 0,
   });
 
   final String brandId;
@@ -22,6 +23,32 @@ class BrandEntity extends Equatable {
   final String contactEmail;
   final int slotInterval; // minutes, e.g. 15 or 30
   final int bufferTime; // minutes between appointments
+  /// Minimum hours before appointment that cancellation is allowed. E.g. 48 = user
+  /// must cancel at least 48h before. 0 = allow cancel anytime.
+  final int cancelHoursMinimum;
+
+  BrandEntity copyWith({
+    String? brandId,
+    String? name,
+    bool? isMultiLocation,
+    String? primaryColor,
+    String? logoUrl,
+    String? contactEmail,
+    int? slotInterval,
+    int? bufferTime,
+    int? cancelHoursMinimum,
+  }) =>
+      BrandEntity(
+        brandId: brandId ?? this.brandId,
+        name: name ?? this.name,
+        isMultiLocation: isMultiLocation ?? this.isMultiLocation,
+        primaryColor: primaryColor ?? this.primaryColor,
+        logoUrl: logoUrl ?? this.logoUrl,
+        contactEmail: contactEmail ?? this.contactEmail,
+        slotInterval: slotInterval ?? this.slotInterval,
+        bufferTime: bufferTime ?? this.bufferTime,
+        cancelHoursMinimum: cancelHoursMinimum ?? this.cancelHoursMinimum,
+      );
 
   @override
   List<Object?> get props => [
@@ -33,5 +60,6 @@ class BrandEntity extends Equatable {
         contactEmail,
         slotInterval,
         bufferTime,
+        cancelHoursMinimum,
       ];
 }

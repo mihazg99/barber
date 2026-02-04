@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -20,7 +21,7 @@ class AddBoxBottomSheet extends HookConsumerWidget {
   static Future<void> show(BuildContext context) {
     return CustomBottomSheet.show(
       context: context,
-      title: 'Add New Box',
+      title: context.l10n.addNewBox,
       content: _AddBoxContent(),
     );
   }
@@ -28,7 +29,7 @@ class AddBoxBottomSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CustomBottomSheet(
-      title: 'Add New Box',
+      title: context.l10n.addNewBox,
       content: _AddBoxContent(),
     );
   }
@@ -58,13 +59,13 @@ class _AddBoxContent extends HookConsumerWidget {
           if (context.mounted) {
             Navigator.of(context).pop();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Box added successfully!')),
+              SnackBar(content: Text(context.l10n.addBoxSuccess)),
             );
           }
         } catch (e) {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error adding box: $e')),
+              SnackBar(content: Text(context.l10n.addBoxError('$e'))),
             );
           }
         }
@@ -79,12 +80,12 @@ class _AddBoxContent extends HookConsumerWidget {
         children: [
           // Box Label Field
           CustomTextField.withTitle(
-            title: 'Box Label',
-            hint: 'e.g., Kitchen Utensils, Tools, Documents',
+            title: context.l10n.addBoxLabel,
+            hint: context.l10n.addBoxLabelHint,
             controller: labelController,
             validator: (value) {
               if (value?.isEmpty ?? true) {
-                return 'Please enter a box label';
+                return context.l10n.addBoxLabelRequired;
               }
               return null;
             },
@@ -92,7 +93,7 @@ class _AddBoxContent extends HookConsumerWidget {
           Gap(context.appSizes.paddingMedium),
           // Location Dropdown - Simplified
           Text(
-            'Location',
+            context.l10n.addItemLocation,
             style: context.appTextStyles.h2.copyWith(
               color: context.appColors.secondaryTextColor,
             ),
@@ -121,7 +122,7 @@ class _AddBoxContent extends HookConsumerWidget {
               Expanded(
                 child: PrimaryButton.small(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text('Cancel'),
+                  child: Text(context.l10n.cancel),
                   color: context.appColors.captionTextColor,
                 ),
               ),
@@ -129,7 +130,7 @@ class _AddBoxContent extends HookConsumerWidget {
               Expanded(
                 child: PrimaryButton.small(
                   onPressed: submitForm,
-                  child: Text('Add Box'),
+                  child: Text(context.l10n.addNewBox),
                 ),
               ),
             ],

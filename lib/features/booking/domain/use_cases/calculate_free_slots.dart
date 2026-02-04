@@ -14,6 +14,7 @@ class CalculateFreeSlots {
 
   /// Get free slots for a single barber on a date.
   /// [bufferTimeMinutes] is the gap after each appointment before the next can start.
+  /// [excludeAppointmentId] when set (e.g. for reschedule) treats that slot as free.
   Future<List<TimeSlot>> getFreeSlotsForBarber({
     required BarberEntity barber,
     required LocationEntity location,
@@ -21,6 +22,7 @@ class CalculateFreeSlots {
     required int slotIntervalMinutes,
     required int serviceDurationMinutes,
     required int bufferTimeMinutes,
+    String? excludeAppointmentId,
   }) async {
     final dateStr = _formatDate(date);
     final docId = '${barber.barberId}_$dateStr';
@@ -29,15 +31,18 @@ class CalculateFreeSlots {
     // When barber has no override or an empty override, use location hours (per schema).
     final weekday = _getWeekdayKey(date);
     final barberOverride = barber.workingHoursOverride;
-    final workingHoursMap = (barberOverride != null && barberOverride.isNotEmpty)
-        ? barberOverride
-        : location.workingHours;
+    final workingHoursMap =
+        (barberOverride != null && barberOverride.isNotEmpty)
+            ? barberOverride
+            : location.workingHours;
     final dayHours = workingHoursMap[weekday];
 
     if (kDebugMode) {
-      print('🔍 [Availability] ${barber.name} $dateStr ($weekday) '
-          '${dayHours?.open ?? 'CLOSED'}-${dayHours?.close ?? 'CLOSED'} '
-          'interval=${slotIntervalMinutes}min duration=${serviceDurationMinutes}min buffer=${bufferTimeMinutes}min');
+      print(
+        '🔍 [Availability] ${barber.name} $dateStr ($weekday) '
+        '${dayHours?.open ?? 'CLOSED'}-${dayHours?.close ?? 'CLOSED'} '
+        'interval=${slotIntervalMinutes}min duration=${serviceDurationMinutes}min buffer=${bufferTimeMinutes}min',
+      );
     }
 
     if (dayHours == null) {
@@ -47,10 +52,16 @@ class CalculateFreeSlots {
 
     // Fetch availability (booked slots)
     final availabilityResult = await _availabilityRepository.get(docId);
-    final bookedSlots = availabilityResult.fold(
+    var bookedSlots = availabilityResult.fold(
       (_) => <BookedSlot>[],
       (availability) => availability?.bookedSlots ?? [],
     );
+    if (excludeAppointmentId != null) {
+      bookedSlots =
+          bookedSlots
+              .where((s) => s.appointmentId != excludeAppointmentId)
+              .toList();
+    }
 
     // Generate candidate start times: fixed interval (e.g. 08:00, 08:15...) plus
     // "in-between" times right after each booking (booked.end + buffer), so e.g.
@@ -80,7 +91,9 @@ class CalculateFreeSlots {
     }
 
     if (kDebugMode) {
-      print('  📊 Slots: ${allSlots.length} candidates, ${bookedSlots.length} booked, ${freeSlots.length} free');
+      print(
+        '  📊 Slots: ${allSlots.length} candidates, ${bookedSlots.length} booked, ${freeSlots.length} free',
+      );
       if (freeSlots.isEmpty && allSlots.isNotEmpty) {
         print('  ⚠️  All slots filtered out (service too long or all booked)');
       }
@@ -97,6 +110,7 @@ class CalculateFreeSlots {
     required int slotIntervalMinutes,
     required int serviceDurationMinutes,
     required int bufferTimeMinutes,
+    String? excludeAppointmentId,
   }) async {
     final allSlots = <String, String>{}; // time -> first barberId
 
@@ -108,6 +122,7 @@ class CalculateFreeSlots {
         slotIntervalMinutes: slotIntervalMinutes,
         serviceDurationMinutes: serviceDurationMinutes,
         bufferTimeMinutes: bufferTimeMinutes,
+        excludeAppointmentId: excludeAppointmentId,
       );
 
       for (final slot in barberSlots) {
@@ -119,7 +134,9 @@ class CalculateFreeSlots {
 
     // Convert to sorted list
     final times = allSlots.keys.toList()..sort();
-    return times.map((time) => TimeSlot(time: time, barberId: allSlots[time]!)).toList();
+    return times
+        .map((time) => TimeSlot(time: time, barberId: allSlots[time]!))
+        .toList();
   }
 
   /// Builds candidate start times: interval-based (08:00, 08:15, ...) plus
@@ -149,7 +166,8 @@ class CalculateFreeSlots {
     for (final booked in bookedSlots) {
       final bookedEnd = _timeToMinutes(booked.end);
       final nextStart = bookedEnd + bufferTimeMinutes;
-      if (nextStart >= openMinutes && nextStart + serviceDurationMinutes <= closeMinutes) {
+      if (nextStart >= openMinutes &&
+          nextStart + serviceDurationMinutes <= closeMinutes) {
         candidates.add(nextStart);
       }
     }

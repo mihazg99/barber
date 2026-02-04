@@ -11,5 +11,6 @@ abstract class OnboardingRepository {
   Future<Either<OnboardingStorageFailure, void>> completeOnboarding();
 
   /// Returns the list of onboarding slides (static or from config).
-  List<OnboardingPageEntity> getPages();
+  /// [languageCode] e.g. 'hr', 'en' for localized content.
+  List<OnboardingPageEntity> getPages(String languageCode);
 }

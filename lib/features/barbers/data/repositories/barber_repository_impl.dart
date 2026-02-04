@@ -54,6 +54,18 @@ class BarberRepositoryImpl implements BarberRepository {
   }
 
   @override
+  Future<Either<Failure, BarberEntity?>> getByUserId(String userId) async {
+    try {
+      final snapshot =
+          await _col.where('user_id', isEqualTo: userId).limit(1).get();
+      if (snapshot.docs.isEmpty) return const Right(null);
+      return Right(BarberFirestoreMapper.fromFirestore(snapshot.docs.first));
+    } catch (e) {
+      return Left(FirestoreFailure('Failed to get barber by user: $e'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> set(BarberEntity entity) async {
     try {
       await _col.doc(entity.barberId).set(

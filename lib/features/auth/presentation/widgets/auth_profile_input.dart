@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -35,7 +36,7 @@ class AuthProfileInput extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Complete your profile',
+            context.l10n.authCompleteProfile,
             style: context.appTextStyles.h2.copyWith(
               color: context.appColors.primaryTextColor,
               fontWeight: FontWeight.w600,
@@ -43,7 +44,7 @@ class AuthProfileInput extends HookConsumerWidget {
           ),
           Gap(context.appSizes.paddingSmall),
           Text(
-            'Add your name so we can personalize your experience',
+            context.l10n.authProfileDescription,
             style: context.appTextStyles.caption.copyWith(
               color: context.appColors.captionTextColor,
               fontSize: 14,
@@ -51,21 +52,21 @@ class AuthProfileInput extends HookConsumerWidget {
           ),
           Gap(context.appSizes.paddingLarge),
           CustomTextField.withTitle(
-            title: 'Full name',
-            hint: 'John Doe',
+            title: context.l10n.authFullName,
+            hint: context.l10n.authFullNameHint,
             keyboardType: TextInputType.name,
             textInputAction: TextInputAction.done,
             controller: controller,
             validator: (v) {
               if (v == null || v.trim().isEmpty) {
-                return 'Please enter your name';
+                return context.l10n.authFullNameValidation;
               }
               return null;
             },
           ),
           Gap(context.appSizes.paddingMedium),
           Text(
-            'Phone',
+            context.l10n.authPhone,
             style: context.appTextStyles.h2.copyWith(
               color: context.appColors.secondaryTextColor,
             ),
@@ -111,7 +112,7 @@ class AuthProfileInput extends HookConsumerWidget {
                       }
                     },
             loading: isLoading,
-            child: const Text('Continue'),
+            child: Text(context.l10n.continueButton),
           ),
         ],
       ),

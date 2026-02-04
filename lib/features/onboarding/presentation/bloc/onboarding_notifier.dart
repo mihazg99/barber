@@ -8,8 +8,9 @@ class OnboardingNotifier extends BaseNotifier<OnboardingData, dynamic> {
   final OnboardingRepository _repository;
 
   /// Loads onboarding pages and sets initial state.
-  void load() {
-    final pages = _repository.getPages();
+  /// [languageCode] e.g. 'hr', 'en' for localized content.
+  void load(String languageCode) {
+    final pages = _repository.getPages(languageCode);
     setData(OnboardingData(pages: pages, currentPageIndex: 0));
   }
 

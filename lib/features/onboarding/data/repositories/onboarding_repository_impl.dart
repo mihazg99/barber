@@ -5,6 +5,7 @@ import 'package:barber/features/onboarding/domain/entities/onboarding_page_entit
 import 'package:barber/features/onboarding/domain/failures/onboarding_failures.dart';
 import 'package:barber/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:barber/features/onboarding/data/datasources/onboarding_local_data_source.dart';
+import 'package:barber/gen/l10n/app_localizations.dart';
 
 class OnboardingRepositoryImpl implements OnboardingRepository {
   OnboardingRepositoryImpl(this._localDataSource);
@@ -36,23 +37,22 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
   }
 
   @override
-  List<OnboardingPageEntity> getPages() {
+  List<OnboardingPageEntity> getPages(String languageCode) {
+    final l10n = lookupAppLocalizations(Locale(languageCode));
     return [
       OnboardingPageEntity(
-        title: 'Book appointments',
-        description:
-            'Schedule your visit in a few taps and manage your bookings easily.',
-        iconCodePoint: Icons.calendar_today.codePoint,
+        title: l10n.onboardingBookAppointmentsTitle,
+        description: l10n.onboardingBookAppointmentsDescription,
+        iconCodePoint: Icons.event_available.codePoint,
       ),
       OnboardingPageEntity(
-        title: 'Scan QR codes',
-        description:
-            'Quick check-in and access to services by scanning QR codes at the location.',
+        title: l10n.onboardingScanQrTitle,
+        description: l10n.onboardingScanQrDescription,
         iconCodePoint: Icons.qr_code_scanner.codePoint,
       ),
       OnboardingPageEntity(
-        title: 'Manage inventory',
-        description: 'Keep track of items and boxes across your locations.',
+        title: l10n.onboardingManageInventoryTitle,
+        description: l10n.onboardingManageInventoryDescription,
         iconCodePoint: Icons.inventory_2.codePoint,
       ),
     ];

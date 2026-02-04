@@ -8,6 +8,7 @@ class AppBrandConfig {
     required this.appTitle,
     required this.logoPath,
     required this.defaultBrandId,
+    required this.currency,
     required this.fontFamily,
     required this.colors,
   });
@@ -16,6 +17,9 @@ class AppBrandConfig {
   final String fontFamily;
   final String logoPath;
   final String defaultBrandId;
+
+  /// Currency code (e.g. EUR, USD). Used for price formatting.
+  final String currency;
   final AppBrandColors colors;
 
   factory AppBrandConfig.fromJson(Map<String, dynamic> json) {
@@ -24,6 +28,7 @@ class AppBrandConfig {
       appTitle: json['app_title'] as String? ?? 'Barber',
       logoPath: json['logo_path'] as String? ?? '',
       defaultBrandId: json['default_brand_id'] as String? ?? '',
+      currency: json['currency'] as String? ?? 'EUR',
       fontFamily: json['font_family'] as String? ?? 'Poppins',
       colors: AppBrandColors.fromJson(colorsJson),
     );
@@ -33,6 +38,7 @@ class AppBrandConfig {
     'app_title': appTitle,
     'logo_path': logoPath,
     'default_brand_id': defaultBrandId,
+    'currency': currency,
     'font_family': fontFamily,
     'colors': colors.toJson(),
   };

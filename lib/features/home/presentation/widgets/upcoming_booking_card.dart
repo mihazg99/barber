@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
@@ -28,27 +30,11 @@ class UpcomingBookingCard extends StatelessWidget {
 
   static const _cardRadius = 16.0;
 
-  static String _formatDateTime(DateTime dt) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final h = dt.hour;
-    final m = dt.minute;
-    final hour = h > 12 ? h - 12 : (h == 0 ? 12 : h);
-    final period = h >= 12 ? 'PM' : 'AM';
-    final min = m.toString().padLeft(2, '0');
-    return '${months[dt.month - 1]} ${dt.day} · $hour:$min $period';
+  static String _formatDateTime(BuildContext context, DateTime dt) {
+    final locale = Localizations.localeOf(context).languageCode;
+    final dateStr = DateFormat.yMMMd(locale).format(dt);
+    final timeStr = DateFormat.Hm(locale).format(dt);
+    return '$dateStr · $timeStr';
   }
 
   @override
@@ -57,7 +43,13 @@ class UpcomingBookingCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => context.push(AppRoute.booking.path),
+        onTap:
+            () => context.push(
+              AppRoute.manageBooking.path.replaceFirst(
+                ':appointmentId',
+                appointment.appointmentId,
+              ),
+            ),
         borderRadius: BorderRadius.circular(_cardRadius),
         child: Container(
           padding: EdgeInsets.all(context.appSizes.paddingMedium),
@@ -108,7 +100,7 @@ class UpcomingBookingCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        locationName ?? 'Upcoming appointment',
+                        locationName ?? context.l10n.upcomingAppointment,
                         style: context.appTextStyles.h2.copyWith(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -117,7 +109,7 @@ class UpcomingBookingCard extends StatelessWidget {
                       ),
                       Gap(2),
                       Text(
-                        _formatDateTime(appointment.startTime),
+                        _formatDateTime(context, appointment.startTime),
                         style: context.appTextStyles.caption.copyWith(
                           fontSize: 13,
                           color: colors.captionTextColor,
@@ -127,8 +119,14 @@ class UpcomingBookingCard extends StatelessWidget {
                   ),
                 ),
                 _PillButton(
-                  label: 'Manage',
-                  onPressed: () => context.push(AppRoute.booking.path),
+                  label: context.l10n.manage,
+                  onPressed:
+                      () => context.push(
+                        AppRoute.manageBooking.path.replaceFirst(
+                          ':appointmentId',
+                          appointment.appointmentId,
+                        ),
+                      ),
                 ),
               ],
             ),
@@ -207,7 +205,7 @@ class NoUpcomingBookingCTA extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Book your next visit',
+                        context.l10n.bookYourNextVisit,
                         style: context.appTextStyles.h2.copyWith(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -216,7 +214,7 @@ class NoUpcomingBookingCTA extends StatelessWidget {
                       ),
                       Gap(2),
                       Text(
-                        'Choose location, service and time',
+                        context.l10n.chooseLocationServiceTime,
                         style: context.appTextStyles.caption.copyWith(
                           fontSize: 13,
                           color: colors.captionTextColor,
@@ -225,7 +223,7 @@ class NoUpcomingBookingCTA extends StatelessWidget {
                     ],
                   ),
                 ),
-                _PillButton(label: 'Book', onPressed: onTap),
+                _PillButton(label: context.l10n.book, onPressed: onTap),
               ],
             ),
           ),
@@ -290,7 +288,7 @@ class UpcomingBooking extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const HomeSectionTitle(title: 'Upcoming'),
+        HomeSectionTitle(title: context.l10n.upcoming),
         Gap(context.appSizes.paddingSmall),
         switch (upcomingAsync) {
           AsyncLoading() => const _UpcomingShimmer(),

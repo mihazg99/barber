@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -46,7 +47,7 @@ class AuthOtpInput extends HookConsumerWidget {
               ),
               Expanded(
                 child: Text(
-                  'Enter verification code',
+                  context.l10n.authEnterVerificationCode,
                   style: context.appTextStyles.h2.copyWith(
                     color: context.appColors.primaryTextColor,
                     fontWeight: FontWeight.w600,
@@ -57,7 +58,7 @@ class AuthOtpInput extends HookConsumerWidget {
           ),
           Gap(context.appSizes.paddingSmall),
           Text(
-            'We sent a code to $phone',
+            context.l10n.authCodeSentTo(phone),
             style: context.appTextStyles.caption.copyWith(
               color: context.appColors.captionTextColor,
               fontSize: 14,
@@ -65,14 +66,14 @@ class AuthOtpInput extends HookConsumerWidget {
           ),
           Gap(context.appSizes.paddingLarge),
           CustomTextField.withTitle(
-            title: 'Verification code',
-            hint: '123456',
+            title: context.l10n.authVerificationCode,
+            hint: context.l10n.authCodeHint,
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.done,
             controller: controller,
             validator: (v) {
               if (v == null || v.trim().length < 6) {
-                return 'Enter the 6-digit code';
+                return context.l10n.authCodeValidation;
               }
               return null;
             },
@@ -98,7 +99,7 @@ class AuthOtpInput extends HookConsumerWidget {
                       }
                     },
             loading: isLoading,
-            child: const Text('Verify'),
+            child: Text(context.l10n.authVerify),
           ),
         ],
       ),

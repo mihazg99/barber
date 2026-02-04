@@ -1,0 +1,293 @@
+{
+  "@@locale": "hr",
+  "retry": "Pokušaj ponovo",
+  "skip": "Preskoči",
+  "next": "Dalje",
+  "getStarted": "Započni",
+  "save": "Spremi",
+  "cancel": "Odustani",
+  "search": "Pretraži",
+  "book": "Rezerviraj",
+  "manage": "Upravljaj",
+  "select": "Odaberi",
+  "selected": "Odabrano",
+  "continueButton": "Nastavi",
+  "back": "Natrag",
+  "logout": "Odjava",
+
+  "navHome": "Početna",
+  "navInventory": "Inventar",
+  "navStatistics": "Statistika",
+
+  "onboardingBookAppointmentsTitle": "Rezerviraj termine",
+  "onboardingBookAppointmentsDescription": "Zakažite posjet u nekoliko dodira i jednostavno upravljajte rezervacijama.",
+  "onboardingScanQrTitle": "Skeniraj QR kodove",
+  "onboardingScanQrDescription": "Brza prijava i pristup uslugama skeniranjem QR kodova na lokaciji.",
+  "onboardingManageInventoryTitle": "Upravljaj inventarom",
+  "onboardingManageInventoryDescription": "Pratite stavke i kutije na svim lokacijama.",
+
+  "authEnterPhone": "Unesite broj telefona",
+  "authVerificationCodeSent": "Poslat ćemo vam verifikacijski kod",
+  "authPhoneNumber": "Broj telefona",
+  "authPhoneHint": "123 456 7890",
+  "authPhoneValidation": "Unesite ispravan broj telefona",
+  "authSendCode": "Pošalji kod",
+  "authEnterVerificationCode": "Unesite verifikacijski kod",
+  "authCodeSentTo": "Poslali smo kod na {phone}",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "authVerificationCode": "Verifikacijski kod",
+  "authCodeHint": "123456",
+  "authCodeValidation": "Unesite 6-znamenkasti kod",
+  "authVerify": "Potvrdi",
+  "authCompleteProfile": "Dovršite svoj profil",
+  "authProfileDescription": "Dodajte svoje ime kako bismo personalizirali vaše iskustvo",
+  "authFullName": "Puno ime",
+  "authFullNameHint": "Ivan Horvat",
+  "authFullNameValidation": "Molimo unesite svoje ime",
+  "authPhone": "Telefon",
+
+  "bookingTitle": "Rezerviraj termin",
+  "bookingSelectService": "Odaberi uslugu",
+  "bookingSelectBarber": "Odaberi brijača",
+  "bookingAnyBarber": "Bilo koji brijač",
+  "bookingSelectDate": "Odaberi datum",
+  "bookingSelectTime": "Odaberi vrijeme",
+  "bookingConfirm": "Potvrdi rezervaciju",
+  "bookingTotal": "Ukupno",
+  "bookingWithBarber": "Rezervacija s {barberName}",
+  "@bookingWithBarber": {
+    "placeholders": {
+      "barberName": {
+        "type": "String"
+      }
+    }
+  },
+  "timeMorning": "Jutro",
+  "timeAfternoon": "Poslijepodne",
+  "timeEvening": "Večer",
+  "bookingNoAvailableTimes": "Nema dostupnih termina",
+  "bookingSelectDifferentDate": "Odaberi drugi datum",
+  "bookingAppointmentSuccess": "Rezervacija uspješno zakazana!",
+  "bookingUserNotAuthenticated": "Korisnik nije prijavljen",
+  "bookingAlreadyHasUpcoming": "Već imate zakazan termin. Otkazujte ili dovršite ga prije nove rezervacije.",
+  "bookingStepService": "Usluga",
+  "bookingStepBarber": "Brijač",
+  "bookingStepTime": "Vrijeme",
+
+  "manageBookingTitle": "Upravljanje rezervacijom",
+  "manageBookingReschedule": "Preuredi termin",
+  "manageBookingCancelAppointment": "Otkaži rezervaciju",
+  "manageBookingCancelConfirmTitle": "Otkazati rezervaciju?",
+  "manageBookingCancelConfirmMessage": "Jeste li sigurni da želite otkazati ovu rezervaciju? Ova radnja se ne može poništiti.",
+  "manageBookingCancelConfirm": "Da, otkaži",
+  "manageBookingCanceledSnackbar": "Rezervacija otkazana",
+  "manageBookingCancelPolicyHours": "Otkazivanje mora biti obavljeno najmanje {hours} sati prije termina.",
+  "manageBookingCancelPeriodPassed": "Rok za otkazivanje je istekao. Ovu rezervaciju više nije moguće otkazati niti preurediti.",
+  "@manageBookingCancelPolicyHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+
+  "editBookingTitle": "Promjena datuma i vremena",
+  "editBookingSelectNewDate": "Odaberi novi datum",
+  "editBookingSelectNewTime": "Odaberi novo vrijeme",
+  "editBookingUpdateButton": "Ažuriraj rezervaciju",
+  "editBookingSuccessSnackbar": "Rezervacija uspješno ažurirana",
+  "editBookingErrorSnackbar": "Nije moguće ažurirati rezervaciju. Pokušajte ponovo.",
+
+  "upcoming": "Nadolazeće",
+  "upcomingAppointment": "Nadolazeći termin",
+  "bookYourNextVisit": "Rezervirajte sljedeći posjet",
+  "chooseLocationServiceTime": "Odaberite uslugu i vrijeme",
+  "bookNow": "Rezerviraj sada",
+
+  "sectionBarbers": "Rezerviraj kod brijača",
+  "sectionPopularServices": "Popularne usluge",
+  "sectionNearbyBarbershop": "OBLIŽNJA BRIJANICA",
+
+  "loyaltyTitle": "LOYALTY",
+  "loyaltyMember": "ČLAN",
+  "loyaltyViewRewards": "Pogledaj nagrade",
+
+  "loyaltyPageTitle": "Nagrade i lojalnost",
+  "loyaltyRewardsComingSoon": "Nagrade uskoro",
+  "loyaltyEarnPointsDescription": "Zaradite bodove i unovčite nagrade",
+
+  "addNewItem": "Dodaj novu stavku",
+  "addItemTitle": "Naslov",
+  "addItemTitleHint": "Unesite naslov stavke",
+  "addItemTitleRequired": "Naslov je obavezan",
+  "addItemCategory": "Kategorija",
+  "addItemCategoryHint": "Unesite kategoriju",
+  "addItemLocation": "Lokacija",
+  "addItemSelectLocation": "Odaberi lokaciju",
+  "addItemBox": "Kutija",
+  "addItemSelectBox": "Odaberi kutiju",
+  "addItemPriceOptional": "Cijena (opcionalno)",
+  "addItemPriceHint": "Unesite cijenu",
+  "addItemSavedSuccess": "Stavka {name} uspješno spremljena",
+  "@addItemSavedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addItemError": "Greška: {message}",
+  "@addItemError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+
+  "inventoryItems": "Stavke",
+  "inventoryBoxes": "Kutije",
+  "inventoryLocations": "Lokacije",
+
+  "addNewBox": "Dodaj novu kutiju",
+  "addBoxLabel": "Oznaka kutije",
+  "addBoxLabelHint": "npr. Kuhinjski pribor, Alati, Dokumenti",
+  "addBoxLabelRequired": "Unesite oznaku kutije",
+  "addBoxSuccess": "Kutija uspješno dodana!",
+  "addBoxError": "Greška pri dodavanju kutije: {error}",
+  "@addBoxError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "addNewLocation": "Dodaj novu lokaciju",
+  "addLocationName": "Naziv lokacije",
+  "addLocationNameHint": "npr. Kuhinja, Garaža, Ured",
+  "addLocationNameRequired": "Unesite naziv lokacije",
+  "addLocationColor": "Boja",
+  "addLocationColorHint": "#4CAF50",
+  "addLocationColorRequired": "Unesite boju",
+  "addLocationColorInvalid": "Unesite ispravnu heksadecimalnu boju (npr. #4CAF50)",
+  "addLocationSuccess": "Lokacija uspješno dodana!",
+  "addLocationError": "Greška pri dodavanju lokacije: {error}",
+  "@addLocationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "selectCountry": "Odaberi državu",
+  "searchCountryOrCode": "Pretraži državu ili pozivni broj",
+
+  "dashboardBrandTitle": "Brend",
+  "dashboardBrandName": "Naziv",
+  "dashboardBrandNameHint": "npr. Kingsman Barbershop",
+  "dashboardBrandNameRequired": "Naziv je obavezan",
+  "dashboardBrandPrimaryColor": "Primarna boja",
+  "dashboardBrandPrimaryColorHint": "#9B784A",
+  "dashboardBrandLogoUrl": "URL logotipa",
+  "dashboardBrandLogoUrlHint": "https://...",
+  "dashboardBrandContactEmail": "Kontakt email",
+  "dashboardBrandContactEmailHint": "contact@example.com",
+  "dashboardBrandSlotInterval": "Interval termina (min)",
+  "dashboardBrandBufferTime": "Vrijeme između termina (min)",
+  "dashboardBrandCancelHours": "Min. sati za otkaz",
+  "dashboardBrandMultiLocation": "Više lokacija",
+  "dashboardBrandSaved": "Brend spremljen",
+  "dashboardBrandCreated": "Brend kreiran",
+  "dashboardBrandSetConfigId": "Postavite default_brand_id u assets/config/default.json",
+
+  "dashboardLocationAdd": "Dodaj lokaciju",
+  "dashboardLocationEdit": "Uredi lokaciju",
+  "dashboardLocationName": "Naziv",
+  "dashboardLocationNameHint": "npr. Zagreb Centar",
+  "dashboardLocationNameRequired": "Naziv je obavezan",
+  "dashboardLocationAddress": "Adresa",
+  "dashboardLocationAddressHint": "Ulica, grad",
+  "dashboardLocationPhone": "Telefon",
+  "dashboardLocationPhoneHint": "+385 1 234 5678",
+  "dashboardLocationCoordinates": "Koordinate",
+  "dashboardLocationLatHint": "Širina (npr. 45.81)",
+  "dashboardLocationLngHint": "Duljina (npr. 15.98)",
+  "dashboardLocationWorkingHours": "Radno vrijeme",
+  "dashboardLocationTimeFormat": "Koristite HH:mm (npr. 14:00)",
+  "dashboardLocationStartBeforeEnd": "Početak mora biti prije kraja",
+  "dashboardLocationDayClosed": "Zatvoreno",
+  "dashboardLocationSaved": "Lokacija spremljena",
+  "dashboardLocationDeleted": "Lokacija obrisana",
+  "dashboardLocationDeleteConfirm": "Obrisati ovu lokaciju?",
+  "dashboardLocationDeleteConfirmMessage": "Ova radnja se ne može poništiti.",
+  "dashboardLocationDeleteButton": "Obriši",
+  "dashboardLocationEmpty": "Još nema lokacija. Dodajte novu.",
+  "dashboardNoBrand": "Nije konfiguriran brend",
+
+  "dashboardServiceAdd": "Dodaj uslugu",
+  "dashboardServiceEdit": "Uredi uslugu",
+  "dashboardServiceName": "Naziv",
+  "dashboardServiceNameHint": "npr. Šišanje & Pranje",
+  "dashboardServiceNameRequired": "Naziv je obavezan",
+  "dashboardServicePrice": "Cijena",
+  "dashboardServicePriceHint": "0",
+  "dashboardServicePriceInvalid": "Unesite valjanu cijenu",
+  "dashboardServiceDuration": "Trajanje (minute)",
+  "dashboardServiceDurationHint": "30",
+  "dashboardServiceDurationInvalid": "Unesite valjano trajanje (min 1)",
+  "dashboardServiceDescription": "Opis",
+  "dashboardServiceDescriptionHint": "Opcionalni opis",
+  "dashboardServiceAvailableAt": "Dostupno na",
+  "dashboardServiceAvailableAtAll": "Svim lokacijama",
+  "dashboardServiceAvailableAtSelected": "Samo odabranim lokacijama",
+  "dashboardServiceSaved": "Usluga spremljena",
+  "dashboardServiceCreated": "Usluga kreirana",
+  "dashboardServiceDeleteConfirm": "Obrisati ovu uslugu?",
+  "dashboardServiceDeleteConfirmMessage": "Ova radnja se ne može poništiti.",
+  "dashboardServiceDeleteButton": "Obriši",
+  "dashboardServiceDeleted": "Usluga obrisana",
+  "dashboardServiceEmpty": "Još nema usluga. Dodajte novu.",
+
+  "dashboardBarberAdd": "Dodaj brijača",
+  "dashboardBarberEdit": "Uredi brijača",
+  "dashboardBarberName": "Naziv",
+  "dashboardBarberNameHint": "npr. Ivan Horvat",
+  "dashboardBarberNameRequired": "Naziv je obavezan",
+  "dashboardBarberPhotoUrl": "URL fotografije",
+  "dashboardBarberPhotoUrlHint": "https://...",
+  "dashboardBarberLocation": "Lokacija",
+  "dashboardBarberLocationRequired": "Odaberite lokaciju",
+  "dashboardBarberNoLocations": "Prvo dodajte lokacije u tabu Lokacije.",
+  "dashboardBarberActive": "Aktivan",
+  "dashboardBarberWorkingHoursOverride": "Prilagođeno radno vrijeme",
+  "dashboardBarberWorkingHoursOverrideHint": "Nadopiši radno vrijeme lokacije za ovog brijača. Ostavite prazno za vrijeme lokacije.",
+  "dashboardBarberSaved": "Brijač spremljen",
+  "dashboardBarberCreated": "Brijač kreiran",
+  "dashboardBarberDeleteConfirm": "Obrisati ovog brijača?",
+  "dashboardBarberDeleteConfirmMessage": "Ova radnja se ne može poništiti.",
+  "dashboardBarberDeleteButton": "Obriši",
+  "dashboardBarberDeleted": "Brijač obrisan",
+  "dashboardBarberEmpty": "Još nema brijača. Dodajte novog.",
+  "dashboardBarberInactive": "Neaktivan",
+
+  "closed": "Zatvoreno",
+  "openNow": "OTVORENO SADA {open} - {close}",
+  "@openNow": {
+    "placeholders": {
+      "open": {
+        "type": "String"
+      },
+      "close": {
+        "type": "String"
+      }
+    }
+  }
+}

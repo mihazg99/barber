@@ -14,16 +14,18 @@ class BrandFirestoreMapper {
       contactEmail: data['contact_email'] as String? ?? '',
       slotInterval: (data['slot_interval'] as num?)?.toInt() ?? 30,
       bufferTime: (data['buffer_time'] as num?)?.toInt() ?? 0,
+      cancelHoursMinimum: (data['cancel_hours_minimum'] as num?)?.toInt() ?? 0,
     );
   }
 
   static Map<String, dynamic> toFirestore(BrandEntity entity) => {
-        'name': entity.name,
-        'is_multi_location': entity.isMultiLocation,
-        'primary_color': entity.primaryColor,
-        'logo_url': entity.logoUrl,
-        'contact_email': entity.contactEmail,
-        'slot_interval': entity.slotInterval,
-        'buffer_time': entity.bufferTime,
-      };
+    'name': entity.name,
+    'is_multi_location': entity.isMultiLocation,
+    'primary_color': entity.primaryColor,
+    'logo_url': entity.logoUrl,
+    'contact_email': entity.contactEmail,
+    'slot_interval': entity.slotInterval,
+    'buffer_time': entity.bufferTime,
+    'cancel_hours_minimum': entity.cancelHoursMinimum,
+  };
 }

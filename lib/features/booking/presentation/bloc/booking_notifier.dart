@@ -17,24 +17,26 @@ class BookingNotifier extends StateNotifier<BookingState> {
   final String _brandId;
 
   /// Initialize with query params (barberId, serviceId).
+  /// [preSelectedBarber] can be passed when coming from home.
+  /// Otherwise [barberId] is resolved via repository (Firestore).
   Future<void> initialize({
     String? barberId,
+    BarberEntity? preSelectedBarber,
     ServiceEntity? preSelectedService,
     List<ServiceEntity>? allServices,
   }) async {
-    BarberEntity? barber;
+    BarberEntity? barber = preSelectedBarber;
     ServiceEntity? service = preSelectedService;
 
-    // Resolve barber from ID
-    if (barberId != null && barberId.isNotEmpty) {
+    if (barber == null && barberId != null && barberId.isNotEmpty) {
       final result = await _barberRepository.getById(barberId);
-      result.fold((_) => null, (b) => barber = b);
+      barber = result.fold((_) => null, (b) => b);
     }
 
     // Determine location
     String? locationId;
     if (barber != null) {
-      locationId = barber!.locationId;
+      locationId = barber.locationId;
     } else {
       // Use first location of brand as default
       final locationsResult = await _locationRepository.getByBrandId(_brandId);
@@ -46,9 +48,15 @@ class BookingNotifier extends StateNotifier<BookingState> {
       );
     }
 
+    // Only keep preselected service if it's available at the resolved location
+    ServiceEntity? effectiveService = service;
+    if (service != null && locationId != null && !service.isAvailableAt(locationId)) {
+      effectiveService = null;
+    }
+
     state = state.copyWith(
       selectedBarber: barber,
-      selectedService: service,
+      selectedService: effectiveService,
       locationId: locationId,
     );
   }
@@ -62,9 +70,13 @@ class BookingNotifier extends StateNotifier<BookingState> {
   }
 
   void selectBarber(BarberEntity barber) {
+    final currentService = state.selectedService;
+    final serviceStillAvailable = currentService == null ||
+        currentService.isAvailableAt(barber.locationId);
     state = state.copyWith(
       selectedBarber: barber,
       locationId: barber.locationId,
+      selectedService: serviceStillAvailable ? currentService : null,
       clearTimeSlot: true, // Clear time when barber changes
       clearTimeSlotBarberId: true,
     );

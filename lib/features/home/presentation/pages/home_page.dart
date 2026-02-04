@@ -3,7 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:barber/core/navigation/presentation/widgets/bottom_nav_bar.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -13,6 +13,7 @@ import 'package:barber/features/home/presentation/widgets/home_header.dart';
 import 'package:barber/features/home/presentation/widgets/loyalty_card.dart';
 import 'package:barber/features/home/presentation/widgets/nearby_locations_section.dart';
 import 'package:barber/features/home/presentation/widgets/services_section.dart';
+import 'package:barber/features/home/presentation/widgets/home_drawer.dart';
 import 'package:barber/features/home/presentation/widgets/upcoming_booking_card.dart';
 
 class HomePage extends HookConsumerWidget {
@@ -31,6 +32,7 @@ class HomePage extends HookConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
+      endDrawer: const HomeDrawer(),
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () => FocusScope.of(context).unfocus(),
@@ -41,7 +43,6 @@ class HomePage extends HookConsumerWidget {
           },
         ),
       ),
-      bottomNavigationBar: const BottomNavBar(),
     );
   }
 }
@@ -113,7 +114,7 @@ class _HomeError extends ConsumerWidget {
             onPressed: () => ref.read(homeNotifierProvider.notifier).refresh(),
             icon: Icon(Icons.refresh, color: context.appColors.primaryColor),
             label: Text(
-              'Retry',
+              context.l10n.retry,
               style: TextStyle(color: context.appColors.primaryColor),
             ),
           ),

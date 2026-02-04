@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
+import 'package:barber/core/utils/price_formatter.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -20,10 +22,8 @@ class BookingFooter extends StatelessWidget {
   final VoidCallback onConfirm;
   final bool isConfirming;
 
-  static String _formatPrice(num price) {
-    if (price == price.toInt()) return '\$${price.toInt()}';
-    return '\$${price.toStringAsFixed(2)}';
-  }
+  String _formatPrice(BuildContext context, num price) =>
+      context.formatPriceWithCurrency(price);
 
   static String _formatDuration(int minutes) {
     if (minutes < 60) return '${minutes}min';
@@ -57,7 +57,7 @@ class BookingFooter extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Total',
+                    context.l10n.bookingTotal,
                     style: context.appTextStyles.caption.copyWith(
                       fontSize: 12,
                       color: context.appColors.captionTextColor,
@@ -67,7 +67,7 @@ class BookingFooter extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        _formatPrice(totalPrice),
+                        _formatPrice(context, totalPrice),
                         style: context.appTextStyles.h1.copyWith(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -104,34 +104,39 @@ class BookingFooter extends StatelessWidget {
                   onPressed: canConfirm && !isConfirming ? onConfirm : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: context.appColors.primaryColor,
-                    disabledBackgroundColor: context.appColors.captionTextColor.withValues(alpha: 0.25),
+                    disabledBackgroundColor: context.appColors.captionTextColor
+                        .withValues(alpha: 0.25),
                     foregroundColor: context.appColors.primaryWhiteColor,
-                    disabledForegroundColor: context.appColors.captionTextColor.withValues(alpha: 0.6),
+                    disabledForegroundColor: context.appColors.captionTextColor
+                        .withValues(alpha: 0.6),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
+                      borderRadius: BorderRadius.circular(
+                        context.appSizes.borderRadius,
+                      ),
                     ),
                     elevation: 0,
                     minimumSize: const Size(140, 56),
                   ),
-                  child: isConfirming
-                      ? SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: context.appColors.primaryWhiteColor,
-                          ),
-                        )
-                      : FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            'Confirm Booking',
-                            style: context.appTextStyles.button.copyWith(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                  child:
+                      isConfirming
+                          ? SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: context.appColors.primaryWhiteColor,
+                            ),
+                          )
+                          : FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              context.l10n.bookingConfirm,
+                              style: context.appTextStyles.button.copyWith(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
                 ),
               ),
             ),

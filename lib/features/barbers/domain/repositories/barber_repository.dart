@@ -12,6 +12,10 @@ abstract class BarberRepository {
   /// Fetches a barber by id.
   Future<Either<Failure, BarberEntity?>> getById(String barberId);
 
+  /// Fetches the barber record linked to this auth user (where user_id == [userId]).
+  /// Returns null if no barber is linked. Used when a barber logs in to get their record.
+  Future<Either<Failure, BarberEntity?>> getByUserId(String userId);
+
   /// Creates or overwrites a barber. doc_id = [entity.barberId].
   Future<Either<Failure, void>> set(BarberEntity entity);
 

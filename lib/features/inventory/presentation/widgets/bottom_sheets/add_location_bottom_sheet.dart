@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -17,7 +18,7 @@ class AddLocationBottomSheet extends HookConsumerWidget {
   static Future<void> show(BuildContext context) {
     return CustomBottomSheet.show(
       context: context,
-      title: 'Add New Location',
+      title: context.l10n.addNewLocation,
       content: const _AddLocationContent(),
     );
   }
@@ -25,7 +26,7 @@ class AddLocationBottomSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CustomBottomSheet(
-      title: 'Add New Location',
+      title: context.l10n.addNewLocation,
       content: const _AddLocationContent(),
     );
   }
@@ -66,13 +67,13 @@ class _AddLocationContent extends HookConsumerWidget {
           if (context.mounted) {
             Navigator.of(context).pop();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Location added successfully!')),
+              SnackBar(content: Text(context.l10n.addLocationSuccess)),
             );
           }
         } catch (e) {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error adding location: $e')),
+              SnackBar(content: Text(context.l10n.addLocationError('$e'))),
             );
           }
         }
@@ -87,12 +88,12 @@ class _AddLocationContent extends HookConsumerWidget {
         children: [
           // Location Name Field
           CustomTextField.withTitle(
-            title: 'Location Name',
-            hint: 'e.g., Kitchen, Garage, Office',
+            title: context.l10n.addLocationName,
+            hint: context.l10n.addLocationNameHint,
             controller: nameController,
             validator: (value) {
               if (value?.isEmpty ?? true) {
-                return 'Please enter a location name';
+                return context.l10n.addLocationNameRequired;
               }
               return null;
             },
@@ -100,16 +101,16 @@ class _AddLocationContent extends HookConsumerWidget {
           Gap(context.appSizes.paddingMedium),
           // Color Field
           CustomTextField.withTitle(
-            title: 'Color',
-            hint: '#4CAF50',
+            title: context.l10n.addLocationColor,
+            hint: context.l10n.addLocationColorHint,
             controller: colorController,
             onChanged: onColorChanged,
             validator: (value) {
               if (value?.isEmpty ?? true) {
-                return 'Please enter a color';
+                return context.l10n.addLocationColorRequired;
               }
               if (!RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch(value!)) {
-                return 'Please enter a valid hex color (e.g., #4CAF50)';
+                return context.l10n.addLocationColorInvalid;
               }
               return null;
             },
@@ -134,7 +135,7 @@ class _AddLocationContent extends HookConsumerWidget {
               Expanded(
                 child: PrimaryButton.small(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text('Cancel'),
+                  child: Text(context.l10n.cancel),
                   color: context.appColors.captionTextColor,
                 ),
               ),
@@ -142,7 +143,7 @@ class _AddLocationContent extends HookConsumerWidget {
               Expanded(
                 child: PrimaryButton.small(
                   onPressed: submitForm,
-                  child: Text('Add Location'),
+                  child: Text(context.l10n.addNewLocation),
                 ),
               ),
             ],

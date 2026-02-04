@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -147,7 +148,7 @@ class _CountryCodePickerSheetState extends State<_CountryCodePickerSheet> {
           children: [
             Gap(context.appSizes.paddingMedium),
             Text(
-              'Select country',
+              context.l10n.selectCountry,
               style: context.appTextStyles.h2.copyWith(
                 color: context.appColors.primaryTextColor,
                 fontWeight: FontWeight.w600,
@@ -161,7 +162,7 @@ class _CountryCodePickerSheetState extends State<_CountryCodePickerSheet> {
               child: TextField(
                 onChanged: (v) => _query.value = v,
                 decoration: InputDecoration(
-                  hintText: 'Search country or code',
+                  hintText: context.l10n.searchCountryOrCode,
                   hintStyle: context.appTextStyles.fields.copyWith(
                     color: context.appColors.hintTextColor,
                   ),
@@ -172,6 +173,23 @@ class _CountryCodePickerSheetState extends State<_CountryCodePickerSheet> {
                   ),
                   filled: true,
                   fillColor: context.appColors.secondaryColor,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      context.appSizes.borderRadius,
+                    ),
+                    borderSide: BorderSide(
+                      color: context.appColors.borderColor,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      context.appSizes.borderRadius,
+                    ),
+                    borderSide: BorderSide(
+                      color: context.appColors.primaryColor,
+                      width: 2,
+                    ),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(
                       context.appSizes.borderRadius,

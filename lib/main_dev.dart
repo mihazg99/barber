@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:barber/core/config/app_config_loader.dart';
 import 'package:barber/core/config/flavor_config.dart';
@@ -12,6 +13,8 @@ import 'app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('hr');
+  await initializeDateFormatting('en');
   await initializeFirebase();
 
   final prefs = await SharedPreferences.getInstance();

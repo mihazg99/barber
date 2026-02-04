@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -40,7 +41,7 @@ class AuthPhoneInput extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Enter your phone number',
+            context.l10n.authEnterPhone,
             style: context.appTextStyles.h2.copyWith(
               color: context.appColors.primaryTextColor,
               fontWeight: FontWeight.w600,
@@ -48,7 +49,7 @@ class AuthPhoneInput extends HookConsumerWidget {
           ),
           Gap(context.appSizes.paddingSmall),
           Text(
-            'We\'ll send you a verification code',
+            context.l10n.authVerificationCodeSent,
             style: context.appTextStyles.caption.copyWith(
               color: context.appColors.captionTextColor,
               fontSize: 14,
@@ -56,7 +57,7 @@ class AuthPhoneInput extends HookConsumerWidget {
           ),
           Gap(context.appSizes.paddingLarge),
           Text(
-            'Phone number',
+            context.l10n.authPhoneNumber,
             style: context.appTextStyles.h2.copyWith(
               color: context.appColors.secondaryTextColor,
             ),
@@ -73,14 +74,14 @@ class AuthPhoneInput extends HookConsumerWidget {
               Gap(context.appSizes.paddingMedium),
               Expanded(
                 child: CustomTextField.normal(
-                  hint: '123 456 7890',
+                  hint: context.l10n.authPhoneHint,
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.done,
                   controller: controller,
                   validator: (v) {
                     final digits = _digitsOnly(v ?? '');
                     if (digits.length < 6) {
-                      return 'Enter a valid phone number';
+                      return context.l10n.authPhoneValidation;
                     }
                     return null;
                   },
@@ -112,7 +113,7 @@ class AuthPhoneInput extends HookConsumerWidget {
                       }
                     },
             loading: isLoading,
-            child: const Text('Send code'),
+            child: Text(context.l10n.authSendCode),
           ),
         ],
       ),

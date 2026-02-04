@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/utils/price_formatter.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -23,9 +25,11 @@ class BookingServiceSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: context.appSizes.paddingMedium),
+          padding: EdgeInsets.symmetric(
+            horizontal: context.appSizes.paddingMedium,
+          ),
           child: Text(
-            'Select Service',
+            context.l10n.bookingSelectService,
             style: context.appTextStyles.h2.copyWith(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -37,7 +41,9 @@ class BookingServiceSection extends StatelessWidget {
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: context.appSizes.paddingMedium),
+          padding: EdgeInsets.symmetric(
+            horizontal: context.appSizes.paddingMedium,
+          ),
           itemCount: services.length,
           separatorBuilder: (_, __) => Gap(context.appSizes.paddingSmall),
           itemBuilder: (context, index) {
@@ -66,10 +72,8 @@ class _ServiceCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  static String _formatPrice(num price) {
-    if (price == price.toInt()) return '\$${price.toInt()}';
-    return '\$${price.toStringAsFixed(2)}';
-  }
+  String _formatPrice(BuildContext context, num price) =>
+      context.formatPriceWithCurrency(price);
 
   static String _formatDuration(int minutes) {
     if (minutes < 60) return '${minutes}min';
@@ -89,14 +93,16 @@ class _ServiceCard extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.all(context.appSizes.paddingMedium),
           decoration: BoxDecoration(
-            color: isSelected
-                ? context.appColors.primaryColor.withValues(alpha: 0.05)
-                : context.appColors.menuBackgroundColor,
+            color:
+                isSelected
+                    ? context.appColors.primaryColor.withValues(alpha: 0.05)
+                    : context.appColors.menuBackgroundColor,
             borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
             border: Border.all(
-              color: isSelected
-                  ? context.appColors.primaryColor
-                  : context.appColors.borderColor.withValues(alpha: 0.4),
+              color:
+                  isSelected
+                      ? context.appColors.primaryColor
+                      : context.appColors.borderColor.withValues(alpha: 0.4),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -118,7 +124,7 @@ class _ServiceCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          _formatPrice(service.price),
+                          _formatPrice(context, service.price),
                           style: context.appTextStyles.h2.copyWith(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,

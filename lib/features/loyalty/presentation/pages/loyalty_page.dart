@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -18,7 +19,7 @@ class LoyaltyPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
       appBar: CustomAppBar.withTitleAndBackButton(
-        'Loyalty & Rewards',
+        context.l10n.loyaltyPageTitle,
         onBack: () => context.go(AppRoute.home.path),
       ),
       body: Padding(
@@ -34,14 +35,14 @@ class LoyaltyPage extends ConsumerWidget {
               ),
               Gap(context.appSizes.paddingMedium),
               Text(
-                'Rewards coming soon',
+                context.l10n.loyaltyRewardsComingSoon,
                 style: context.appTextStyles.h2.copyWith(
                   color: context.appColors.secondaryTextColor,
                 ),
               ),
               Gap(context.appSizes.paddingSmall),
               Text(
-                'Earn points and redeem rewards',
+                context.l10n.loyaltyEarnPointsDescription,
                 style: context.appTextStyles.caption.copyWith(
                   color: context.appColors.captionTextColor,
                 ),

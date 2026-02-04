@@ -18,6 +18,7 @@ Root configuration for each client (brand).
 | `contact_email` | String | Contact email |
 | `slot_interval` | Number | Slot length in minutes (e.g. 15 or 30) |
 | `buffer_time` | Number | Minutes between appointments (e.g. 5) |
+| `cancel_hours_minimum` | Number | Min hours before appointment that cancellation is allowed (e.g. 48 = must cancel ≥48h ahead; 0 = anytime) |
 
 ---
 
@@ -72,6 +73,14 @@ Employees assigned to specific locations.
 | `active` | Boolean | Whether the barber is active |
 | `working_hours_override` | Map (optional) | **Barber shift.** Same format as location [working hours](#working-hours-map); overrides location hours for this barber. When absent, barber is assumed to work the location’s hours. |
 
+### Barber–user linking
+
+Add `user_id` (String, optional) to link a barber record to the Firebase Auth user who logs in. When a barber signs in, the app fetches `barbers` where `user_id == their UID`. Set via Admin SDK when assigning barber role:
+
+```js
+await admin.firestore().collection('barbers').doc(barberId).update({ user_id: authUid });
+```
+
 ### Where is barber shift stored?
 
 **Barber shift = when a barber can take appointments.**
@@ -100,6 +109,23 @@ App users (clients). Document ID = Firebase Auth UID.
 | `fcm_token` | String | FCM token for push notifications |
 | `brand_id` | String | Brand the user belongs to |
 | `loyalty_points` | Number | Single loyalty card: points for this user (brand) |
+| `role` | String | One of: `user`, `barber`, `superadmin`. Default `user`. **Security:** Clients can only create/keep `user`. `barber` and `superadmin` must be assigned via Firebase Admin SDK (Cloud Functions, admin tool). |
+
+### Role-based navigation
+
+- **`user`** → Main app (home, booking, loyalty)
+- **`barber`** → Dashboard (staff view)
+- **`superadmin`** → Dashboard (staff view)
+
+### Assigning barber/superadmin roles
+
+Role is stored in Firestore `users/{uid}.role`. Client app cannot set `barber` or `superadmin` due to security rules. Use Firebase Admin SDK to update the document (bypasses rules):
+
+```js
+const admin = require('firebase-admin');
+await admin.firestore().collection('users').doc(uid).update({ role: 'barber' });
+// or { role: 'superadmin' }
+```
 
 ---
 
@@ -117,7 +143,23 @@ Pre-calculated slots for fast booking (“engine” for booking).
 
 ---
 
-## 7. `appointments` (Collection)
+## 7. `user_booking_locks` (Collection)
+
+Enforces one active appointment per user. One document per user.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| **doc_id** | — | `user_id` (Firebase Auth UID) |
+| `user_id` | String | Same as doc_id |
+| `active_appointment_id` | String | ID of user's current scheduled (future) appointment |
+
+Used atomically in booking transactions. When creating an appointment, the transaction reads this doc and, if it points to a still-active appointment, fails. After creating, it updates this doc with the new appointment id.
+
+**Migration:** For existing users who had appointments before this collection existed, run a one-time script to populate `active_appointment_id` for each user who has a scheduled, future appointment.
+
+---
+
+## 8. `appointments` (Collection)
 
 Detailed records of all bookings.
 

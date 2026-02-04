@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 
@@ -21,18 +22,18 @@ class SearchTypeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SegmentedButton<SearchType>(
-      segments: const [
+      segments: [
         ButtonSegment<SearchType>(
           value: SearchType.items,
-          label: Text('Items'),
+          label: Text(context.l10n.inventoryItems),
         ),
         ButtonSegment<SearchType>(
           value: SearchType.boxes,
-          label: Text('Boxes'),
+          label: Text(context.l10n.inventoryBoxes),
         ),
         ButtonSegment<SearchType>(
           value: SearchType.locations,
-          label: Text('Locations'),
+          label: Text(context.l10n.inventoryLocations),
         ),
       ],
       selected: {selectedType},
@@ -71,4 +72,4 @@ class SearchTypeToggle extends StatelessWidget {
       showSelectedIcon: false,
     );
   }
-} 
+}

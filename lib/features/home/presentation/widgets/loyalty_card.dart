@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -24,18 +25,19 @@ class LoyaltyCard extends ConsumerWidget {
 
     return switch (currentUserAsync) {
       AsyncLoading() => const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: _LoyaltyCardShimmer(),
-            ),
-            Gap(_sectionSpacing),
-          ],
-        ),
-      AsyncData(:final value) => value == null
-          ? const SizedBox.shrink()
-          : Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: _LoyaltyCardShimmer(),
+          ),
+          Gap(_sectionSpacing),
+        ],
+      ),
+      AsyncData(:final value) =>
+        value == null
+            ? const SizedBox.shrink()
+            : Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _LoyaltyCardContent(user: value),
@@ -102,139 +104,141 @@ class _LoyaltyCardContent extends StatelessWidget {
                 ),
               ],
             ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// Top row: chip (left) + LOYALTY (right) — like real card
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: _chipSize,
-                      height: _chipSize * 0.75,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        gradient: LinearGradient(
-                          colors: [
-                            gold.withValues(alpha: 0.4),
-                            gold.withValues(alpha: 0.15),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        border: Border.all(
-                          color: gold.withValues(alpha: 0.5),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      'LOYALTY',
-                      style: context.appTextStyles.caption.copyWith(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2.4,
-                        color: c.captionTextColor.withValues(alpha: 0.9),
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                /// Middle row: points (left, card-number position) + QR (right, scan zone)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${user.loyaltyPoints} pts',
-                      style: context.appTextStyles.h2.copyWith(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2,
-                        color: c.primaryTextColor,
-                        height: 1.1,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(_qrPadding),
-                      decoration: BoxDecoration(
-                        color: c.primaryWhiteColor,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Top row: chip (left) + LOYALTY (right) — like real card
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: _chipSize,
+                        height: _chipSize * 0.75,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          gradient: LinearGradient(
+                            colors: [
+                              gold.withValues(alpha: 0.4),
+                              gold.withValues(alpha: 0.15),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
+                          border: Border.all(
+                            color: gold.withValues(alpha: 0.5),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        context.l10n.loyaltyTitle,
+                        style: context.appTextStyles.caption.copyWith(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2.4,
+                          color: c.captionTextColor.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+
+                  /// Middle row: points (left, card-number position) + QR (right, scan zone)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${user.loyaltyPoints} pts',
+                        style: context.appTextStyles.h2.copyWith(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2,
+                          color: c.primaryTextColor,
+                          height: 1.1,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(_qrPadding),
+                        decoration: BoxDecoration(
+                          color: c.primaryWhiteColor,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: QrImageView(
+                          data: user.userId,
+                          version: QrVersions.auto,
+                          size: _qrSize,
+                          backgroundColor: c.primaryWhiteColor,
+                          eyeStyle: QrEyeStyle(
+                            eyeShape: QrEyeShape.square,
+                            color: c.secondaryColor,
+                          ),
+                          dataModuleStyle: QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.square,
+                            color: c.secondaryColor,
+                          ),
+                          gapless: true,
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Gap(10),
+
+                  /// Bottom row: cardholder name (left) + view rewards (right)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          user.fullName.trim().isEmpty
+                              ? context.l10n.loyaltyMember
+                              : user.fullName.toUpperCase(),
+                          style: context.appTextStyles.caption.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.2,
+                            color: c.secondaryTextColor.withValues(alpha: 0.95),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            context.l10n.loyaltyViewRewards,
+                            style: context.appTextStyles.caption.copyWith(
+                              fontSize: 11,
+                              color: gold,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Gap(4),
+                          Icon(Icons.arrow_forward_ios, size: 9, color: gold),
                         ],
                       ),
-                      child: QrImageView(
-                        data: user.userId,
-                        version: QrVersions.auto,
-                        size: _qrSize,
-                        backgroundColor: c.primaryWhiteColor,
-                        eyeStyle: QrEyeStyle(
-                          eyeShape: QrEyeShape.square,
-                          color: c.secondaryColor,
-                        ),
-                        dataModuleStyle: QrDataModuleStyle(
-                          dataModuleShape: QrDataModuleShape.square,
-                          color: c.secondaryColor,
-                        ),
-                        gapless: true,
-                        padding: EdgeInsets.zero,
-                      ),
-                    ),
-                  ],
-                ),
-                const Gap(10),
-                /// Bottom row: cardholder name (left) + view rewards (right)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        user.fullName.trim().isEmpty
-                            ? 'MEMBER'
-                            : user.fullName.toUpperCase(),
-                        style: context.appTextStyles.caption.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.2,
-                          color: c.secondaryTextColor.withValues(alpha: 0.95),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'View rewards',
-                          style: context.appTextStyles.caption.copyWith(
-                            fontSize: 11,
-                            color: gold,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Gap(4),
-                        Icon(Icons.arrow_forward_ios, size: 9, color: gold),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 }
