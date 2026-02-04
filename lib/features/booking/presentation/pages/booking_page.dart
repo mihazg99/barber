@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
@@ -12,6 +11,7 @@ import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/widgets/custom_app_bar.dart';
 import 'package:barber/core/di.dart';
+import 'package:barber/core/firebase/collections.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/booking/di.dart';
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
@@ -160,9 +160,12 @@ class _BookingPageState extends ConsumerState<BookingPage> {
       );
       final bufferTime = brand?.bufferTime ?? 0;
 
-      // Generate appointment ID
-      final appointmentId =
-          FirebaseFirestore.instance.collection('appointments').doc().id;
+      // Generate appointment ID (use provider so Firestore has persistence disabled)
+      final appointmentId = ref
+          .read(firebaseFirestoreProvider)
+          .collection(FirestoreCollections.appointments)
+          .doc()
+          .id;
 
       // Calculate start and end times
       final dateStr = _formatDate(bookingState.selectedDate!);

@@ -27,10 +27,13 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     }
   }
 
+  /// Never use cache: appointments must reflect server state so all devices see the same data.
+  static const _serverOnly = GetOptions(source: Source.server);
+
   @override
   Future<Either<Failure, AppointmentEntity?>> getById(String appointmentId) async {
     try {
-      final doc = await _col.doc(appointmentId).get();
+      final doc = await _col.doc(appointmentId).get(_serverOnly);
       if (doc.data() == null) return const Right(null);
       return Right(AppointmentFirestoreMapper.fromFirestore(doc));
     } catch (e) {
@@ -43,7 +46,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     String userId,
   ) async {
     try {
-      final snapshot = await _col.where('user_id', isEqualTo: userId).get();
+      final snapshot =
+          await _col.where('user_id', isEqualTo: userId).get(_serverOnly);
       final list = snapshot.docs
           .map((d) => AppointmentFirestoreMapper.fromFirestore(d))
           .toList();

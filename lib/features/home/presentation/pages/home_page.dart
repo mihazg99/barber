@@ -24,6 +24,8 @@ class HomePage extends HookConsumerWidget {
     useEffect(() {
       Future.microtask(() {
         ref.read(homeNotifierProvider.notifier).load();
+        // Force fresh upcoming booking from server every time user sees home
+        ref.invalidate(upcomingAppointmentProvider);
       });
       return null;
     }, []);

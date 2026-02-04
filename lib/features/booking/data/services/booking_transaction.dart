@@ -13,6 +13,10 @@ const _kUserHasActiveAppointment = 'user-has-active-appointment';
 /// Runs create-appointment + update-availability in a single Firestore transaction
 /// so two users cannot book the same slot and we never have an appointment without
 /// the slot marked booked.
+///
+/// Appointments and availability (and user_booking_locks) must never be served from
+/// cache: [AppointmentRepository] and [AvailabilityRepository] use GetOptions(source: Source.server)
+/// so all devices see the same data and double-booking is prevented.
 class BookingTransaction {
   BookingTransaction(this._firestore);
 

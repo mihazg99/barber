@@ -46,6 +46,12 @@ final isAuthenticatedProvider = StreamProvider<bool>((ref) {
       .map((uid) => uid != null);
 });
 
+/// Current Firebase Auth UID, or null when signed out. Use this (not .currentUserId) so
+/// upcoming-appointment and other providers re-run when auth state actually changes.
+final currentUserIdProvider = StreamProvider<String?>((ref) {
+  return ref.watch(authRepositoryProvider).authStateChanges;
+});
+
 /// Current user when authenticated. Refetches when auth state changes.
 final currentUserProvider = FutureProvider<UserEntity?>((ref) async {
   ref.watch(isAuthenticatedProvider);

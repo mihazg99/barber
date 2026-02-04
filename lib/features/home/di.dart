@@ -57,10 +57,11 @@ final servicesForHomeProvider = FutureProvider<List<ServiceEntity>>((ref) async 
 });
 
 /// Next upcoming scheduled appointment for the current user, or null.
+/// Depends on [currentUserIdProvider] so it refetches when user logs in (stream emits UID).
 final upcomingAppointmentProvider = FutureProvider<AppointmentEntity?>((ref) async {
-  ref.watch(isAuthenticatedProvider);
-  final uid = ref.watch(authRepositoryProvider).currentUserId;
-  if (uid == null) return null;
+  final uidAsync = ref.watch(currentUserIdProvider);
+  final uid = uidAsync.valueOrNull;
+  if (uid == null || uid.isEmpty) return null;
   final repo = ref.watch(booking_di.appointmentRepositoryProvider);
   final result = await repo.getByUserId(uid);
   return result.fold(

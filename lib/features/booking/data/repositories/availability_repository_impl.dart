@@ -15,10 +15,13 @@ class AvailabilityRepositoryImpl implements AvailabilityRepository {
   CollectionReference<Map<String, dynamic>> get _col =>
       _firestore.collection(FirestoreCollections.availability);
 
+  /// Never use cache: availability must reflect server state to prevent double-booking.
+  static const _serverOnly = GetOptions(source: Source.server);
+
   @override
   Future<Either<Failure, AvailabilityEntity?>> get(String docId) async {
     try {
-      final doc = await _col.doc(docId).get();
+      final doc = await _col.doc(docId).get(_serverOnly);
       if (doc.data() == null) return const Right(null);
       return Right(AvailabilityFirestoreMapper.fromFirestore(doc));
     } catch (e) {

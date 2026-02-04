@@ -57,6 +57,7 @@ final editBookingNotifierProvider = StateNotifierProvider.family<
   String
 >((ref, appointmentId) {
   return EditBookingNotifier(
+    ref.watch(firebaseFirestoreProvider),
     ref.watch(appointmentRepositoryProvider),
     ref.watch(locationRepositoryProvider),
     ref.watch(barbers_di.barberRepositoryProvider),

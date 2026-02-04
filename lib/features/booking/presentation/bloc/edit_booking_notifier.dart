@@ -80,6 +80,7 @@ class EditBookingState {
 /// date/time selection, and performs reschedule (cancel + create).
 class EditBookingNotifier extends StateNotifier<EditBookingState?> {
   EditBookingNotifier(
+    this._firestore,
     this._appointmentRepository,
     this._locationRepository,
     this._barberRepository,
@@ -88,6 +89,7 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
     this._bookingTransaction,
   ) : super(null);
 
+  final FirebaseFirestore _firestore;
   final AppointmentRepository _appointmentRepository;
   final LocationRepository _locationRepository;
   final BarberRepository _barberRepository;
@@ -192,7 +194,7 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
     if (cancelResult.isLeft()) return false;
 
     final newAppointmentId =
-        FirebaseFirestore.instance
+        _firestore
             .collection(FirestoreCollections.appointments)
             .doc()
             .id;

@@ -15,6 +15,7 @@ import 'package:barber/features/dashboard/presentation/pages/barber_form_page.da
 import 'package:barber/features/dashboard/presentation/pages/service_form_page.dart';
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
+import 'package:barber/features/home/di.dart';
 import 'package:barber/features/home/presentation/pages/home_page.dart';
 import 'package:barber/features/inventory/presentation/pages/add_item_page.dart';
 import 'package:barber/features/inventory/presentation/pages/inventory_page.dart';
@@ -41,6 +42,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   ref.listen(isAuthenticatedProvider, (prev, next) {
     if (next.valueOrNull == true) {
       ref.invalidate(currentUserProvider);
+      ref.invalidate(upcomingAppointmentProvider);
       // Delay so verifyOtp's setData(profile step) runs first for new users; then redirect
       // sends returning users (profile complete) to home and keeps new users on auth for profile step.
       Future.delayed(const Duration(milliseconds: 200), () {
@@ -55,6 +57,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   // (returning users with profile complete can then navigate to home).
   ref.listen(currentUserProvider, (prev, next) {
     if (ref.read(isAuthenticatedProvider).valueOrNull == true && next.valueOrNull != null) {
+      ref.invalidate(upcomingAppointmentProvider);
       Future.microtask(() => refreshNotifier.notify());
     }
   });
