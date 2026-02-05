@@ -15,6 +15,8 @@ class BrandFirestoreMapper {
       slotInterval: (data['slot_interval'] as num?)?.toInt() ?? 30,
       bufferTime: (data['buffer_time'] as num?)?.toInt() ?? 0,
       cancelHoursMinimum: (data['cancel_hours_minimum'] as num?)?.toInt() ?? 0,
+      loyaltyPointsMultiplier:
+          (data['loyalty_points_multiplier'] as num?)?.toInt() ?? 10,
     );
   }
 
@@ -27,5 +29,6 @@ class BrandFirestoreMapper {
     'slot_interval': entity.slotInterval,
     'buffer_time': entity.bufferTime,
     'cancel_hours_minimum': entity.cancelHoursMinimum,
+    'loyalty_points_multiplier': entity.loyaltyPointsMultiplier,
   };
 }

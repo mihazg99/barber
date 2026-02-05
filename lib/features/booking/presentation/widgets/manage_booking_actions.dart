@@ -8,7 +8,7 @@ import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:go_router/go_router.dart';
 
-/// Action buttons for manage booking: reschedule and cancel.
+/// Action buttons for manage booking: reschedule (when canEdit) and cancel.
 class ManageBookingActions extends StatelessWidget {
   const ManageBookingActions({
     super.key,
@@ -16,12 +16,15 @@ class ManageBookingActions extends StatelessWidget {
     required this.appointmentId,
     this.isCancelling = false,
     this.canCancel = true,
+    this.canEdit = true,
   });
 
   final VoidCallback onCancel;
   final String appointmentId;
   final bool isCancelling;
   final bool canCancel;
+  /// When false (e.g. barber view), reschedule button is hidden.
+  final bool canEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +32,20 @@ class ManageBookingActions extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _RescheduleButton(
-          onPressed:
-              isCancelling || !canCancel
-                  ? null
-                  : () => context.push(
-                    AppRoute.editBooking.path.replaceFirst(
-                      ':appointmentId',
-                      appointmentId,
-                    ),
-                  ),
-        ),
-        Gap(context.appSizes.paddingSmall),
+        if (canEdit) ...[
+          _RescheduleButton(
+            onPressed:
+                isCancelling || !canCancel
+                    ? null
+                    : () => context.push(
+                          AppRoute.editBooking.path.replaceFirst(
+                            ':appointmentId',
+                            appointmentId,
+                          ),
+                        ),
+          ),
+          Gap(context.appSizes.paddingSmall),
+        ],
         if (!canCancel) ...[
           _CancelPeriodPassedMessage(),
           Gap(context.appSizes.paddingSmall),

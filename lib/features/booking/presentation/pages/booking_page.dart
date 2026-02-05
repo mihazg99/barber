@@ -12,6 +12,8 @@ import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/widgets/custom_app_bar.dart';
 import 'package:barber/core/di.dart';
 import 'package:barber/core/firebase/collections.dart';
+import 'package:barber/core/state/base_state.dart';
+import 'package:barber/features/home/domain/entities/home_data.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/booking/di.dart';
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
@@ -19,6 +21,7 @@ import 'package:barber/features/booking/domain/entities/appointment_entity.dart'
 import 'package:barber/features/services/domain/entities/service_entity.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_progress_bar.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_pre_selection_chip.dart';
+import 'package:barber/features/booking/presentation/widgets/booking_location_section.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_service_section.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_barber_section.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_date_section.dart';
@@ -27,6 +30,7 @@ import 'package:barber/features/booking/domain/entities/time_slot.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_footer.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/home/di.dart';
+import 'package:barber/features/locations/domain/entities/location_entity.dart';
 
 /// Booking flow: select service, barber, date, and time.
 /// Supports quick-action from home: pass [initialBarberId] and [initialServiceId] from route query.
@@ -72,6 +76,13 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     final services = servicesAsync.valueOrNull ?? [];
     final barbersAsync = ref.read(barbersForHomeProvider);
     final barbers = barbersAsync.valueOrNull ?? [];
+    final homeState = ref.read(homeNotifierProvider);
+    final locations =
+        homeState is BaseData<HomeData>
+            ? homeState.data.locations
+            : <LocationEntity>[];
+
+    final isQuickBook = barberId != null && barberId.isNotEmpty;
 
     ServiceEntity? preSelectedService;
     if (serviceId != null && services.isNotEmpty) {
@@ -85,7 +96,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     }
 
     BarberEntity? preSelectedBarber;
-    if (barberId != null && barbers.isNotEmpty) {
+    if (isQuickBook && barbers.isNotEmpty) {
       try {
         preSelectedBarber = barbers.firstWhere((b) => b.barberId == barberId);
       } catch (_) {
@@ -96,10 +107,12 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     await ref
         .read(bookingNotifierProvider.notifier)
         .initialize(
-          barberId: preSelectedBarber == null ? barberId : null,
+          isQuickBook: isQuickBook,
+          barberId: isQuickBook ? barberId : null,
           preSelectedBarber: preSelectedBarber,
           preSelectedService: preSelectedService,
           allServices: services,
+          locations: locations,
         );
   }
 
@@ -140,12 +153,15 @@ class _BookingPageState extends ConsumerState<BookingPage> {
         _showError(
           alreadyHasUpcomingMsg,
           actionLabel: appt != null ? context.l10n.manage : null,
-          onAction: appt != null
-              ? () => context.go(
-                    AppRoute.manageBooking.path
-                        .replaceFirst(':appointmentId', appt.appointmentId),
+          onAction:
+              appt != null
+                  ? () => context.go(
+                    AppRoute.manageBooking.path.replaceFirst(
+                      ':appointmentId',
+                      appt.appointmentId,
+                    ),
                   )
-              : null,
+                  : null,
         );
         return;
       }
@@ -161,11 +177,12 @@ class _BookingPageState extends ConsumerState<BookingPage> {
       final bufferTime = brand?.bufferTime ?? 0;
 
       // Generate appointment ID (use provider so Firestore has persistence disabled)
-      final appointmentId = ref
-          .read(firebaseFirestoreProvider)
-          .collection(FirestoreCollections.appointments)
-          .doc()
-          .id;
+      final appointmentId =
+          ref
+              .read(firebaseFirestoreProvider)
+              .collection(FirestoreCollections.appointments)
+              .doc()
+              .id;
 
       // Calculate start and end times
       final dateStr = _formatDate(bookingState.selectedDate!);
@@ -222,15 +239,19 @@ class _BookingPageState extends ConsumerState<BookingPage> {
           final appt = ref.read(upcomingAppointmentProvider).valueOrNull;
           _showError(
             message,
-            actionLabel: isAlreadyHasUpcoming && appt != null
-                ? context.l10n.manage
-                : null,
-            onAction: isAlreadyHasUpcoming && appt != null
-                ? () => context.go(
-                      AppRoute.manageBooking.path
-                          .replaceFirst(':appointmentId', appt.appointmentId),
+            actionLabel:
+                isAlreadyHasUpcoming && appt != null
+                    ? context.l10n.manage
+                    : null,
+            onAction:
+                isAlreadyHasUpcoming && appt != null
+                    ? () => context.go(
+                      AppRoute.manageBooking.path.replaceFirst(
+                        ':appointmentId',
+                        appt.appointmentId,
+                      ),
                     )
-                : null,
+                    : null,
           );
           ref.invalidate(availableTimeSlotsProvider);
         },
@@ -294,11 +315,33 @@ class _BookingPageState extends ConsumerState<BookingPage> {
 
     final allServices = servicesAsync.valueOrNull ?? [];
     final allBarbers = barbersAsync.valueOrNull ?? [];
+    final homeState = ref.watch(homeNotifierProvider);
+    final locations =
+        homeState is BaseData<HomeData>
+            ? homeState.data.locations
+            : <LocationEntity>[];
+    // When a service is preselected (e.g. quick book), only show locations that offer that service
+    final locationsForStep =
+        bookingState.selectedService != null
+            ? locations
+                .where(
+                  (loc) => bookingState.selectedService!.isAvailableAt(
+                    loc.locationId,
+                  ),
+                )
+                .toList()
+            : locations;
+    final locationsToShow =
+        locationsForStep.isEmpty ? locations : locationsForStep;
+    final showLocationStep = locations.length > 1;
+    final locationSelected =
+        !showLocationStep || bookingState.locationId != null;
 
     // Show only services available at the selected location (empty list = all locations)
-    final services = allServices
-        .where((s) => s.isAvailableAt(bookingState.locationId))
-        .toList();
+    final services =
+        allServices
+            .where((s) => s.isAvailableAt(bookingState.locationId))
+            .toList();
 
     // Filter barbers by location if we have one
     final barbers =
@@ -318,9 +361,10 @@ class _BookingPageState extends ConsumerState<BookingPage> {
         children: [
           // Progress bar
           BookingProgressBar(
+            showLocationStep: showLocationStep,
+            locationSelected: locationSelected,
             serviceSelected: bookingState.selectedService != null,
-            barberSelected:
-                bookingState.selectedBarber != null || bookingState.isAnyBarber,
+            barberSelected: bookingState.barberChoiceMade,
             timeSelected: bookingState.selectedTimeSlot != null,
           ),
 
@@ -343,17 +387,38 @@ class _BookingPageState extends ConsumerState<BookingPage> {
               ),
               child: Column(
                 children: [
-                  // Service selection
-                  BookingServiceSection(
-                    services: services,
-                    selectedServiceId: bookingState.selectedService?.serviceId,
-                    onServiceSelected: (service) {
-                      ref
-                          .read(bookingNotifierProvider.notifier)
-                          .selectService(service);
-                    },
-                  ),
-                  Gap(context.appSizes.paddingLarge),
+                  // Location selection (first step when brand has multiple locations).
+                  // Filtered by preselected service when quick book so only supporting locations are shown.
+                  if (showLocationStep) ...[
+                    BookingLocationSection(
+                      locations: locationsToShow,
+                      selectedLocationId: bookingState.locationId,
+                      onLocationSelected: (location) {
+                        ref
+                            .read(bookingNotifierProvider.notifier)
+                            .selectLocation(location.locationId);
+                      },
+                    ),
+                    Gap(context.appSizes.paddingLarge),
+                  ],
+
+                  // Service selection: show when location is selected, or when
+                  // quick book preselected a service (so user sees selection and can change it).
+                  // Services list is filtered by selected location when set.
+                  if (locationSelected ||
+                      bookingState.selectedService != null) ...[
+                    BookingServiceSection(
+                      services: services,
+                      selectedServiceId:
+                          bookingState.selectedService?.serviceId,
+                      onServiceSelected: (service) {
+                        ref
+                            .read(bookingNotifierProvider.notifier)
+                            .selectService(service);
+                      },
+                    ),
+                    Gap(context.appSizes.paddingLarge),
+                  ],
 
                   // Barber selection
                   if (bookingState.selectedService != null) ...[

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:barber/core/l10n/app_localizations_ext.dart';
+import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/home/di.dart';
+import 'package:barber/features/brand/presentation/widgets/app_header.dart';
 import 'package:barber/features/home/presentation/widgets/barbers_section.dart';
-import 'package:barber/features/home/presentation/widgets/home_header.dart';
 import 'package:barber/features/home/presentation/widgets/loyalty_card.dart';
 import 'package:barber/features/home/presentation/widgets/nearby_locations_section.dart';
 import 'package:barber/features/home/presentation/widgets/services_section.dart';
@@ -24,13 +27,12 @@ class HomePage extends HookConsumerWidget {
     useEffect(() {
       Future.microtask(() {
         ref.read(homeNotifierProvider.notifier).load();
-        // Force fresh upcoming booking from server every time user sees home
-        ref.invalidate(upcomingAppointmentProvider);
       });
       return null;
     }, []);
 
     final homeState = ref.watch(homeNotifierProvider);
+    final isStaff = ref.watch(isStaffProvider);
 
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
@@ -45,6 +47,18 @@ class HomePage extends HookConsumerWidget {
           },
         ),
       ),
+      floatingActionButton: isStaff
+          ? FloatingActionButton(
+              onPressed: () => context.push(AppRoute.dashboardRedeemReward.path),
+              backgroundColor: context.appColors.primaryColor,
+              child: Icon(
+                Icons.qr_code_scanner,
+                color: context.appColors.primaryWhiteColor,
+                size: 28,
+              ),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
@@ -60,7 +74,7 @@ class _HomeBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const HomeHeader(),
+          const AppHeader(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
             child: Column(

@@ -32,9 +32,10 @@ class DashboardBarbersTab extends HookConsumerWidget {
 
     final state = ref.watch(dashboardBarbersNotifierProvider);
     final locationsState = ref.watch(dashboardLocationsNotifierProvider);
-    final locations = locationsState is BaseData<List<LocationEntity>>
-        ? locationsState.data
-        : <LocationEntity>[];
+    final locations =
+        locationsState is BaseData<List<LocationEntity>>
+            ? locationsState.data
+            : <LocationEntity>[];
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -45,20 +46,24 @@ class DashboardBarbersTab extends HookConsumerWidget {
             BaseInitial() => const _BarbersShimmer(),
             BaseLoading() => const _BarbersShimmer(),
             BaseData(:final data) => _BarbersList(
-                  barbers: data,
-                  locations: locations,
-                  onAdd: () => context.push(AppRoute.dashboardBarberForm.path),
-                  onEdit: (b) => context.push(
+              barbers: data,
+              locations: locations,
+              onAdd: () => context.push(AppRoute.dashboardBarberForm.path),
+              onEdit:
+                  (b) => context.push(
                     AppRoute.dashboardBarberForm.path,
                     extra: b,
                   ),
-                  onDelete: (b) => _confirmDelete(context, ref, b),
-                ),
+              onDelete: (b) => _confirmDelete(context, ref, b),
+            ),
             BaseError(:final message) => _BarbersError(
-                  message: message,
-                  onRetry: () =>
-                      ref.read(dashboardBarbersNotifierProvider.notifier).load(),
-                ),
+              message: message,
+              onRetry:
+                  () =>
+                      ref
+                          .read(dashboardBarbersNotifierProvider.notifier)
+                          .load(),
+            ),
           },
           Positioned(
             right: 24,
@@ -81,23 +86,24 @@ class DashboardBarbersTab extends HookConsumerWidget {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.dashboardBarberDeleteConfirm),
-        content: Text(context.l10n.dashboardBarberDeleteConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(context.l10n.cancel),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(context.l10n.dashboardBarberDeleteConfirm),
+            content: Text(context.l10n.dashboardBarberDeleteConfirmMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(context.l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: context.appColors.errorColor,
+                ),
+                child: Text(context.l10n.dashboardBarberDeleteButton),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: context.appColors.errorColor,
-            ),
-            child: Text(context.l10n.dashboardBarberDeleteButton),
-          ),
-        ],
-      ),
     );
     if (confirmed == true && context.mounted) {
       await ref
@@ -127,6 +133,7 @@ class _BarbersShimmer extends StatelessWidget {
         (_) => Padding(
           padding: EdgeInsets.only(bottom: context.appSizes.paddingSmall),
           child: ShimmerWrapper(
+            variant: ShimmerVariant.dashboard,
             child: Container(
               height: 80,
               decoration: BoxDecoration(
@@ -269,17 +276,21 @@ class _BarberCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundColor: context.appColors.primaryColor.withValues(alpha: 0.15),
-                backgroundImage: barber.photoUrl.isNotEmpty
-                    ? NetworkImage(barber.photoUrl)
-                    : null,
-                child: barber.photoUrl.isEmpty
-                    ? Icon(
-                        Icons.person,
-                        size: 32,
-                        color: context.appColors.primaryColor,
-                      )
-                    : null,
+                backgroundColor: context.appColors.primaryColor.withValues(
+                  alpha: 0.15,
+                ),
+                backgroundImage:
+                    barber.photoUrl.isNotEmpty
+                        ? NetworkImage(barber.photoUrl)
+                        : null,
+                child:
+                    barber.photoUrl.isEmpty
+                        ? Icon(
+                          Icons.person,
+                          size: 32,
+                          color: context.appColors.primaryColor,
+                        )
+                        : null,
               ),
               Gap(context.appSizes.paddingMedium),
               Expanded(
@@ -307,7 +318,8 @@ class _BarberCard extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: context.appColors.captionTextColor.withValues(alpha: 0.2),
+                              color: context.appColors.captionTextColor
+                                  .withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(

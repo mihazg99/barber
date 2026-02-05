@@ -192,6 +192,12 @@ class AppLocalizationsHr extends AppLocalizations {
       'Već imate zakazan termin. Otkazujte ili dovršite ga prije nove rezervacije.';
 
   @override
+  String get bookingStepLocation => 'Lokacija';
+
+  @override
+  String get bookingSelectLocation => 'Odaberi lokaciju';
+
+  @override
   String get bookingStepService => 'Usluga';
 
   @override
@@ -278,6 +284,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get loyaltyTitle => 'LOYALTY';
 
   @override
+  String get loyaltyPointsAbbrev => 'bod.';
+
+  @override
   String get loyaltyMember => 'ČLAN';
 
   @override
@@ -292,6 +301,113 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get loyaltyEarnPointsDescription =>
       'Zaradite bodove i unovčite nagrade';
+
+  @override
+  String get loyaltyRedeem => 'Unovči';
+
+  @override
+  String get loyaltyMyRewards => 'Moje nagrade';
+
+  @override
+  String get loyaltyInsufficientPoints => 'Nedovoljno bodova';
+
+  @override
+  String get loyaltyRedeemSuccess =>
+      'Nagrada zatražena! Pokažite ovaj QR brijaču.';
+
+  @override
+  String get dashboardRedeemReward => 'Skeniraj kod';
+
+  @override
+  String get barberHomeGreetingMorning => 'Dobro jutro';
+
+  @override
+  String get barberHomeGreetingAfternoon => 'Dobar dan';
+
+  @override
+  String get barberHomeGreetingEvening => 'Dobra večer';
+
+  @override
+  String get barberHomeScanCta => 'Skeniraj QR';
+
+  @override
+  String get barberHomeScanSubtitle => 'Unovči nagrade ili dodaj bodove';
+
+  @override
+  String get barberHomeRedeemReward => 'Unovči nagradu';
+
+  @override
+  String get barberHomeAddLoyalty => 'Dodaj bodove';
+
+  @override
+  String get barberHomeViewBookings => 'Pregled termina';
+
+  @override
+  String get barberHomeTodayTitle => 'Danas';
+
+  @override
+  String get barberHomeTodayEmpty => 'Nema termina danas';
+
+  @override
+  String get barberHomeUpcomingEmpty => 'Nema nadolazećih termina';
+
+  @override
+  String get barberHomeUpcomingCardTitle => 'Termini';
+
+  @override
+  String get barberHomeHey => 'Bok 👋';
+
+  @override
+  String barberHomeHeyName(String name) {
+    return 'Bok, $name 👋';
+  }
+
+  @override
+  String get barberHomeQuickActions => 'Brze radnje';
+
+  @override
+  String get redeemSuccess => 'Nagrada unovčena';
+
+  @override
+  String get alreadyRedeemed => 'Već unovčeno';
+
+  @override
+  String get scanPointsAwardedTitle => 'Bodovi dodani';
+
+  @override
+  String scanPointsAwardedMessage(String customerName, int pointsAwarded) {
+    return '$customerName je primio $pointsAwarded bodova lojalnosti.';
+  }
+
+  @override
+  String get dashboardNavHome => 'Početna';
+
+  @override
+  String get dashboardNavBookings => 'Termini';
+
+  @override
+  String get dashboardNavShift => 'Smjena';
+
+  @override
+  String get dashboardNavBrand => 'Brend';
+
+  @override
+  String get dashboardNavLocations => 'Lokacije';
+
+  @override
+  String get dashboardNavServices => 'Usluge';
+
+  @override
+  String get dashboardNavRewards => 'Nagrade';
+
+  @override
+  String get dashboardNavBarbers => 'Brijači';
+
+  @override
+  String get dashboardBookingsTitle => 'Moji termini';
+
+  @override
+  String get dashboardShiftTitle => 'Moja smjena';
 
   @override
   String get addNewItem => 'Dodaj novu stavku';
@@ -445,6 +561,13 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get dashboardBrandCancelHours => 'Min. sati za otkaz';
+
+  @override
+  String get dashboardBrandLoyaltyPointsMultiplier => 'Bodovi po 1€';
+
+  @override
+  String get dashboardBrandLoyaltyPointsMultiplierHint =>
+      'npr. 10 (30€ → 300 bodova)';
 
   @override
   String get dashboardBrandMultiLocation => 'Više lokacija';
@@ -665,6 +788,76 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get dashboardBarberInactive => 'Neaktivan';
+
+  @override
+  String get dashboardRewardAdd => 'Dodaj nagradu';
+
+  @override
+  String get dashboardRewardEdit => 'Uredi nagradu';
+
+  @override
+  String get dashboardRewardName => 'Naziv';
+
+  @override
+  String get dashboardRewardNameHint => 'npr. Besplatna kava';
+
+  @override
+  String get dashboardRewardNameRequired => 'Naziv je obavezan';
+
+  @override
+  String get dashboardRewardDescription => 'Opis';
+
+  @override
+  String get dashboardRewardDescriptionHint => 'Opcionalni opis';
+
+  @override
+  String get dashboardRewardPointsCostLabel => 'Cijena u bodovima';
+
+  @override
+  String get dashboardRewardPointsCostHint => '100';
+
+  @override
+  String get dashboardRewardPointsInvalid =>
+      'Unesite valjanu vrijednost bodova (0 ili više)';
+
+  @override
+  String dashboardRewardPointsCost(int points) {
+    return '$points bod.';
+  }
+
+  @override
+  String get dashboardRewardSortOrder => 'Redoslijed';
+
+  @override
+  String get dashboardRewardSortOrderHint => '0';
+
+  @override
+  String get dashboardRewardActive => 'Aktivna';
+
+  @override
+  String get dashboardRewardSaved => 'Nagrada spremljena';
+
+  @override
+  String get dashboardRewardCreated => 'Nagrada kreirana';
+
+  @override
+  String get dashboardRewardDeleteConfirm => 'Obrisati ovu nagradu?';
+
+  @override
+  String get dashboardRewardDeleteConfirmMessage =>
+      'Ova radnja se ne može poništiti.';
+
+  @override
+  String get dashboardRewardDeleteButton => 'Obriši';
+
+  @override
+  String get dashboardRewardDeleted => 'Nagrada obrisana';
+
+  @override
+  String get dashboardRewardEmpty => 'Još nema nagrada. Dodajte novu.';
+
+  @override
+  String get dashboardRewardInactive => 'Neaktivna';
 
   @override
   String get closed => 'Zatvoreno';

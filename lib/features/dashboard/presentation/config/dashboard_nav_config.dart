@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:barber/features/auth/domain/entities/user_role.dart';
+import 'package:barber/gen/l10n/app_localizations.dart';
 
 /// Dashboard tab for barber or superadmin.
 class DashboardNavItem {
@@ -13,29 +14,30 @@ class DashboardNavItem {
   final IconData icon;
 }
 
-/// Navigation config for dashboard based on role.
+/// Navigation config for dashboard based on role. Labels are localized via [l10n].
 abstract final class DashboardNavConfig {
-  static List<DashboardNavItem> forRole(UserRole role) {
+  static List<DashboardNavItem> forRole(UserRole role, AppLocalizations l10n) {
     switch (role) {
       case UserRole.barber:
-        return barberItems;
+        return [
+          DashboardNavItem(label: l10n.dashboardNavHome, icon: Icons.home_outlined),
+          DashboardNavItem(label: l10n.dashboardNavBookings, icon: Icons.calendar_today_outlined),
+          DashboardNavItem(label: l10n.dashboardNavShift, icon: Icons.schedule_outlined),
+        ];
       case UserRole.superadmin:
-        return superadminItems;
+        return [
+          DashboardNavItem(label: l10n.dashboardNavBrand, icon: Icons.store_outlined),
+          DashboardNavItem(label: l10n.dashboardNavLocations, icon: Icons.location_on_outlined),
+          DashboardNavItem(label: l10n.dashboardNavServices, icon: Icons.content_cut_outlined),
+          DashboardNavItem(label: l10n.dashboardNavRewards, icon: Icons.card_giftcard_outlined),
+          DashboardNavItem(label: l10n.dashboardNavBarbers, icon: Icons.person_outline),
+        ];
       default:
-        return barberItems;
+        return [
+          DashboardNavItem(label: l10n.dashboardNavHome, icon: Icons.home_outlined),
+          DashboardNavItem(label: l10n.dashboardNavBookings, icon: Icons.calendar_today_outlined),
+          DashboardNavItem(label: l10n.dashboardNavShift, icon: Icons.schedule_outlined),
+        ];
     }
   }
-
-  static const List<DashboardNavItem> barberItems = [
-    DashboardNavItem(label: 'Home', icon: Icons.home_outlined),
-    DashboardNavItem(label: 'Bookings', icon: Icons.calendar_today_outlined),
-    DashboardNavItem(label: 'Shift', icon: Icons.schedule_outlined),
-  ];
-
-  static const List<DashboardNavItem> superadminItems = [
-    DashboardNavItem(label: 'Brand', icon: Icons.store_outlined),
-    DashboardNavItem(label: 'Locations', icon: Icons.location_on_outlined),
-    DashboardNavItem(label: 'Services', icon: Icons.content_cut_outlined),
-    DashboardNavItem(label: 'Barbers', icon: Icons.person_outline),
-  ];
 }

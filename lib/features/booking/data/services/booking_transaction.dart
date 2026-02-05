@@ -270,6 +270,65 @@ class BookingTransaction {
     }
   }
 
+  /// Completes the visit atomically: adds [pointsToAdd] to user's loyalty points,
+  /// marks the appointment as completed, and clears user_booking_locks for this appointment.
+  Future<Either<Failure, void>> completeVisitAndAwardLoyaltyPoints({
+    required String userId,
+    required String appointmentId,
+    required int pointsToAdd,
+  }) async {
+    final userRef = _firestore.collection(FirestoreCollections.users).doc(userId);
+    final appointmentRef = _firestore
+        .collection(FirestoreCollections.appointments)
+        .doc(appointmentId);
+    final lockRef = _firestore
+        .collection(FirestoreCollections.userBookingLocks)
+        .doc(userId);
+
+    try {
+      await _firestore.runTransaction((Transaction transaction) async {
+        final apptSnap = await transaction.get(appointmentRef);
+        if (!apptSnap.exists || apptSnap.data() == null) {
+          throw FirebaseException(
+            plugin: 'booking',
+            code: 'not-found',
+            message: 'Appointment not found',
+          );
+        }
+        final status = apptSnap.data()!['status'] as String? ?? '';
+        if (status != AppointmentStatus.scheduled) {
+          throw FirebaseException(
+            plugin: 'booking',
+            code: 'invalid-status',
+            message: 'Appointment is not scheduled',
+          );
+        }
+
+        final lockSnap = await transaction.get(lockRef);
+
+        // All writes after reads.
+        transaction.update(appointmentRef, {
+          'status': AppointmentStatus.completed,
+        });
+        transaction.update(userRef, {
+          'loyalty_points': FieldValue.increment(pointsToAdd),
+        });
+        if (lockSnap.exists &&
+            lockSnap.data() != null &&
+            lockSnap.data()!['active_appointment_id'] == appointmentId) {
+          transaction.update(lockRef, {
+            'active_appointment_id': FieldValue.delete(),
+          });
+        }
+      });
+      return const Right(null);
+    } on FirebaseException catch (e) {
+      return Left(FirestoreFailure(e.message ?? 'Failed to complete visit'));
+    } catch (e) {
+      return Left(FirestoreFailure('Failed to complete visit: $e'));
+    }
+  }
+
   String _formatDate(DateTime dt) {
     return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
   }

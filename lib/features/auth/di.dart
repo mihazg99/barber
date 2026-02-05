@@ -61,6 +61,14 @@ final currentUserProvider = FutureProvider<UserEntity?>((ref) async {
   return result.fold((_) => null, (u) => u);
 });
 
+/// Current user as a stream so loyalty points update in real time when barber awards points (e.g. on home screen).
+final currentUserStreamProvider = StreamProvider<UserEntity?>((ref) {
+  final uidAsync = ref.watch(currentUserIdProvider);
+  final uid = uidAsync.valueOrNull;
+  if (uid == null || uid.isEmpty) return Stream.value(null);
+  return ref.watch(userRepositoryProvider).watchById(uid);
+});
+
 /// True when authenticated and profile has fullName set. Used by router redirect.
 final isProfileCompleteProvider = Provider<bool>((ref) {
   final userAsync = ref.watch(currentUserProvider);

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -38,10 +37,7 @@ class BarbersSection extends ConsumerWidget {
             : Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _BarbersContent(
-                  barbers: value,
-                  title: context.l10n.sectionBarbers,
-                ),
+                _BarbersContent(barbers: value, title: 'Book with a barber'),
                 Gap(_barbersSectionSpacing),
               ],
             ),
@@ -100,7 +96,7 @@ class _BarbersSectionShimmer extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        HomeSectionTitle(title: context.l10n.sectionBarbers),
+        const HomeSectionTitle(title: 'Book with a barber'),
         Gap(context.appSizes.paddingSmall),
         SizedBox(
           height: 132,
@@ -218,7 +214,7 @@ class _BarberCircle extends StatelessWidget {
             ),
             Gap(2),
             Text(
-              context.l10n.book,
+              'Book',
               style: context.appTextStyles.caption.copyWith(
                 fontSize: 11,
                 color: context.appColors.primaryColor,

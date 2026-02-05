@@ -39,27 +39,33 @@ class DashboardLocationsTab extends HookConsumerWidget {
             BaseInitial() => const _LocationsShimmer(),
             BaseLoading() => const _LocationsShimmer(),
             BaseData(:final data) => _LocationsList(
-                  locations: data,
-                  onAdd: () => context.push(
+              locations: data,
+              onAdd:
+                  () => context.push(
                     AppRoute.dashboardLocationForm.path,
                   ),
-                  onEdit: (loc) => context.push(
+              onEdit:
+                  (loc) => context.push(
                     AppRoute.dashboardLocationForm.path,
                     extra: loc,
                   ),
-                  onDelete: (loc) => _confirmDelete(context, ref, loc),
-                ),
+              onDelete: (loc) => _confirmDelete(context, ref, loc),
+            ),
             BaseError(:final message) => _LocationsError(
-                  message: message,
-                  onRetry: () =>
-                      ref.read(dashboardLocationsNotifierProvider.notifier).load(),
-                ),
+              message: message,
+              onRetry:
+                  () =>
+                      ref
+                          .read(dashboardLocationsNotifierProvider.notifier)
+                          .load(),
+            ),
           },
           Positioned(
             right: 24,
             bottom: 24,
             child: FloatingActionButton(
-              onPressed: () => context.push(AppRoute.dashboardLocationForm.path),
+              onPressed:
+                  () => context.push(AppRoute.dashboardLocationForm.path),
               backgroundColor: context.appColors.primaryColor,
               child: const Icon(Icons.add, color: Colors.white),
             ),
@@ -76,23 +82,24 @@ class DashboardLocationsTab extends HookConsumerWidget {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.dashboardLocationDeleteConfirm),
-        content: Text(context.l10n.dashboardLocationDeleteConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(context.l10n.cancel),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(context.l10n.dashboardLocationDeleteConfirm),
+            content: Text(context.l10n.dashboardLocationDeleteConfirmMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(context.l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: context.appColors.errorColor,
+                ),
+                child: Text(context.l10n.dashboardLocationDeleteButton),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: context.appColors.errorColor,
-            ),
-            child: Text(context.l10n.dashboardLocationDeleteButton),
-          ),
-        ],
-      ),
     );
     if (confirmed == true && context.mounted) {
       await ref
@@ -122,6 +129,7 @@ class _LocationsShimmer extends StatelessWidget {
         (_) => Padding(
           padding: EdgeInsets.only(bottom: context.appSizes.paddingSmall),
           child: ShimmerWrapper(
+            variant: ShimmerVariant.dashboard,
             child: Container(
               height: 88,
               decoration: BoxDecoration(
@@ -264,9 +272,10 @@ class _LocationCard extends StatelessWidget {
                       style: context.appTextStyles.caption.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: hoursLine != context.l10n.closed
-                            ? context.appColors.primaryColor
-                            : context.appColors.captionTextColor,
+                        color:
+                            hoursLine != context.l10n.closed
+                                ? context.appColors.primaryColor
+                                : context.appColors.captionTextColor,
                       ),
                     ),
                     Gap(4),
