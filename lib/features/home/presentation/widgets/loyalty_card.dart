@@ -397,7 +397,7 @@ class _SmallTappableQr extends StatelessWidget {
   final AppColors colors;
   final VoidCallback onTap;
 
-  static const _qrSize = 52.0;
+  static const _qrSize = 26.0;
   static const _qrPadding = 5.0;
 
   @override
@@ -612,8 +612,8 @@ class _LoyaltyCardShimmer extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 ShimmerPlaceholder(
-                  width: 62,
-                  height: 62,
+                  width: 31,
+                  height: 31,
                   borderRadius: BorderRadius.circular(8),
                 ),
               ],
