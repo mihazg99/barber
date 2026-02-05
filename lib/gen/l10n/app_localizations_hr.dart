@@ -138,6 +138,24 @@ class AppLocalizationsHr extends AppLocalizations {
   String get authPhone => 'Telefon';
 
   @override
+  String get welcome => 'Dobrodošli';
+
+  @override
+  String get signInToContinue => 'Prijavite se za nastavak';
+
+  @override
+  String get continueWithGoogle => 'Nastavi s Googleom';
+
+  @override
+  String get continueWithApple => 'Nastavi s Appleom';
+
+  @override
+  String get or => 'ili';
+
+  @override
+  String get continueWithPhone => 'Nastavi s telefonom';
+
+  @override
   String get bookingTitle => 'Rezerviraj termin';
 
   @override

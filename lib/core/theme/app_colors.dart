@@ -24,6 +24,10 @@ class AppColors {
   Color get borderColor => _colors.border;
   Color get errorColor => _colors.error;
 
+  /// Brand primary lightened for use on dark backgrounds (e.g. cards). Keeps brand hue, improves readability.
+  Color get primaryColorOnDark =>
+      Color.lerp(_colors.primary, _colors.primaryWhite, 0.6)!;
+
   static AppColors fromBrandConfig(AppBrandConfig config) =>
       AppColors._(config.colors);
 }

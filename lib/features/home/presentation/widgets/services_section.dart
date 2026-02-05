@@ -215,14 +215,14 @@ class _ServiceCard extends StatelessWidget {
                     style: context.appTextStyles.h2.copyWith(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: context.appColors.primaryColor,
+                      color: context.appColors.primaryColorOnDark,
                     ),
                   ),
                   Text(
                     _formatDuration(service.durationMinutes),
                     style: context.appTextStyles.caption.copyWith(
                       fontSize: 11,
-                      color: context.appColors.captionTextColor,
+                      color: context.appColors.secondaryTextColor,
                     ),
                   ),
                 ],
@@ -234,7 +234,7 @@ class _ServiceCard extends StatelessWidget {
                     context.l10n.book,
                     style: context.appTextStyles.caption.copyWith(
                       fontSize: 12,
-                      color: context.appColors.primaryColor,
+                      color: context.appColors.primaryColorOnDark,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -242,7 +242,7 @@ class _ServiceCard extends StatelessWidget {
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 10,
-                    color: context.appColors.primaryColor,
+                    color: context.appColors.primaryColorOnDark,
                   ),
                 ],
               ),

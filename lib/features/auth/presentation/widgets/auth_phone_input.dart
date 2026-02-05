@@ -30,7 +30,7 @@ class AuthPhoneInput extends HookConsumerWidget {
     final formKey = useMemoized(GlobalKey<FormState>.new);
     final selectedCountry = useState<CountryCode>(
       kCountryCodes.firstWhere(
-        (c) => c.isoCode == 'US',
+        (c) => c.isoCode == 'HR',
         orElse: () => kCountryCodes.first,
       ),
     );

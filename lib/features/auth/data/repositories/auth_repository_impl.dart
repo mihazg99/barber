@@ -84,6 +84,110 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, UserEntity>> signInWithGoogle() async {
+    try {
+      final user = await _authDataSource.signInWithGoogle();
+
+      final displayName = user.displayName ?? '';
+      final email = user.email ?? '';
+      final phone = user.phoneNumber ?? '';
+
+      final entity = UserEntity(
+        userId: user.uid,
+        fullName: displayName,
+        phone: phone,
+        fcmToken: '',
+        brandId: _brandId,
+        loyaltyPoints: 0,
+        role: UserRole.user,
+      );
+
+      final existingResult = await _userRepository.getById(user.uid);
+      final toSave = existingResult.fold(
+        (_) => entity,
+        (existing) => existing != null
+            ? entity.copyWith(
+                fullName: existing.fullName.isNotEmpty
+                    ? existing.fullName
+                    : displayName,
+                phone: existing.phone.isNotEmpty ? existing.phone : phone,
+                loyaltyPoints: existing.loyaltyPoints,
+                role: existing.role,
+              )
+            : entity,
+      );
+
+      final setResult = await _userRepository.set(toSave);
+      // Always return user so profile step can show; if set failed, user can retry on submit.
+      return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'sign-in-cancelled') {
+        return Left(AuthSignInCancelledFailure());
+      }
+      return Left(AuthSignInFailedFailure(e.message ?? e.code));
+    } catch (e) {
+      return Left(AuthSignInFailedFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> signInWithApple() async {
+    try {
+      final user = await _authDataSource.signInWithApple();
+
+      final displayName = user.displayName ?? '';
+      final email = user.email ?? '';
+      final phone = user.phoneNumber ?? '';
+
+      final entity = UserEntity(
+        userId: user.uid,
+        fullName: displayName,
+        phone: phone,
+        fcmToken: '',
+        brandId: _brandId,
+        loyaltyPoints: 0,
+        role: UserRole.user,
+      );
+
+      final existingResult = await _userRepository.getById(user.uid);
+      final toSave = existingResult.fold(
+        (_) => entity,
+        (existing) => existing != null
+            ? entity.copyWith(
+                fullName: existing.fullName.isNotEmpty
+                    ? existing.fullName
+                    : displayName,
+                phone: existing.phone.isNotEmpty ? existing.phone : phone,
+                loyaltyPoints: existing.loyaltyPoints,
+                role: existing.role,
+              )
+            : entity,
+      );
+
+      final setResult = await _userRepository.set(toSave);
+      // Always return user so profile step can show; if set failed, user can retry on submit.
+      return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'sign-in-cancelled') {
+        return Left(AuthSignInCancelledFailure());
+      }
+      if (e.code == 'apple-sign-in-not-available') {
+        return Left(AuthSignInFailedFailure(
+          'Apple Sign-In is not available. Please ensure you have an Apple Developer Program membership and have configured Sign In with Apple.',
+        ));
+      }
+      return Left(AuthSignInFailedFailure(e.message ?? e.code));
+    } catch (e) {
+      return Left(AuthSignInFailedFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<bool> isAppleSignInAvailable() async {
+    return await _authDataSource.isAppleSignInAvailable();
+  }
+
+  @override
   Future<Either<Failure, void>> signOut() async {
     try {
       await _authDataSource.signOut();

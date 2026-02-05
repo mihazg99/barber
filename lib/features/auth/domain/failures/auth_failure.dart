@@ -21,3 +21,8 @@ class AuthVerificationFailedFailure extends AuthFailure {
 class AuthSignInFailedFailure extends AuthFailure {
   const AuthSignInFailedFailure([super.message = 'Sign in failed']);
 }
+
+class AuthSignInCancelledFailure extends AuthFailure {
+  const AuthSignInCancelledFailure()
+      : super('Sign in was cancelled');
+}

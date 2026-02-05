@@ -9,7 +9,9 @@ import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/widgets/custom_textfield.dart';
 import 'package:barber/core/widgets/primary_button.dart';
+import 'package:barber/features/auth/data/country_code.dart';
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
+import 'package:barber/features/auth/presentation/widgets/country_code_selector.dart';
 
 class AuthProfileInput extends HookConsumerWidget {
   const AuthProfileInput({
@@ -21,14 +23,37 @@ class AuthProfileInput extends HookConsumerWidget {
   });
 
   final UserEntity user;
-  final Future<void> Function(String fullName) onSubmit;
+  final Future<void> Function(String fullName, String phone) onSubmit;
   final bool isLoading;
   final String? errorMessage;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = useTextEditingController();
+    final nameController = useTextEditingController();
+    final phoneController = useTextEditingController();
     final formKey = useMemoized(GlobalKey<FormState>.new);
+    final selectedCountry = useState<CountryCode>(
+      kCountryCodes.firstWhere(
+        (c) => c.isoCode == 'HR',
+        orElse: () => kCountryCodes.first,
+      ),
+    );
+
+    // Pre-fill phone if user already has one
+    useEffect(() {
+      if (user.phone.isNotEmpty) {
+        // Try to extract country code and phone number
+        final phone = user.phone;
+        final matchingCountry = kCountryCodes.firstWhere(
+          (c) => phone.startsWith(c.dialCode),
+          orElse: () => selectedCountry.value,
+        );
+        selectedCountry.value = matchingCountry;
+        final phoneWithoutCode = phone.replaceFirst(matchingCountry.dialCode, '');
+        phoneController.text = phoneWithoutCode;
+      }
+      return null;
+    }, []);
 
     return Form(
       key: formKey,
@@ -55,8 +80,8 @@ class AuthProfileInput extends HookConsumerWidget {
             title: context.l10n.authFullName,
             hint: context.l10n.authFullNameHint,
             keyboardType: TextInputType.name,
-            textInputAction: TextInputAction.done,
-            controller: controller,
+            textInputAction: TextInputAction.next,
+            controller: nameController,
             validator: (v) {
               if (v == null || v.trim().isEmpty) {
                 return context.l10n.authFullNameValidation;
@@ -64,32 +89,39 @@ class AuthProfileInput extends HookConsumerWidget {
               return null;
             },
           ),
-          Gap(context.appSizes.paddingMedium),
+          Gap(context.appSizes.paddingLarge),
           Text(
-            context.l10n.authPhone,
+            context.l10n.authPhoneNumber,
             style: context.appTextStyles.h2.copyWith(
               color: context.appColors.secondaryTextColor,
             ),
           ),
           Gap(context.appSizes.paddingSmall),
-          Container(
-            padding: EdgeInsets.symmetric(
-              vertical: context.appSizes.paddingSmall,
-              horizontal: context.appSizes.paddingMedium,
-            ),
-            decoration: BoxDecoration(
-              color: context.appColors.secondaryColor,
-              borderRadius: BorderRadius.circular(
-                context.appSizes.borderRadius,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CountryCodeSelector(
+                selected: selectedCountry.value,
+                onChanged: (c) => selectedCountry.value = c,
+                enabled: !isLoading,
               ),
-              border: Border.all(color: context.appColors.borderColor),
-            ),
-            child: Text(
-              user.phone.isEmpty ? '—' : user.phone,
-              style: context.appTextStyles.body.copyWith(
-                color: context.appColors.secondaryTextColor,
+              Gap(context.appSizes.paddingMedium),
+              Expanded(
+                child: CustomTextField.normal(
+                  hint: context.l10n.authPhoneHint,
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.done,
+                  controller: phoneController,
+                  validator: (v) {
+                    final digits = _digitsOnly(v ?? '');
+                    if (digits.length < 6) {
+                      return context.l10n.authPhoneValidation;
+                    }
+                    return null;
+                  },
+                ),
               ),
-            ),
+            ],
           ),
           if (errorMessage != null) ...[
             Gap(context.appSizes.paddingSmall),
@@ -108,7 +140,12 @@ class AuthProfileInput extends HookConsumerWidget {
                     ? null
                     : () async {
                       if (formKey.currentState?.validate() ?? false) {
-                        await onSubmit(controller.text.trim());
+                        final digits = _digitsOnly(phoneController.text);
+                        final fullPhone = selectedCountry.value.dialCode + digits;
+                        await onSubmit(
+                          nameController.text.trim(),
+                          fullPhone,
+                        );
                       }
                     },
             loading: isLoading,
@@ -118,4 +155,6 @@ class AuthProfileInput extends HookConsumerWidget {
       ),
     );
   }
+
+  static String _digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
 }

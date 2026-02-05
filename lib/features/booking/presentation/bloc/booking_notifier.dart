@@ -69,6 +69,7 @@ class BookingNotifier extends StateNotifier<BookingState> {
       selectedService: effectiveService,
       locationId: locationId,
       barberChoiceMade: barber != null,
+      preselectedBarberId: barber?.barberId,
     );
   }
 

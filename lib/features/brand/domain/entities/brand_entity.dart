@@ -14,6 +14,7 @@ class BrandEntity extends Equatable {
     required this.bufferTime,
     this.cancelHoursMinimum = 0,
     this.loyaltyPointsMultiplier = 10,
+    this.requireSmsVerification = false,
   });
 
   final String brandId;
@@ -31,6 +32,9 @@ class BrandEntity extends Equatable {
   /// Points awarded per 1€ spent when barber scans loyalty QR (e.g. 10 = 30€ → 300 points).
   final int loyaltyPointsMultiplier;
 
+  /// Whether SMS verification is required after social login. Defaults to false when not set.
+  final bool requireSmsVerification;
+
   BrandEntity copyWith({
     String? brandId,
     String? name,
@@ -42,6 +46,7 @@ class BrandEntity extends Equatable {
     int? bufferTime,
     int? cancelHoursMinimum,
     int? loyaltyPointsMultiplier,
+    bool? requireSmsVerification,
   }) => BrandEntity(
     brandId: brandId ?? this.brandId,
     name: name ?? this.name,
@@ -54,6 +59,8 @@ class BrandEntity extends Equatable {
     cancelHoursMinimum: cancelHoursMinimum ?? this.cancelHoursMinimum,
     loyaltyPointsMultiplier:
         loyaltyPointsMultiplier ?? this.loyaltyPointsMultiplier,
+    requireSmsVerification:
+        requireSmsVerification ?? this.requireSmsVerification,
   );
 
   @override
@@ -68,5 +75,6 @@ class BrandEntity extends Equatable {
     bufferTime,
     cancelHoursMinimum,
     loyaltyPointsMultiplier,
+    requireSmsVerification,
   ];
 }

@@ -344,6 +344,42 @@ abstract class AppLocalizations {
   /// **'Telefon'**
   String get authPhone;
 
+  /// No description provided for @welcome.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dobrodošli'**
+  String get welcome;
+
+  /// No description provided for @signInToContinue.
+  ///
+  /// In hr, this message translates to:
+  /// **'Prijavite se za nastavak'**
+  String get signInToContinue;
+
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nastavi s Googleom'**
+  String get continueWithGoogle;
+
+  /// No description provided for @continueWithApple.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nastavi s Appleom'**
+  String get continueWithApple;
+
+  /// No description provided for @or.
+  ///
+  /// In hr, this message translates to:
+  /// **'ili'**
+  String get or;
+
+  /// No description provided for @continueWithPhone.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nastavi s telefonom'**
+  String get continueWithPhone;
+
   /// No description provided for @bookingTitle.
   ///
   /// In hr, this message translates to:

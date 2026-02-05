@@ -233,7 +233,7 @@ class NoUpcomingBookingCTA extends StatelessWidget {
   }
 }
 
-/// Small outlined secondary button with primaryColor.
+/// Small outlined secondary button; uses brand color (lightened) for contrast on dark cards.
 class _PillButton extends StatelessWidget {
   const _PillButton({
     required this.label,
@@ -246,11 +246,12 @@ class _PillButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final accent = colors.primaryColorOnDark;
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
-        foregroundColor: colors.primaryColor,
-        side: BorderSide(color: colors.primaryColor),
+        foregroundColor: accent,
+        side: BorderSide(color: accent.withValues(alpha: 0.8)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         minimumSize: const Size(0, 36),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -261,7 +262,7 @@ class _PillButton extends StatelessWidget {
         style: context.appTextStyles.h2.copyWith(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: colors.primaryColor,
+          color: accent,
         ),
       ),
     );

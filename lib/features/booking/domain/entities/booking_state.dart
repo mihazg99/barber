@@ -12,6 +12,7 @@ class BookingState extends Equatable {
     this.selectedTimeSlotBarberId,
     this.locationId,
     this.barberChoiceMade = false,
+    this.preselectedBarberId,
   });
 
   final ServiceEntity? selectedService;
@@ -23,6 +24,8 @@ class BookingState extends Equatable {
   /// True when user or quick book has chosen a barber (specific or "Any barber").
   /// When false with selectedBarber == null, stepper shows barber step as not completed.
   final bool barberChoiceMade;
+  /// Set when opening booking with a barber (e.g. quick book). Used to sort that barber first in the list.
+  final String? preselectedBarberId;
 
   bool get isAnyBarber => selectedBarber == null;
 
@@ -49,6 +52,7 @@ class BookingState extends Equatable {
     String? selectedTimeSlotBarberId,
     String? locationId,
     bool? barberChoiceMade,
+    String? preselectedBarberId,
     bool clearBarber = false,
     bool clearDate = false,
     bool clearTimeSlot = false,
@@ -67,6 +71,7 @@ class BookingState extends Equatable {
               : (selectedTimeSlotBarberId ?? this.selectedTimeSlotBarberId),
       locationId: locationId ?? this.locationId,
       barberChoiceMade: barberChoiceMade ?? this.barberChoiceMade,
+      preselectedBarberId: preselectedBarberId ?? this.preselectedBarberId,
     );
   }
 
@@ -79,5 +84,6 @@ class BookingState extends Equatable {
     selectedTimeSlotBarberId,
     locationId,
     barberChoiceMade,
+    preselectedBarberId,
   ];
 }

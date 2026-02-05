@@ -217,7 +217,7 @@ class _BarberCircle extends StatelessWidget {
               'Book',
               style: context.appTextStyles.caption.copyWith(
                 fontSize: 11,
-                color: context.appColors.primaryColor,
+                color: context.appColors.primaryColorOnDark,
                 fontWeight: FontWeight.w600,
               ),
             ),

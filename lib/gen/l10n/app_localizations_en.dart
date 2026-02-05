@@ -138,6 +138,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPhone => 'Phone';
 
   @override
+  String get welcome => 'Welcome';
+
+  @override
+  String get signInToContinue => 'Sign in to continue';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get continueWithApple => 'Continue with Apple';
+
+  @override
+  String get or => 'or';
+
+  @override
+  String get continueWithPhone => 'Continue with Phone';
+
+  @override
   String get bookingTitle => 'Book appointment';
 
   @override

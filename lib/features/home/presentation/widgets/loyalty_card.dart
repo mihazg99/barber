@@ -20,9 +20,6 @@ import 'package:barber/features/home/di.dart';
 
 const _sectionSpacing = 28.0;
 
-/// Gold from previous config (primary #9B784A). Used for chip and "Pogledaj nagrade" CTA.
-const _loyaltyGold = Color(0xFF9B784A);
-
 void _playPointsAwardedHaptic() {
   HapticFeedback.mediumImpact();
   Future.delayed(const Duration(milliseconds: 50), () {
@@ -43,7 +40,7 @@ class LoyaltyCard extends HookConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: EdgeInsets.symmetric(vertical: 4),
             child: _LoyaltyCardShimmer(),
           ),
           Gap(_sectionSpacing),
@@ -78,9 +75,10 @@ class _LoyaltyCardContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.appColors;
-    const darkStart = Color(0xFF1A1614);
-    const darkEnd = Color(0xFF0D0B0A);
-    final gold = c.primaryColor;
+    // Brand gradient: primary → secondary (e.g. green→darker green for Nomad)
+    final gradientStart = c.primaryColor;
+    final gradientEnd = c.secondaryColor;
+    final accent = c.primaryColor;
 
     final cardState = ref.watch(loyaltyCardNotifierProvider);
     final notifier = ref.read(loyaltyCardNotifierProvider.notifier);
@@ -153,7 +151,7 @@ class _LoyaltyCardContent extends HookConsumerWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: GestureDetector(
         onTap: onCardTap,
         child: SizedBox(
@@ -167,9 +165,9 @@ class _LoyaltyCardContent extends HookConsumerWidget {
                   userId: user.userId,
                   qrSize: _backQrSize,
                   flipT: flipCurve.value,
-                  darkStart: darkStart,
-                  darkEnd: darkEnd,
-                  gold: gold,
+                  gradientStart: gradientStart,
+                  gradientEnd: gradientEnd,
+                  accent: accent,
                   colors: c,
                   brandName: brandName,
                 ),
@@ -178,9 +176,9 @@ class _LoyaltyCardContent extends HookConsumerWidget {
                 child: _LoyaltyCardFrontFace(
                   user: user,
                   displayedPoints: displayedPoints,
-                  darkStart: darkStart,
-                  darkEnd: darkEnd,
-                  gold: gold,
+                  gradientStart: gradientStart,
+                  gradientEnd: gradientEnd,
+                  accent: accent,
                   flipT: flipCurve.value,
                   onQrTap: onCardTap,
                 ),
@@ -198,22 +196,26 @@ class _LoyaltyCardFrontFace extends HookWidget {
   const _LoyaltyCardFrontFace({
     required this.user,
     required this.displayedPoints,
-    required this.darkStart,
-    required this.darkEnd,
-    required this.gold,
+    required this.gradientStart,
+    required this.gradientEnd,
+    required this.accent,
     required this.flipT,
     required this.onQrTap,
   });
 
   final UserEntity user;
   final int displayedPoints;
-  final Color darkStart;
-  final Color darkEnd;
-  final Color gold;
+  final Color gradientStart;
+  final Color gradientEnd;
+  final Color accent;
   final double flipT;
   final VoidCallback onQrTap;
 
   static const _chipSize = 36.0;
+  // Kingsman-style golden chip (from default.json: primary #9B784A, secondary #1A1614)
+  static const _chipGoldTop = Color(0xFF9B784A);
+  static const _chipGoldBottom = Color(0xFFB8956A);
+  static const _chipGoldBorder = Color(0xFF7A6039);
 
   @override
   Widget build(BuildContext context) {
@@ -240,7 +242,7 @@ class _LoyaltyCardFrontFace extends HookWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(cardRadius),
                 gradient: LinearGradient(
-                  colors: [darkStart, darkEnd],
+                  colors: [gradientStart, gradientEnd],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -250,7 +252,7 @@ class _LoyaltyCardFrontFace extends HookWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: gold.withValues(alpha: 0.08),
+                    color: accent.withValues(alpha: 0.15),
                     blurRadius: 20,
                     offset: const Offset(0, 6),
                     spreadRadius: -2,
@@ -280,16 +282,16 @@ class _LoyaltyCardFrontFace extends HookWidget {
                             height: _chipSize * 0.75,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(6),
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                 colors: [
-                                  _loyaltyGold.withValues(alpha: 0.9),
-                                  _loyaltyGold.withValues(alpha: 0.5),
+                                  _chipGoldTop,
+                                  _chipGoldBottom,
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                               border: Border.all(
-                                color: _loyaltyGold.withValues(alpha: 0.7),
+                                color: _chipGoldBorder,
                                 width: 1,
                               ),
                             ),
@@ -359,7 +361,7 @@ class _LoyaltyCardFrontFace extends HookWidget {
                                 context.l10n.loyaltyViewRewards,
                                 style: context.appTextStyles.caption.copyWith(
                                   fontSize: 11,
-                                  color: _loyaltyGold,
+                                  color: accent,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -367,7 +369,7 @@ class _LoyaltyCardFrontFace extends HookWidget {
                               Icon(
                                 Icons.arrow_forward_ios,
                                 size: 9,
-                                color: _loyaltyGold,
+                                color: accent,
                               ),
                             ],
                           ),
@@ -445,9 +447,9 @@ class _LoyaltyCardBackFace extends HookWidget {
     required this.userId,
     required this.qrSize,
     required this.flipT,
-    required this.darkStart,
-    required this.darkEnd,
-    required this.gold,
+    required this.gradientStart,
+    required this.gradientEnd,
+    required this.accent,
     required this.colors,
     this.brandName,
   });
@@ -455,9 +457,9 @@ class _LoyaltyCardBackFace extends HookWidget {
   final String userId;
   final double qrSize;
   final double flipT;
-  final Color darkStart;
-  final Color darkEnd;
-  final Color gold;
+  final Color gradientStart;
+  final Color gradientEnd;
+  final Color accent;
   final AppColors colors;
   final String? brandName;
 
@@ -484,7 +486,7 @@ class _LoyaltyCardBackFace extends HookWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(cardRadius),
               gradient: LinearGradient(
-                colors: [darkStart, darkEnd],
+                colors: [gradientStart, gradientEnd],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -494,7 +496,7 @@ class _LoyaltyCardBackFace extends HookWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: gold.withValues(alpha: 0.08),
+                  color: accent.withValues(alpha: 0.15),
                   blurRadius: 20,
                   offset: const Offset(0, 6),
                   spreadRadius: -2,
@@ -552,7 +554,7 @@ class _LoyaltyCardBackFace extends HookWidget {
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 2.4,
-                        color: _loyaltyGold.withValues(alpha: 0.9),
+                        color: colors.primaryColorOnDark,
                       ),
                       textAlign: TextAlign.center,
                     ),

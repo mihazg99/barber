@@ -2,8 +2,9 @@ import 'package:equatable/equatable.dart';
 
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
 
-/// Step in the OTP auth flow.
+/// Step in the auth flow.
 enum AuthStep {
+  landing,
   phoneInput,
   otpVerification,
   profileInfo,
@@ -27,6 +28,7 @@ class AuthFlowData extends Equatable {
   final String? errorMessage;
   final bool isLoading;
 
+  bool get isLanding => step == AuthStep.landing;
   bool get isPhoneInput => step == AuthStep.phoneInput;
   bool get isOtpVerification => step == AuthStep.otpVerification;
   bool get isProfileInfo => step == AuthStep.profileInfo;

@@ -51,6 +51,12 @@
   "authFullNameHint": "Ivan Horvat",
   "authFullNameValidation": "Molimo unesite svoje ime",
   "authPhone": "Telefon",
+  "welcome": "Dobrodošli",
+  "signInToContinue": "Prijavite se za nastavak",
+  "continueWithGoogle": "Nastavi s Googleom",
+  "continueWithApple": "Nastavi s Appleom",
+  "or": "ili",
+  "continueWithPhone": "Nastavi s telefonom",
 
   "bookingTitle": "Rezerviraj termin",
   "bookingSelectService": "Odaberi uslugu",

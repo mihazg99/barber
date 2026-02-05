@@ -20,7 +20,6 @@ import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_progress_bar.dart';
-import 'package:barber/features/booking/presentation/widgets/booking_pre_selection_chip.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_location_section.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_service_section.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_barber_section.dart';
@@ -344,12 +343,25 @@ class _BookingPageState extends ConsumerState<BookingPage> {
             .toList();
 
     // Filter barbers by location if we have one
-    final barbers =
+    final barbersFiltered =
         bookingState.locationId != null
             ? allBarbers
                 .where((b) => b.locationId == bookingState.locationId)
                 .toList()
             : allBarbers;
+    // Sort so preselected barber (from quick book) is first after "Any Barber" for visibility
+    final barbers =
+        bookingState.preselectedBarberId == null ||
+                bookingState.preselectedBarberId!.isEmpty
+            ? barbersFiltered
+            : [
+                ...barbersFiltered.where(
+                  (b) => b.barberId == bookingState.preselectedBarberId,
+                ),
+                ...barbersFiltered.where(
+                  (b) => b.barberId != bookingState.preselectedBarberId,
+                ),
+              ];
 
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
@@ -367,17 +379,6 @@ class _BookingPageState extends ConsumerState<BookingPage> {
             barberSelected: bookingState.barberChoiceMade,
             timeSelected: bookingState.selectedTimeSlot != null,
           ),
-
-          // Pre-selection chip
-          if (bookingState.selectedBarber != null)
-            BookingPreSelectionChip(
-              barberName: bookingState.selectedBarber!.name,
-              onClear:
-                  () =>
-                      ref
-                          .read(bookingNotifierProvider.notifier)
-                          .selectAnyBarber(),
-            ),
 
           // Scrollable body
           Expanded(

@@ -17,6 +17,15 @@ abstract class AuthRepository {
     required String code,
   });
 
+  /// Signs in with Google. Returns [Right(UserEntity)] on success.
+  Future<Either<Failure, UserEntity>> signInWithGoogle();
+
+  /// Signs in with Apple. Returns [Right(UserEntity)] on success.
+  Future<Either<Failure, UserEntity>> signInWithApple();
+
+  /// Checks if Apple Sign-In is available on this device.
+  Future<bool> isAppleSignInAvailable();
+
   /// Signs out the current user.
   Future<Either<Failure, void>> signOut();
 
