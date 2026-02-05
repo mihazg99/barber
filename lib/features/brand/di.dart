@@ -19,3 +19,13 @@ final headerBrandLogoUrlProvider = FutureProvider.autoDispose<String?>((ref) asy
   final result = await ref.watch(brandRepositoryProvider).getById(brandId);
   return result.fold((_) => null, (brand) => brand?.logoUrl);
 });
+
+/// Brand name for loyalty card back and other UI. Shares same brand resolution as header.
+final headerBrandNameProvider = FutureProvider.autoDispose<String?>((ref) async {
+  final configBrandId =
+      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
+  final brandId =
+      configBrandId.isNotEmpty ? configBrandId : fallbackBrandId;
+  final result = await ref.watch(brandRepositoryProvider).getById(brandId);
+  return result.fold((_) => null, (brand) => brand?.name);
+});

@@ -142,7 +142,7 @@ class _LoyaltyCardContent extends HookConsumerWidget {
                 .round()
             : user.loyaltyPoints;
 
-    final logoUrl = ref.watch(brand_di.headerBrandLogoUrlProvider).valueOrNull;
+    final brandName = ref.watch(brand_di.headerBrandNameProvider).valueOrNull;
 
     void onCardTap() {
       if (flipController.isAnimating) return;
@@ -161,25 +161,25 @@ class _LoyaltyCardContent extends HookConsumerWidget {
             children: [
               Positioned.fill(
                 child: _LoyaltyCardBackFace(
-                userId: user.userId,
-                qrSize: _backQrSize,
-                flipT: flipCurve.value,
-                darkStart: darkStart,
-                darkEnd: darkEnd,
-                gold: gold,
-                colors: c,
-                logoUrl: logoUrl,
+                  userId: user.userId,
+                  qrSize: _backQrSize,
+                  flipT: flipCurve.value,
+                  darkStart: darkStart,
+                  darkEnd: darkEnd,
+                  gold: gold,
+                  colors: c,
+                  brandName: brandName,
                 ),
               ),
               Positioned.fill(
                 child: _LoyaltyCardFrontFace(
-                user: user,
-                displayedPoints: displayedPoints,
-                darkStart: darkStart,
-                darkEnd: darkEnd,
-                gold: gold,
-                flipT: flipCurve.value,
-                onQrTap: onCardTap,
+                  user: user,
+                  displayedPoints: displayedPoints,
+                  darkStart: darkStart,
+                  darkEnd: darkEnd,
+                  gold: gold,
+                  flipT: flipCurve.value,
+                  onQrTap: onCardTap,
                 ),
               ),
             ],
@@ -436,7 +436,7 @@ class _SmallTappableQr extends StatelessWidget {
   }
 }
 
-/// Back of the card: big QR and brand logo.
+/// Back of the card: centered QR and brand name at bottom right.
 class _LoyaltyCardBackFace extends HookWidget {
   const _LoyaltyCardBackFace({
     required this.userId,
@@ -446,7 +446,7 @@ class _LoyaltyCardBackFace extends HookWidget {
     required this.darkEnd,
     required this.gold,
     required this.colors,
-    this.logoUrl,
+    this.brandName,
   });
 
   final String userId;
@@ -456,7 +456,7 @@ class _LoyaltyCardBackFace extends HookWidget {
   final Color darkEnd;
   final Color gold;
   final AppColors colors;
-  final String? logoUrl;
+  final String? brandName;
 
   @override
   Widget build(BuildContext context) {
@@ -464,6 +464,7 @@ class _LoyaltyCardBackFace extends HookWidget {
 
     final angle = math.pi + flipT * math.pi;
     final visible = flipT > 0.5;
+    final styles = context.appTextStyles;
 
     return IgnorePointer(
       ignoring: !visible,
@@ -503,17 +504,14 @@ class _LoyaltyCardBackFace extends HookWidget {
                 ),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
+            child: Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                alignment: Alignment.center,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: colors.primaryWhiteColor,
                         borderRadius: BorderRadius.circular(12),
@@ -528,7 +526,7 @@ class _LoyaltyCardBackFace extends HookWidget {
                       child: QrImageView(
                         data: userId,
                         version: QrVersions.auto,
-                        size: qrSize,
+                        size: qrSize * 0.576,
                         backgroundColor: colors.primaryWhiteColor,
                         eyeStyle: QrEyeStyle(
                           eyeShape: QrEyeShape.square,
@@ -542,8 +540,19 @@ class _LoyaltyCardBackFace extends HookWidget {
                         padding: EdgeInsets.zero,
                       ),
                     ),
-                    const Gap(10),
-                    _CardBackBrandLogo(logoUrl: logoUrl, gold: gold),
+                    const Gap(14),
+                    Text(
+                      brandName?.trim().isNotEmpty == true
+                          ? '${brandName!.trim()} Club'.toUpperCase()
+                          : '',
+                      style: styles.caption.copyWith(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2.4,
+                        color: gold.withValues(alpha: 0.9),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               ),
@@ -552,38 +561,6 @@ class _LoyaltyCardBackFace extends HookWidget {
         ),
       ),
     );
-  }
-}
-
-class _CardBackBrandLogo extends StatelessWidget {
-  const _CardBackBrandLogo({this.logoUrl, required this.gold});
-
-  final String? logoUrl;
-  final Color gold;
-
-  static const _logoHeight = 20.0;
-  static const _logoMaxWidth = 80.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final url = logoUrl != null && logoUrl!.trim().isNotEmpty ? logoUrl!.trim() : null;
-    return SizedBox(
-      height: _logoHeight,
-      width: _logoMaxWidth,
-      child: url != null
-          ? Image.network(
-              url,
-              fit: BoxFit.contain,
-              loadingBuilder: (_, child, loadingProgress) =>
-                  loadingProgress == null ? child : _placeholder(gold),
-              errorBuilder: (_, __, ___) => _placeholder(gold),
-            )
-          : _placeholder(gold),
-    );
-  }
-
-  Widget _placeholder(Color gold) {
-    return Icon(Icons.store_rounded, size: _logoHeight, color: gold.withValues(alpha: 0.7));
   }
 }
 
