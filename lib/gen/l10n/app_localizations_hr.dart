@@ -284,6 +284,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get loyaltyTitle => 'LOYALTY';
 
   @override
+  String get loyaltyPointsAbbrev => 'bod.';
+
+  @override
   String get loyaltyMember => 'ČLAN';
 
   @override

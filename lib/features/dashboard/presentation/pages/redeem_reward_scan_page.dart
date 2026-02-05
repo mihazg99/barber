@@ -452,7 +452,7 @@ class _RedeemConfirmDialog extends StatelessWidget {
     return AlertDialog(
       title: Text(context.l10n.dashboardRedeemReward),
       content: Text(
-        'Redeem "$rewardName" ($pointsSpent pts)?',
+        'Redeem "$rewardName" ($pointsSpent ${context.l10n.loyaltyPointsAbbrev})?',
       ),
       actions: [
         TextButton(

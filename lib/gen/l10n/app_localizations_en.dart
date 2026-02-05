@@ -284,6 +284,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loyaltyTitle => 'LOYALTY';
 
   @override
+  String get loyaltyPointsAbbrev => 'pts';
+
+  @override
   String get loyaltyMember => 'MEMBER';
 
   @override

@@ -308,7 +308,7 @@ class _LoyaltyCardFrontFace extends HookWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '$displayedPoints pts',
+                            '$displayedPoints ${context.l10n.loyaltyPointsAbbrev}',
                             style: context.appTextStyles.h2.copyWith(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,

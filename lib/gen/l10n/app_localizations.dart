@@ -620,6 +620,12 @@ abstract class AppLocalizations {
   /// **'LOYALTY'**
   String get loyaltyTitle;
 
+  /// No description provided for @loyaltyPointsAbbrev.
+  ///
+  /// In hr, this message translates to:
+  /// **'bod.'**
+  String get loyaltyPointsAbbrev;
+
   /// No description provided for @loyaltyMember.
   ///
   /// In hr, this message translates to:
