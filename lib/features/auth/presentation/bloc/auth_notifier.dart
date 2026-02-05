@@ -7,7 +7,7 @@ import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 
 class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
   AuthNotifier(this._authRepository, this._userRepository) {
-    setData(const AuthFlowData(step: AuthStep.phoneInput));
+    setData(const AuthFlowData(step: AuthStep.landing));
   }
 
   final AuthRepository _authRepository;
@@ -64,11 +64,13 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
     );
   }
 
-  /// Saves profile (full name) and completes flow. Router redirects when profile is complete.
-  Future<void> submitProfile(UserEntity user, String fullName) async {
+  /// Saves profile (full name and phone) and completes flow. Router redirects when profile is complete.
+  Future<void> submitProfile(UserEntity user, String fullName, String phone) async {
     final current = data;
-    final trimmed = fullName.trim();
-    if (trimmed.isEmpty) {
+    final trimmedName = fullName.trim();
+    final trimmedPhone = phone.trim();
+    
+    if (trimmedName.isEmpty) {
       setData(
         (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
           errorMessage: 'Please enter your name',
@@ -76,13 +78,28 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
       );
       return;
     }
+    
+    if (trimmedPhone.isEmpty || trimmedPhone.length < 10) {
+      setData(
+        (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
+          errorMessage: 'Please enter a valid phone number',
+        ),
+      );
+      return;
+    }
+    
     setData(
       (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
         isLoading: true,
         errorMessage: null,
       ),
     );
-    final result = await _userRepository.set(user.copyWith(fullName: trimmed));
+    final result = await _userRepository.set(
+      user.copyWith(
+        fullName: trimmedName,
+        phone: trimmedPhone,
+      ),
+    );
     result.fold(
       (failure) => setData(
         (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
@@ -95,6 +112,18 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
           isLoading: false,
           errorMessage: null,
         ),
+      ),
+    );
+  }
+
+  /// Navigates to phone input step.
+  void navigateToPhoneInput() {
+    final current = data ?? const AuthFlowData(step: AuthStep.landing);
+    setData(
+      current.copyWith(
+        step: AuthStep.phoneInput,
+        verificationId: null,
+        errorMessage: null,
       ),
     );
   }
@@ -112,9 +141,117 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
     );
   }
 
-  /// Resets to initial phone input state.
+  /// Signs in with Google. On success, checks if SMS verification is needed.
+  Future<void> signInWithGoogle({required bool requireSmsVerification}) async {
+    final current = data ?? const AuthFlowData(step: AuthStep.landing);
+    setData(current.copyWith(isLoading: true, errorMessage: null));
+    final result = await _authRepository.signInWithGoogle();
+    result.fold(
+      (failure) {
+        // Don't show error for cancelled sign-in
+        if (failure is! AuthSignInCancelledFailure) {
+          setData(
+            current.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            ),
+          );
+        } else {
+          setData(current.copyWith(isLoading: false));
+        }
+      },
+      (user) {
+        final needsProfile = user.fullName.trim().isEmpty;
+        final needsSms = requireSmsVerification;
+        
+        if (needsSms) {
+          // Move to phone input step for SMS verification
+          setData(
+            current.copyWith(
+              isLoading: false,
+              step: AuthStep.phoneInput,
+              user: user,
+            ),
+          );
+        } else if (needsProfile) {
+          // Move to profile step
+          setData(
+            current.copyWith(
+              isLoading: false,
+              step: AuthStep.profileInfo,
+              user: user,
+            ),
+          );
+        } else {
+          // User is complete, router will redirect
+          setData(
+            current.copyWith(
+              isLoading: false,
+              user: user,
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  /// Signs in with Apple. On success, checks if SMS verification is needed.
+  Future<void> signInWithApple({required bool requireSmsVerification}) async {
+    final current = data ?? const AuthFlowData(step: AuthStep.landing);
+    setData(current.copyWith(isLoading: true, errorMessage: null));
+    final result = await _authRepository.signInWithApple();
+    result.fold(
+      (failure) {
+        // Don't show error for cancelled sign-in
+        if (failure is! AuthSignInCancelledFailure) {
+          setData(
+            current.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            ),
+          );
+        } else {
+          setData(current.copyWith(isLoading: false));
+        }
+      },
+      (user) {
+        final needsProfile = user.fullName.trim().isEmpty;
+        final needsSms = requireSmsVerification;
+        
+        if (needsSms) {
+          // Move to phone input step for SMS verification
+          setData(
+            current.copyWith(
+              isLoading: false,
+              step: AuthStep.phoneInput,
+              user: user,
+            ),
+          );
+        } else if (needsProfile) {
+          // Move to profile step
+          setData(
+            current.copyWith(
+              isLoading: false,
+              step: AuthStep.profileInfo,
+              user: user,
+            ),
+          );
+        } else {
+          // User is complete, router will redirect
+          setData(
+            current.copyWith(
+              isLoading: false,
+              user: user,
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  /// Resets to initial landing state.
   void reset() {
-    setData(const AuthFlowData(step: AuthStep.phoneInput));
+    setData(const AuthFlowData(step: AuthStep.landing));
   }
 
   Future<void> signOut() async {

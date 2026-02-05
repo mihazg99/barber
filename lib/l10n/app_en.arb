@@ -51,6 +51,12 @@
   "authFullNameHint": "John Doe",
   "authFullNameValidation": "Please enter your name",
   "authPhone": "Phone",
+  "welcome": "Welcome",
+  "signInToContinue": "Sign in to continue",
+  "continueWithGoogle": "Continue with Google",
+  "continueWithApple": "Continue with Apple",
+  "or": "or",
+  "continueWithPhone": "Continue with Phone",
 
   "bookingTitle": "Book appointment",
   "bookingSelectService": "Select Service",

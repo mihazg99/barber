@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:barber/core/di.dart';
 import 'package:barber/core/firebase/default_brand_id.dart' as brand_id;
@@ -16,8 +17,15 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepositoryImpl(ref.watch(firebaseFirestoreProvider));
 });
 
+final googleSignInProvider = Provider<GoogleSignIn>((ref) {
+  return GoogleSignIn();
+});
+
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
-  return AuthRemoteDataSource(ref.watch(firebaseAuthProvider));
+  return AuthRemoteDataSource(
+    ref.watch(firebaseAuthProvider),
+    ref.watch(googleSignInProvider),
+  );
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
