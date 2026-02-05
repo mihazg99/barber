@@ -20,6 +20,9 @@ import 'package:barber/features/home/di.dart';
 
 const _sectionSpacing = 28.0;
 
+/// Gold from previous config (primary #9B784A). Used for chip and "Pogledaj nagrade" CTA.
+const _loyaltyGold = Color(0xFF9B784A);
+
 void _playPointsAwardedHaptic() {
   HapticFeedback.mediumImpact();
   Future.delayed(const Duration(milliseconds: 50), () {
@@ -279,14 +282,14 @@ class _LoyaltyCardFrontFace extends HookWidget {
                               borderRadius: BorderRadius.circular(6),
                               gradient: LinearGradient(
                                 colors: [
-                                  gold.withValues(alpha: 0.4),
-                                  gold.withValues(alpha: 0.15),
+                                  _loyaltyGold.withValues(alpha: 0.9),
+                                  _loyaltyGold.withValues(alpha: 0.5),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                               border: Border.all(
-                                color: gold.withValues(alpha: 0.5),
+                                color: _loyaltyGold.withValues(alpha: 0.7),
                                 width: 1,
                               ),
                             ),
@@ -356,7 +359,7 @@ class _LoyaltyCardFrontFace extends HookWidget {
                                 context.l10n.loyaltyViewRewards,
                                 style: context.appTextStyles.caption.copyWith(
                                   fontSize: 11,
-                                  color: gold,
+                                  color: _loyaltyGold,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -364,7 +367,7 @@ class _LoyaltyCardFrontFace extends HookWidget {
                               Icon(
                                 Icons.arrow_forward_ios,
                                 size: 9,
-                                color: gold,
+                                color: _loyaltyGold,
                               ),
                             ],
                           ),
@@ -422,11 +425,11 @@ class _SmallTappableQr extends StatelessWidget {
           backgroundColor: colors.primaryWhiteColor,
           eyeStyle: QrEyeStyle(
             eyeShape: QrEyeShape.square,
-            color: colors.secondaryColor,
+            color: Colors.black,
           ),
           dataModuleStyle: QrDataModuleStyle(
             dataModuleShape: QrDataModuleShape.square,
-            color: colors.secondaryColor,
+            color: Colors.black,
           ),
           gapless: true,
           padding: EdgeInsets.zero,
@@ -530,11 +533,11 @@ class _LoyaltyCardBackFace extends HookWidget {
                         backgroundColor: colors.primaryWhiteColor,
                         eyeStyle: QrEyeStyle(
                           eyeShape: QrEyeShape.square,
-                          color: colors.secondaryColor,
+                          color: Colors.black,
                         ),
                         dataModuleStyle: QrDataModuleStyle(
                           dataModuleShape: QrDataModuleShape.square,
-                          color: colors.secondaryColor,
+                          color: Colors.black,
                         ),
                         gapless: true,
                         padding: EdgeInsets.zero,
@@ -549,7 +552,7 @@ class _LoyaltyCardBackFace extends HookWidget {
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 2.4,
-                        color: gold.withValues(alpha: 0.9),
+                        color: _loyaltyGold.withValues(alpha: 0.9),
                       ),
                       textAlign: TextAlign.center,
                     ),
