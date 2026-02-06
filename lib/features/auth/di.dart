@@ -92,16 +92,16 @@ final currentUserProvider = StreamProvider<UserEntity?>((ref) {
 /// Alias for code that referred to the old stream-only provider.
 final currentUserStreamProvider = currentUserProvider;
 
-/// True when authenticated and profile has fullName set. Used by router redirect.
+/// True when authenticated and profile has both fullName and phone set. Used by router redirect.
 /// Uses [lastSignedInUser] when it matches current uid so redirect is correct immediately after sign-in (no profile-setup flash).
 final isProfileCompleteProvider = Provider<bool>((ref) {
   final uid = ref.watch(authRepositoryProvider).currentUserId;
   final last = ref.watch(lastSignedInUserProvider);
   if (uid != null && last != null && last.userId == uid) {
-    return last.fullName.trim().isNotEmpty;
+    return last.fullName.trim().isNotEmpty && last.phone.trim().isNotEmpty;
   }
   final user = ref.watch(currentUserProvider).valueOrNull;
-  return user != null && user.fullName.trim().isNotEmpty;
+  return user != null && user.fullName.trim().isNotEmpty && user.phone.trim().isNotEmpty;
 });
 
 /// True when user has barber or superadmin role. They navigate to dashboard, not main app.

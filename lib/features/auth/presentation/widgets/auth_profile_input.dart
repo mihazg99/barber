@@ -39,6 +39,14 @@ class AuthProfileInput extends HookConsumerWidget {
       ),
     );
 
+    // Pre-fill name if user already has one
+    useEffect(() {
+      if (user.fullName.isNotEmpty) {
+        nameController.text = user.fullName;
+      }
+      return null;
+    }, []);
+
     // Pre-fill phone if user already has one
     useEffect(() {
       if (user.phone.isNotEmpty) {

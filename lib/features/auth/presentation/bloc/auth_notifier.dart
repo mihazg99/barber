@@ -147,7 +147,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
     );
   }
 
-  /// Signs in with Google. On success, checks if SMS verification is needed.
+  /// Signs in with Google. Always leads to profile completion to collect phone number.
   Future<void> signInWithGoogle({required bool requireSmsVerification}) async {
     final current = data ?? const AuthFlowData(step: AuthStep.landing);
     setData(current.copyWith(isLoading: true, errorMessage: null));
@@ -168,19 +168,10 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
       },
       (user) {
         _onSignInUser?.call(user);
-        final needsProfile = user.fullName.trim().isEmpty;
-        final needsSms = requireSmsVerification;
+        // Always go to profile step to collect phone number (unless both name and phone are present)
+        final needsProfile = user.fullName.trim().isEmpty || user.phone.trim().isEmpty;
         
-        if (needsSms) {
-          // Move to phone input step for SMS verification
-          setData(
-            current.copyWith(
-              isLoading: false,
-              step: AuthStep.phoneInput,
-              user: user,
-            ),
-          );
-        } else if (needsProfile) {
+        if (needsProfile) {
           // Move to profile step
           setData(
             current.copyWith(
@@ -202,7 +193,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
     );
   }
 
-  /// Signs in with Apple. On success, checks if SMS verification is needed.
+  /// Signs in with Apple. Always leads to profile completion to collect phone number.
   Future<void> signInWithApple({required bool requireSmsVerification}) async {
     final current = data ?? const AuthFlowData(step: AuthStep.landing);
     setData(current.copyWith(isLoading: true, errorMessage: null));
@@ -223,19 +214,10 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
       },
       (user) {
         _onSignInUser?.call(user);
-        final needsProfile = user.fullName.trim().isEmpty;
-        final needsSms = requireSmsVerification;
+        // Always go to profile step to collect phone number (unless both name and phone are present)
+        final needsProfile = user.fullName.trim().isEmpty || user.phone.trim().isEmpty;
         
-        if (needsSms) {
-          // Move to phone input step for SMS verification
-          setData(
-            current.copyWith(
-              isLoading: false,
-              step: AuthStep.phoneInput,
-              user: user,
-            ),
-          );
-        } else if (needsProfile) {
+        if (needsProfile) {
           // Move to profile step
           setData(
             current.copyWith(
