@@ -75,7 +75,7 @@ class BookingProgressBar extends StatelessWidget {
   }
 }
 
-class _StepIndicator extends StatelessWidget {
+class _StepIndicator extends StatefulWidget {
   const _StepIndicator({
     required this.label,
     required this.isCompleted,
@@ -86,58 +86,127 @@ class _StepIndicator extends StatelessWidget {
   final bool isCompleted;
   final bool isActive;
 
+  @override
+  State<_StepIndicator> createState() => _StepIndicatorState();
+}
+
+class _StepIndicatorState extends State<_StepIndicator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _scaleAnimation;
+  bool _wasCompleted = false;
+
   static const _duration = Duration(milliseconds: 280);
+  static const _pulseDuration = Duration(milliseconds: 600);
   static const _curve = Curves.easeOutCubic;
+
+  @override
+  void initState() {
+    super.initState();
+    _wasCompleted = widget.isCompleted;
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: _pulseDuration,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void didUpdateWidget(_StepIndicator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Trigger pulse animation when step becomes completed
+    if (!oldWidget.isCompleted && widget.isCompleted) {
+      _pulseController.forward().then((_) {
+        _pulseController.reverse();
+      });
+    }
+    _wasCompleted = widget.isCompleted;
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final color =
-        isCompleted || isActive
+        widget.isCompleted || widget.isActive
             ? context.appColors.primaryColor
             : context.appColors.captionTextColor;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        AnimatedContainer(
-          duration: _duration,
-          curve: _curve,
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color:
-                isCompleted
-                    ? context.appColors.primaryColor
-                    : Colors.transparent,
-            border: Border.all(color: color, width: 2),
-            boxShadow:
-                isActive && !isCompleted
-                    ? [
-                      BoxShadow(
-                        color: context.appColors.primaryColor.withValues(
-                          alpha: 0.2,
-                        ),
-                        blurRadius: 6,
-                        spreadRadius: 0,
-                      ),
-                    ]
-                    : null,
-          ),
-          child: AnimatedSwitcher(
-            duration: _duration,
-            switchInCurve: _curve,
-            switchOutCurve: _curve,
-            child:
-                isCompleted
-                    ? Icon(
-                      Icons.check,
-                      key: const ValueKey('check'),
-                      size: 14,
-                      color: context.appColors.primaryWhiteColor,
-                    )
-                    : const SizedBox.shrink(key: ValueKey('empty')),
-          ),
+        AnimatedBuilder(
+          animation: _scaleAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: widget.isCompleted ? _scaleAnimation.value : 1.0,
+              child: AnimatedContainer(
+                duration: _duration,
+                curve: _curve,
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
+                      widget.isCompleted
+                          ? context.appColors.primaryColor
+                          : Colors.transparent,
+                  border: Border.all(color: color, width: 2),
+                  boxShadow:
+                      widget.isActive && !widget.isCompleted
+                          ? [
+                            BoxShadow(
+                              color: context.appColors.primaryColor.withValues(
+                                alpha: 0.2,
+                              ),
+                              blurRadius: 6,
+                              spreadRadius: 0,
+                            ),
+                          ]
+                          : widget.isCompleted
+                              ? [
+                                BoxShadow(
+                                  color: context.appColors.primaryColor.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
+                                ),
+                              ]
+                              : null,
+                ),
+                child: AnimatedSwitcher(
+                  duration: _duration,
+                  switchInCurve: _curve,
+                  switchOutCurve: _curve,
+                  transitionBuilder: (child, animation) {
+                    return ScaleTransition(
+                      scale: animation,
+                      child: child,
+                    );
+                  },
+                  child:
+                      widget.isCompleted
+                          ? Icon(
+                            Icons.check,
+                            key: const ValueKey('check'),
+                            size: 14,
+                            color: context.appColors.primaryWhiteColor,
+                          )
+                          : const SizedBox.shrink(key: ValueKey('empty')),
+                ),
+              ),
+            );
+          },
         ),
         const SizedBox(height: 4),
         AnimatedDefaultTextStyle(
@@ -146,10 +215,12 @@ class _StepIndicator extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             fontWeight:
-                isActive || isCompleted ? FontWeight.w600 : FontWeight.w400,
+                widget.isActive || widget.isCompleted
+                    ? FontWeight.w600
+                    : FontWeight.w400,
             color: color,
           ),
-          child: Text(label),
+          child: Text(widget.label),
         ),
       ],
     );

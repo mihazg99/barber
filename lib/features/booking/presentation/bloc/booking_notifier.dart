@@ -22,11 +22,13 @@ class BookingNotifier extends StateNotifier<BookingState> {
   /// show barber as completed before the user has chosen.
   /// When brand has multiple [locations], location is not set so user selects
   /// it first; when single location it is set automatically.
+  /// If [preSelectedLocationId] is provided, it takes precedence over other location selection logic.
   Future<void> initialize({
     required bool isQuickBook,
     String? barberId,
     BarberEntity? preSelectedBarber,
     ServiceEntity? preSelectedService,
+    String? preSelectedLocationId,
     List<ServiceEntity>? allServices,
     List<LocationEntity>? locations,
   }) async {
@@ -40,7 +42,10 @@ class BookingNotifier extends StateNotifier<BookingState> {
     }
 
     String? locationId;
-    if (barber != null) {
+    // If location is preselected (e.g. from quick action), use it
+    if (preSelectedLocationId != null && preSelectedLocationId.isNotEmpty) {
+      locationId = preSelectedLocationId;
+    } else if (barber != null) {
       locationId = barber.locationId;
     } else if (locations != null && locations.isNotEmpty) {
       if (locations.length == 1) {

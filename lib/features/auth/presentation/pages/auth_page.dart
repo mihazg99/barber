@@ -3,8 +3,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:barber/core/di.dart';
-import 'package:barber/core/firebase/default_brand_id.dart';
-import 'package:barber/core/router/app_router.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -15,7 +13,6 @@ import 'package:barber/features/auth/presentation/widgets/auth_landing.dart';
 import 'package:barber/features/auth/presentation/widgets/auth_otp_input.dart';
 import 'package:barber/features/auth/presentation/widgets/auth_phone_input.dart';
 import 'package:barber/features/auth/presentation/widgets/auth_profile_input.dart';
-import 'package:barber/features/brand/di.dart';
 
 class AuthPage extends HookConsumerWidget {
   const AuthPage({super.key});
@@ -25,19 +22,9 @@ class AuthPage extends HookConsumerWidget {
     final authState = ref.watch(authNotifierProvider);
     final notifier = ref.read(authNotifierProvider.notifier);
 
-    // Get brand to check if SMS verification is required
-    final configBrandId =
-        ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-    final brandId =
-        configBrandId.isNotEmpty ? configBrandId : fallbackBrandId;
-    final brandAsync = ref.watch(
-      FutureProvider.autoDispose((ref) async {
-        final result = await ref.watch(brandRepositoryProvider).getById(brandId);
-        return result.fold((_) => null, (brand) => brand);
-      }),
-    );
+    // From app config to avoid Firestore reads on auth screen (unauthenticated).
     final requireSmsVerification =
-        brandAsync.valueOrNull?.requireSmsVerification ?? false;
+        ref.watch(flavorConfigProvider).values.brandConfig.requireSmsVerification;
 
     final data = switch (authState) {
       BaseData(:final data) => data,
@@ -102,6 +89,7 @@ class _AuthStepContent extends ConsumerWidget {
         user: user,
         onSubmit: (fullName, phone) async {
           await notifier.submitProfile(user, fullName, phone);
+          ref.read(lastSignedInUserProvider.notifier).state = null;
           ref.invalidate(currentUserProvider);
           await ref.read(currentUserProvider.future);
           ref.read(routerRefreshNotifierProvider).notify();

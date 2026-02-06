@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:barber/core/di.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
@@ -13,6 +14,8 @@ import 'package:barber/core/value_objects/working_hours.dart';
 import 'package:barber/core/widgets/primary_button.dart';
 import 'package:barber/core/widgets/shimmer_placeholder.dart';
 import 'package:barber/features/dashboard/di.dart';
+import 'package:barber/features/home/domain/entities/home_data.dart';
+import 'package:barber/features/home/di.dart' as home_di;
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 
@@ -23,12 +26,19 @@ class DashboardLocationsTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useEffect(() {
       Future.microtask(() {
-        ref.read(dashboardLocationsNotifierProvider.notifier).load();
+        final home = ref.read(home_di.homeNotifierProvider);
+        final brandId = ref.read(flavorConfigProvider).values.brandConfig.defaultBrandId;
+        final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
+        final homeHasDataForBrand = home is BaseData<HomeData> &&
+            home.data.brand?.brandId == effectiveBrandId;
+        if (!homeHasDataForBrand) {
+          ref.read(dashboardLocationsNotifierProvider.notifier).load();
+        }
       });
       return null;
     }, []);
 
-    final state = ref.watch(dashboardLocationsNotifierProvider);
+    final state = ref.watch(dashboardLocationsViewProvider);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),

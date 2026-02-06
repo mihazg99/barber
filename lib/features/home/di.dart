@@ -64,7 +64,9 @@ final servicesForHomeProvider = FutureProvider<List<ServiceEntity>>((ref) async 
 
 /// Next upcoming scheduled appointment for the current user, or null.
 /// Stream so when barber marks visit complete (lock cleared, status updated) the UI updates immediately.
+/// When [isLoggingOutProvider] is true, returns null stream so listeners are cancelled before signOut (avoids PERMISSION_DENIED).
 final upcomingAppointmentProvider = StreamProvider<AppointmentEntity?>((ref) {
+  if (ref.watch(isLoggingOutProvider)) return Stream.value(null);
   final uidAsync = ref.watch(currentUserIdProvider);
   final uid = uidAsync.valueOrNull;
   if (uid == null || uid.isEmpty) return Stream.value(null);

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -26,19 +25,10 @@ import 'package:barber/features/loyalty/presentation/pages/loyalty_page.dart';
 import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_page.dart';
 
+import 'package:barber/core/di.dart';
 import 'package:barber/features/auth/presentation/pages/auth_page.dart';
 
 import 'app_routes.dart';
-
-class _AuthRefreshNotifier extends ChangeNotifier {
-  void notify() => notifyListeners();
-}
-
-/// Notify to re-run router redirect (e.g. after profile update).
-final routerRefreshNotifierProvider =
-    ChangeNotifierProvider<_AuthRefreshNotifier>((ref) {
-      return _AuthRefreshNotifier();
-    });
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = ref.watch(routerRefreshNotifierProvider);
@@ -63,6 +53,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     if (ref.read(isAuthenticatedProvider).valueOrNull == true &&
         next.valueOrNull != null) {
       ref.invalidate(upcomingAppointmentProvider);
+      Future.microtask(() => refreshNotifier.notify());
+    }
+  });
+
+  // When repo sets lastSignedInUser (Google/Apple/OTP sign-in), invalidate currentUser so stream emits cache and router can redirect to home (not profile setup).
+  ref.listen(lastSignedInUserProvider, (prev, next) {
+    if (next != null && ref.read(isAuthenticatedProvider).valueOrNull == true) {
+      ref.invalidate(currentUserProvider);
       Future.microtask(() => refreshNotifier.notify());
     }
   });
@@ -226,6 +224,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             child: BookingPage(
               initialBarberId: query['barberId'],
               initialServiceId: query['serviceId'],
+              initialLocationId: query['locationId'],
             ),
           );
         },

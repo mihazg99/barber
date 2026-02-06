@@ -12,6 +12,7 @@ import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/features/auth/di.dart';
+import 'package:barber/features/brand/di.dart' as brand_di;
 import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/home/di.dart';
 import 'package:barber/features/home/domain/entities/home_data.dart';
@@ -35,10 +36,14 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
             : <LocationEntity>[];
 
     useEffect(() {
-      Future.microtask(
-        () => ref.read(homeNotifierProvider.notifier).load(),
-      );
-      return null;
+      var cancelled = false;
+      final notifier = ref.read(homeNotifierProvider.notifier);
+      final brandFuture = ref.read(brand_di.defaultBrandProvider.future);
+      Future.microtask(() async {
+        final cachedBrand = await brandFuture;
+        if (!cancelled) notifier.load(cachedBrand: cachedBrand);
+      });
+      return () => cancelled = true;
     }, []);
 
     final firstName = _firstName(user?.fullName);

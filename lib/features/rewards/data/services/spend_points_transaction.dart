@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:barber/core/errors/failure.dart';
 import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/core/firebase/collections.dart';
+import 'package:barber/core/firebase/firestore_logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 const _kInsufficientPoints = 'insufficient-points';
@@ -31,7 +32,9 @@ class SpendPointsTransaction {
     final redemptionRef = redemptionsRef.doc();
 
     try {
-      await _firestore.runTransaction((Transaction transaction) async {
+      await FirestoreLogger.logTransaction(
+        'rewards spendPoints',
+        (Transaction transaction) async {
         final userSnap = await transaction.get(userRef);
         if (!userSnap.exists || userSnap.data() == null) {
           throw FirebaseException(
@@ -73,7 +76,9 @@ class SpendPointsTransaction {
         transaction.update(userRef, {
           'loyalty_points': currentPoints - pointsCost,
         });
-      });
+        },
+        _firestore,
+      );
       return Right(redemptionRef.id);
     } on FirebaseException catch (e) {
       return Left(

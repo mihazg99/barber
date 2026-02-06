@@ -111,6 +111,7 @@ App users (clients). Document ID = Firebase Auth UID.
 | `brand_id` | String | Brand the user belongs to |
 | `loyalty_points` | Number | Single loyalty card: points for this user (brand) |
 | `role` | String | One of: `user`, `barber`, `superadmin`. Default `user`. **Security:** Clients can only create/keep `user`. `barber` and `superadmin` must be assigned via Firebase Admin SDK (Cloud Functions, admin tool). |
+| `barber_id` | String (optional) | When `role == 'barber'`, set to the **barbers** document id (e.g. `luka`) so security rules can allow the barber to read appointments where they are assigned. Required for barber dashboard “upcoming appointments” to work. |
 
 ### Role-based navigation
 
@@ -126,6 +127,8 @@ Role is stored in Firestore `users/{uid}.role`. Client app cannot set `barber` o
 const admin = require('firebase-admin');
 await admin.firestore().collection('users').doc(uid).update({ role: 'barber' });
 // or { role: 'superadmin' }
+// When assigning barber, also set barber_id to the barbers document id so the barber can read their assigned appointments:
+await admin.firestore().collection('users').doc(uid).update({ role: 'barber', barber_id: barberDocId });
 ```
 
 ---
@@ -220,6 +223,14 @@ User spent points to "buy" a reward. Document ID is encoded in the QR code the c
 **Security:** User can create only with `user_id == request.auth.uid`. User can read own redemptions. Barber/superadmin can read any and update only when `resource.data.brand_id == barberBrandId()` and `resource.data.status == 'pending'`.
 
 ---
+
+## Security rules (firestore.rules)
+
+Rules are tuned to avoid **dependency storms** and deny spikes during login/logout:
+
+- **Reads are decoupled from role checks:** No `get()` (user document lookup) is used on any **read** path. Public collections (`brands`, `locations`, `barbers`, `services`, `availability`, `rewards`) allow read for any authenticated user. Private data (`users`, `appointments`, `user_booking_locks`, `reward_redemptions`) use strict **userId matching only** for reads (e.g. `request.auth.uid == userId` or `resource.data.user_id == request.auth.uid`), so no role lookup is needed.
+- **Writes stay strict:** All create/update/delete that require elevated access still use `isSuperadmin()` or `isBarberOrSuperadmin()` (and `barberBrandId()` where needed), so those rules perform a single `get()` only when a write is evaluated.
+- **Private data:** Users can only read/write their own `users` doc, their own appointments, their own `user_booking_locks` doc, and their own `reward_redemptions`. Barbers/superadmins need backend (e.g. Admin SDK) to read other users’ data; client rules do not allow role-based read escalation to avoid get() on every read.
 
 ## Code references
 

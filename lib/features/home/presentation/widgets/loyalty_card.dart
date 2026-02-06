@@ -265,96 +265,104 @@ class _LoyaltyCardFrontFace extends HookWidget {
                   ),
                 ],
               ),
-              child: InkWell(
-                onTap: () => context.push(AppRoute.loyalty.path),
-                borderRadius: BorderRadius.circular(cardRadius),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: _chipSize,
-                            height: _chipSize * 0.75,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(6),
-                              gradient: const LinearGradient(
-                                colors: [
-                                  _chipGoldTop,
-                                  _chipGoldBottom,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              border: Border.all(
-                                color: _chipGoldBorder,
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            context.l10n.loyaltyTitle,
-                            style: context.appTextStyles.caption.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 2.4,
-                              color: c.captionTextColor.withValues(alpha: 0.9),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '$displayedPoints ${context.l10n.loyaltyPointsAbbrev}',
-                            style: context.appTextStyles.h2.copyWith(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 2,
-                              color: c.primaryTextColor,
-                              height: 1.1,
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: _chipSize,
+                          height: _chipSize * 0.75,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            gradient: const LinearGradient(
+                              colors: [
+                                _chipGoldTop,
+                                _chipGoldBottom,
                               ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            border: Border.all(
+                              color: _chipGoldBorder,
+                              width: 1,
                             ),
                           ),
-                          _SmallTappableQr(
-                            userId: user.userId,
-                            colors: c,
-                            onTap: onQrTap,
+                        ),
+                        Text(
+                          context.l10n.loyaltyTitle,
+                          style: context.appTextStyles.caption.copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2.4,
+                            color: c.captionTextColor.withValues(alpha: 0.9),
                           ),
-                        ],
-                      ),
-                      const Gap(10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              user.fullName.trim().isEmpty
-                                  ? context.l10n.loyaltyMember
-                                  : user.fullName.toUpperCase(),
-                              style: context.appTextStyles.caption.copyWith(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 1.2,
-                                color: c.secondaryTextColor.withValues(
-                                  alpha: 0.95,
-                                ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '$displayedPoints ${context.l10n.loyaltyPointsAbbrev}',
+                          style: context.appTextStyles.h2.copyWith(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2,
+                            color: c.primaryTextColor,
+                            height: 1.1,
+                            fontFeatures: const [
+                              FontFeature.tabularFigures(),
+                            ],
+                          ),
+                        ),
+                        _SmallTappableQr(
+                          userId: user.userId,
+                          colors: c,
+                          onTap: onQrTap,
+                        ),
+                      ],
+                    ),
+                    const Gap(10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            user.fullName.trim().isEmpty
+                                ? context.l10n.loyaltyMember
+                                : user.fullName.toUpperCase(),
+                            style: context.appTextStyles.caption.copyWith(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.2,
+                              color: c.secondaryTextColor.withValues(
+                                alpha: 0.95,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          Row(
+                        ),
+                        TextButton(
+                          onPressed: () => context.push(AppRoute.loyalty.path),
+                          style: TextButton.styleFrom(
+                            foregroundColor: accent,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
@@ -373,10 +381,10 @@ class _LoyaltyCardFrontFace extends HookWidget {
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),

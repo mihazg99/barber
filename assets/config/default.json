@@ -1,21 +1,22 @@
 {
-  "app_title": "Kingsman Barbershop",
+  "app_title": "Amore Beauty Studio",
   "logo_path": "",
   "default_brand_id": "default",
   "currency": "EUR",
   "font_family": "Poppins",
+  "require_sms_verification": false,
   "colors": {
-    "primary": "#9B784A",
-    "secondary": "#1A1614",
-    "background": "#000000",
-    "navigation_background": "#0A0A0A",
-    "primary_text": "#E7E1CC",
-    "secondary_text": "#C4B89E",
-    "caption_text": "#8D8470",
+    "primary": "#511E1F",
+    "secondary": "#3A1617",
+    "background": "#0C0C0C",
+    "navigation_background": "#1A0F0F",
+    "primary_text": "#EADCCC",
+    "secondary_text": "#D4C4B0",
+    "caption_text": "#B8A896",
     "primary_white": "#FFFFFF",
-    "hint_text": "#6B6658",
-    "menu_background": "#1A1A1A",
-    "border": "#3A3530",
+    "hint_text": "#9A8A78",
+    "menu_background": "#1A0F0F",
+    "border": "#2A1F1F",
     "error": "#B00020"
   }
 }

@@ -11,11 +11,17 @@ import 'package:barber/features/auth/domain/repositories/auth_repository.dart';
 import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl(this._authDataSource, this._userRepository, this._brandId);
+  AuthRepositoryImpl(
+    this._authDataSource,
+    this._userRepository,
+    this._brandId, {
+    void Function(UserEntity)? onUserLoaded,
+  }) : _onUserLoaded = onUserLoaded;
 
   final AuthRemoteDataSource _authDataSource;
   final UserRepository _userRepository;
   final String _brandId;
+  final void Function(UserEntity)? _onUserLoaded;
 
   @override
   String? get currentUserId => _authDataSource.auth.currentUser?.uid;
@@ -73,6 +79,7 @@ class AuthRepositoryImpl implements AuthRepository {
             : entity,
       );
 
+      _onUserLoaded?.call(toSave);
       final setResult = await _userRepository.set(toSave);
       // Always return user so profile step can show; if set failed, user can retry on submit.
       return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
@@ -117,6 +124,7 @@ class AuthRepositoryImpl implements AuthRepository {
             : entity,
       );
 
+      _onUserLoaded?.call(toSave);
       final setResult = await _userRepository.set(toSave);
       // Always return user so profile step can show; if set failed, user can retry on submit.
       return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
@@ -164,6 +172,7 @@ class AuthRepositoryImpl implements AuthRepository {
             : entity,
       );
 
+      _onUserLoaded?.call(toSave);
       final setResult = await _userRepository.set(toSave);
       // Always return user so profile step can show; if set failed, user can retry on submit.
       return setResult.fold((_) => Right(toSave), (_) => Right(toSave));

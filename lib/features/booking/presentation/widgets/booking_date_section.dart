@@ -86,6 +86,9 @@ class _DateCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
+  static const _duration = Duration(milliseconds: 250);
+  static const _curve = Curves.easeOutCubic;
+
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).languageCode;
@@ -98,7 +101,9 @@ class _DateCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Container(
+        child: AnimatedContainer(
+          duration: _duration,
+          curve: _curve,
           width: 64,
           height: 76,
           padding: const EdgeInsets.symmetric(vertical: 6),
@@ -113,14 +118,25 @@ class _DateCard extends StatelessWidget {
                   isSelected
                       ? context.appColors.primaryColor
                       : context.appColors.borderColor.withValues(alpha: 0.4),
+              width: isSelected ? 2 : 1,
             ),
+            boxShadow: isSelected
+                ? [
+                  BoxShadow(
+                    color: context.appColors.primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ]
+                : null,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                weekday,
+              AnimatedDefaultTextStyle(
+                duration: _duration,
+                curve: _curve,
                 style: context.appTextStyles.caption.copyWith(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
@@ -129,10 +145,12 @@ class _DateCard extends StatelessWidget {
                           ? context.appColors.primaryWhiteColor
                           : context.appColors.captionTextColor,
                 ),
+                child: Text(weekday),
               ),
               const SizedBox(height: 2),
-              Text(
-                day,
+              AnimatedDefaultTextStyle(
+                duration: _duration,
+                curve: _curve,
                 style: context.appTextStyles.h1.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -141,9 +159,11 @@ class _DateCard extends StatelessWidget {
                           ? context.appColors.primaryWhiteColor
                           : context.appColors.primaryTextColor,
                 ),
+                child: Text(day),
               ),
-              Text(
-                month,
+              AnimatedDefaultTextStyle(
+                duration: _duration,
+                curve: _curve,
                 style: context.appTextStyles.caption.copyWith(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
@@ -154,6 +174,7 @@ class _DateCard extends StatelessWidget {
                           )
                           : context.appColors.captionTextColor,
                 ),
+                child: Text(month),
               ),
             ],
           ),

@@ -11,12 +11,17 @@ class AppBrandConfig {
     required this.currency,
     required this.fontFamily,
     required this.colors,
+    this.requireSmsVerification = false,
   });
 
   final String appTitle;
   final String fontFamily;
   final String logoPath;
   final String defaultBrandId;
+
+  /// When true, after Google/Apple sign-in the app requires SMS OTP verification.
+  /// Sourced from app config to avoid Firestore reads on the auth screen (unauthenticated).
+  final bool requireSmsVerification;
 
   /// Currency code (e.g. EUR, USD). Used for price formatting.
   final String currency;
@@ -31,6 +36,7 @@ class AppBrandConfig {
       currency: json['currency'] as String? ?? 'EUR',
       fontFamily: json['font_family'] as String? ?? 'Poppins',
       colors: AppBrandColors.fromJson(colorsJson),
+      requireSmsVerification: json['require_sms_verification'] as bool? ?? false,
     );
   }
 
@@ -41,6 +47,7 @@ class AppBrandConfig {
     'currency': currency,
     'font_family': fontFamily,
     'colors': colors.toJson(),
+    'require_sms_verification': requireSmsVerification,
   };
 }
 

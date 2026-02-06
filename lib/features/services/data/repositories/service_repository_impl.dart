@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:barber/core/errors/failure.dart';
 import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/core/firebase/collections.dart';
+import 'package:barber/core/firebase/firestore_logger.dart';
 import 'package:barber/features/services/data/mappers/service_firestore_mapper.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
 import 'package:barber/features/services/domain/repositories/service_repository.dart';
@@ -18,7 +19,10 @@ class ServiceRepositoryImpl implements ServiceRepository {
   @override
   Future<Either<Failure, List<ServiceEntity>>> getByBrandId(String brandId) async {
     try {
-      final snapshot = await _col.where('brand_id', isEqualTo: brandId).get();
+      final snapshot = await FirestoreLogger.logRead(
+        '${FirestoreCollections.services}?brand_id=$brandId',
+        () => _col.where('brand_id', isEqualTo: brandId).get(),
+      );
       final list = snapshot.docs
           .map((d) => ServiceFirestoreMapper.fromFirestore(d))
           .toList();
@@ -31,7 +35,10 @@ class ServiceRepositoryImpl implements ServiceRepository {
   @override
   Future<Either<Failure, ServiceEntity?>> getById(String serviceId) async {
     try {
-      final doc = await _col.doc(serviceId).get();
+      final doc = await FirestoreLogger.logRead(
+        '${FirestoreCollections.services}/$serviceId',
+        () => _col.doc(serviceId).get(),
+      );
       if (doc.data() == null) return const Right(null);
       return Right(ServiceFirestoreMapper.fromFirestore(doc));
     } catch (e) {
@@ -42,9 +49,13 @@ class ServiceRepositoryImpl implements ServiceRepository {
   @override
   Future<Either<Failure, void>> set(ServiceEntity entity) async {
     try {
-      await _col.doc(entity.serviceId).set(
-            ServiceFirestoreMapper.toFirestore(entity),
-          );
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.services}/${entity.serviceId}',
+        'set',
+        () => _col.doc(entity.serviceId).set(
+              ServiceFirestoreMapper.toFirestore(entity),
+            ),
+      );
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to set service: $e'));
@@ -54,7 +65,11 @@ class ServiceRepositoryImpl implements ServiceRepository {
   @override
   Future<Either<Failure, void>> delete(String serviceId) async {
     try {
-      await _col.doc(serviceId).delete();
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.services}/$serviceId',
+        'delete',
+        () => _col.doc(serviceId).delete(),
+      );
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to delete service: $e'));

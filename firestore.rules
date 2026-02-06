@@ -2,16 +2,33 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper: safe role from document (defaults to 'user' if missing)
+
+    // -------------------------------------------------------------------------
+    // Helpers (used only for WRITE rules to avoid get() on read paths)
+    // -------------------------------------------------------------------------
     function userRole(data) {
       return data.get('role', 'user');
     }
+    function isSuperadmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'superadmin';
+    }
+    function isBarberOrSuperadmin() {
+      let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user');
+      return role == 'barber' || role == 'superadmin';
+    }
+    function barberBrandId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('brand_id', '');
+    }
+    /// Barber document id for current user (set on users/{uid} when role is barber). Same doc as above — cached per request.
+    function userBarberId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('barber_id', '');
+    }
 
-    // App users (clients): each user can only read/write their own document.
-    // Role security: users cannot escalate role. Only 'user' on create; role unchanged on update.
-    // barber/superadmin must be assigned via Firebase Admin SDK (Cloud Functions, admin tool).
+    // -------------------------------------------------------------------------
+    // Private: users — strict userId matching. No get() on read.
+    // -------------------------------------------------------------------------
     match /users/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
+      allow read: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null
         && request.auth.uid == userId
         && (!('role' in request.resource.data) || request.resource.data.role == 'user');
@@ -21,76 +38,83 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Helper: true if current user has superadmin role
-    function isSuperadmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'superadmin';
-    }
-    // Helper: true if current user is barber or superadmin (can scan and redeem rewards)
-    function isBarberOrSuperadmin() {
-      let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user');
-      return role == 'barber' || role == 'superadmin';
-    }
-    function barberBrandId() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('brand_id', '');
-    }
-
-    // Brands: read for signed-in; write for superadmin only.
+    // -------------------------------------------------------------------------
+    // Public: brands — authenticated read; write superadmin only (get on write).
+    // -------------------------------------------------------------------------
     match /brands/{document=**} {
       allow read: if request.auth != null;
       allow create, update, delete: if request.auth != null && isSuperadmin();
     }
-    // Locations: read for signed-in; write for superadmin only.
+
+    // -------------------------------------------------------------------------
+    // Public: locations — authenticated read; write superadmin only.
+    // -------------------------------------------------------------------------
     match /locations/{document=**} {
       allow read: if request.auth != null;
       allow create, update, delete: if request.auth != null && isSuperadmin();
     }
 
-    // Barbers: read for signed-in; write for superadmin only (dashboard).
+    // -------------------------------------------------------------------------
+    // Public: barbers — authenticated read; write superadmin only.
+    // -------------------------------------------------------------------------
     match /barbers/{document=**} {
       allow read: if request.auth != null;
       allow create, update, delete: if request.auth != null && isSuperadmin();
     }
-    // Services: read for signed-in; write for superadmin only (dashboard).
+
+    // -------------------------------------------------------------------------
+    // Public: services — authenticated read; write superadmin only.
+    // -------------------------------------------------------------------------
     match /services/{document=**} {
       allow read: if request.auth != null;
       allow create, update, delete: if request.auth != null && isSuperadmin();
     }
 
-    // Appointments: signed-in users can create, read, and update (cancel) their own.
-    // Barbers can read any and update (mark completed) when scanning loyalty card.
-    match /appointments/{appointmentId} {
-      allow read: if request.auth != null && (resource.data.user_id == request.auth.uid || isBarberOrSuperadmin());
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
-      allow update: if request.auth != null && (resource.data.user_id == request.auth.uid || isBarberOrSuperadmin());
-      allow delete: if false;
-    }
-
-    // Availability: read for slot display; write when creating a booking (client updates booked_slots).
+    // -------------------------------------------------------------------------
+    // Public: availability — authenticated read; write for booking (no role get on read).
+    // -------------------------------------------------------------------------
     match /availability/{document=**} {
       allow read: if request.auth != null;
       allow create, update: if request.auth != null;
       allow delete: if false;
     }
 
-    // User booking lock: one active appointment per user. User can read/write own lock.
-    // Barber/superadmin can read (to get active_appointment_id when scanning loyalty QR) and update (to clear lock when marking visit complete).
-    match /user_booking_locks/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
-      allow create, update: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
-      allow delete: if false;
-    }
-
-    // Rewards catalog (per brand): read for signed-in; write for superadmin only.
+    // -------------------------------------------------------------------------
+    // Public: rewards — authenticated read; write superadmin only.
+    // -------------------------------------------------------------------------
     match /rewards/{rewardId} {
       allow read: if request.auth != null;
       allow create, update, delete: if request.auth != null && isSuperadmin();
     }
 
-    // Reward redemptions: user spent points to get reward; doc id is used in QR for barber to scan.
-    // User: create (own user_id only), read own. Barber/superadmin: read any, update to redeem (same brand, pending only).
-    match /reward_redemptions/{redemptionId} {
+    // -------------------------------------------------------------------------
+    // Private: appointments — owner or barber (assigned) or superadmin. Barber/superadmin path uses one get() per query (cached).
+    // -------------------------------------------------------------------------
+    match /appointments/{appointmentId} {
       allow read: if request.auth != null
+        && (resource.data.user_id == request.auth.uid
+            || isSuperadmin()
+            || (isBarberOrSuperadmin() && resource.data.barber_id == userBarberId()));
+      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow update: if request.auth != null
         && (resource.data.user_id == request.auth.uid || isBarberOrSuperadmin());
+      allow delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Private: user_booking_locks — strict userId matching. No get() on read.
+    // -------------------------------------------------------------------------
+    match /user_booking_locks/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
+      allow delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Private: reward_redemptions — user sees own; barber redeem uses get on write only.
+    // -------------------------------------------------------------------------
+    match /reward_redemptions/{redemptionId} {
+      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
       allow update: if request.auth != null
         && isBarberOrSuperadmin()

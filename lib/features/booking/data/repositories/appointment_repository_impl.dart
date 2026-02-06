@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:barber/core/errors/failure.dart';
 import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/core/firebase/collections.dart';
+import 'package:barber/core/firebase/firestore_logger.dart';
 import 'package:barber/features/booking/data/mappers/appointment_firestore_mapper.dart';
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
 import 'package:barber/features/booking/domain/repositories/appointment_repository.dart';
@@ -23,7 +24,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     try {
       final data = AppointmentFirestoreMapper.toFirestore(entity);
       data['created_at'] = FieldValue.serverTimestamp();
-      await _col.doc(entity.appointmentId).set(data);
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.appointments}/${entity.appointmentId}',
+        'set',
+        () => _col.doc(entity.appointmentId).set(data),
+      );
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to create appointment: $e'));
@@ -35,7 +40,10 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     String appointmentId,
   ) async {
     try {
-      final doc = await _col.doc(appointmentId).get(_serverOnly);
+      final doc = await FirestoreLogger.logRead(
+        '${FirestoreCollections.appointments}/$appointmentId',
+        () => _col.doc(appointmentId).get(_serverOnly),
+      );
       if (doc.data() == null) return const Right(null);
       return Right(AppointmentFirestoreMapper.fromFirestore(doc));
     } catch (e) {
@@ -48,8 +56,10 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     String userId,
   ) async {
     try {
-      final snapshot =
-          await _col.where('user_id', isEqualTo: userId).get(_serverOnly);
+      final snapshot = await FirestoreLogger.logRead(
+        '${FirestoreCollections.appointments}?user_id=$userId',
+        () => _col.where('user_id', isEqualTo: userId).get(_serverOnly),
+      );
       final list =
           snapshot.docs
               .map((d) => AppointmentFirestoreMapper.fromFirestore(d))
@@ -66,7 +76,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     String status,
   ) async {
     try {
-      await _col.doc(appointmentId).update({'status': status});
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.appointments}/$appointmentId',
+        'update',
+        () => _col.doc(appointmentId).update({'status': status}),
+      );
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to update appointment status: $e'));
@@ -81,7 +95,10 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       final lockRef = _firestore
           .collection(FirestoreCollections.userBookingLocks)
           .doc(userId);
-      final lockSnap = await lockRef.get(_serverOnly);
+      final lockSnap = await FirestoreLogger.logRead(
+        '${FirestoreCollections.userBookingLocks}/$userId',
+        () => lockRef.get(_serverOnly),
+      );
       final activeId = lockSnap.data()?['active_appointment_id'] as String?;
       if (activeId == null || activeId.isEmpty) return const Right(null);
       final apptResult = await getById(activeId);
@@ -109,10 +126,17 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       final lockRef = _firestore
           .collection(FirestoreCollections.userBookingLocks)
           .doc(userId);
-      final lockSnap = await lockRef.get(_serverOnly);
+      final lockSnap = await FirestoreLogger.logRead(
+        '${FirestoreCollections.userBookingLocks}/$userId',
+        () => lockRef.get(_serverOnly),
+      );
       final currentId = lockSnap.data()?['active_appointment_id'] as String?;
       if (currentId == appointmentId) {
-        await lockRef.update({'active_appointment_id': FieldValue.delete()});
+        await FirestoreLogger.logWrite(
+          '${FirestoreCollections.userBookingLocks}/$userId',
+          'update',
+          () => lockRef.update({'active_appointment_id': FieldValue.delete()}),
+        );
       }
       return const Right(null);
     } catch (e) {
@@ -127,20 +151,26 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     final lockRef = _firestore
         .collection(FirestoreCollections.userBookingLocks)
         .doc(userId);
-    return lockRef.snapshots().map((snap) {
+    return FirestoreLogger.logStream<String?>(
+      '${FirestoreCollections.userBookingLocks}/$userId',
+      lockRef.snapshots().map((snap) {
       final data = snap.data();
       if (data == null) return null;
       final id = data['active_appointment_id'] as String?;
       return (id != null && id.isNotEmpty) ? id : null;
-    });
+    }),
+    );
   }
 
   @override
   Stream<AppointmentEntity?> watchAppointment(String appointmentId) {
-    return _col.doc(appointmentId).snapshots().map((doc) {
-      if (doc.data() == null) return null;
-      return AppointmentFirestoreMapper.fromFirestore(doc);
-    });
+    return FirestoreLogger.logStream<AppointmentEntity?>(
+      '${FirestoreCollections.appointments}/$appointmentId',
+      _col.doc(appointmentId).snapshots().map((doc) {
+        if (doc.data() == null) return null;
+        return AppointmentFirestoreMapper.fromFirestore(doc);
+      }),
+    );
   }
 
   @override
@@ -149,14 +179,17 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   ) {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
-    return _col
-        .where('barber_id', isEqualTo: barberId)
-        .where('status', isEqualTo: AppointmentStatus.scheduled)
-        .where('start_time', isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart))
-        .orderBy('start_time')
-        .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => AppointmentFirestoreMapper.fromFirestore(d))
-            .toList());
+    return FirestoreLogger.logStream<List<AppointmentEntity>>(
+      '${FirestoreCollections.appointments}?barber_id=$barberId',
+      _col
+          .where('barber_id', isEqualTo: barberId)
+          .where('status', isEqualTo: AppointmentStatus.scheduled)
+          .where('start_time', isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart))
+          .orderBy('start_time')
+          .snapshots()
+          .map((snap) => snap.docs
+              .map((d) => AppointmentFirestoreMapper.fromFirestore(d))
+              .toList()),
+    );
   }
 }

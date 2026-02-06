@@ -6,12 +6,17 @@ import 'package:barber/features/auth/domain/repositories/auth_repository.dart';
 import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 
 class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
-  AuthNotifier(this._authRepository, this._userRepository) {
+  AuthNotifier(
+    this._authRepository,
+    this._userRepository, {
+    void Function(UserEntity?)? onSignInUser,
+  })  : _onSignInUser = onSignInUser {
     setData(const AuthFlowData(step: AuthStep.landing));
   }
 
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
+  final void Function(UserEntity?)? _onSignInUser;
 
   /// Sends OTP to [phone]. On success, moves to OTP verification step.
   Future<void> sendOtp(String phone) async {
@@ -52,6 +57,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
         current.copyWith(isLoading: false, errorMessage: failure.message),
       ),
       (user) {
+        _onSignInUser?.call(user);
         final needsProfile = user.fullName.trim().isEmpty;
         setData(
           current.copyWith(
@@ -161,6 +167,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
         }
       },
       (user) {
+        _onSignInUser?.call(user);
         final needsProfile = user.fullName.trim().isEmpty;
         final needsSms = requireSmsVerification;
         
@@ -215,6 +222,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
         }
       },
       (user) {
+        _onSignInUser?.call(user);
         final needsProfile = user.fullName.trim().isEmpty;
         final needsSms = requireSmsVerification;
         
@@ -255,6 +263,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
   }
 
   Future<void> signOut() async {
+    _onSignInUser?.call(null);
     final result = await _authRepository.signOut();
     result.fold(
       (failure) => setError(failure.message, failure),

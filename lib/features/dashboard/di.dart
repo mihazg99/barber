@@ -15,6 +15,8 @@ import 'package:barber/features/dashboard/presentation/bloc/dashboard_rewards_no
 import 'package:barber/features/dashboard/presentation/bloc/dashboard_services_notifier.dart';
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/barbers/di.dart' as barbers_di;
+import 'package:barber/features/home/domain/entities/home_data.dart';
+import 'package:barber/features/home/di.dart' as home_di;
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 import 'package:barber/features/locations/di.dart';
 import 'package:barber/features/rewards/domain/entities/reward_entity.dart';
@@ -69,6 +71,26 @@ final dashboardLocationsNotifierProvider = StateNotifierProvider<
       ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
   final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
   return DashboardLocationsNotifier(locationRepo, effectiveBrandId);
+});
+
+/// Locations state for the dashboard locations tab. Reuses home data when on default brand
+/// so we avoid a duplicate Firestore read when the tab mounts (home already loaded locations).
+final dashboardLocationsViewProvider = Provider<BaseState<List<LocationEntity>>>((ref) {
+  final dashboardState = ref.watch(dashboardLocationsNotifierProvider);
+  final homeState = ref.watch(home_di.homeNotifierProvider);
+  final brandId =
+      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
+  final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
+
+  if (dashboardState is BaseData<List<LocationEntity>> ||
+      dashboardState is BaseError<List<LocationEntity>>) {
+    return dashboardState;
+  }
+  if (homeState is BaseData<HomeData> &&
+      homeState.data.brand?.brandId == effectiveBrandId) {
+    return BaseData(homeState.data.locations);
+  }
+  return dashboardState;
 });
 
 final dashboardServicesNotifierProvider = StateNotifierProvider<
