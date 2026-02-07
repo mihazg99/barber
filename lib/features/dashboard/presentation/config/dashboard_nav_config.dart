@@ -31,6 +31,7 @@ abstract final class DashboardNavConfig {
           DashboardNavItem(label: l10n.dashboardNavServices, icon: Icons.content_cut_outlined),
           DashboardNavItem(label: l10n.dashboardNavRewards, icon: Icons.card_giftcard_outlined),
           DashboardNavItem(label: l10n.dashboardNavBarbers, icon: Icons.person_outline),
+          DashboardNavItem(label: l10n.dashboardNavAnalytics, icon: Icons.analytics_outlined),
         ];
       default:
         return [

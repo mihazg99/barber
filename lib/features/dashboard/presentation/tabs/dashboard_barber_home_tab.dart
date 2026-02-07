@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -12,7 +11,6 @@ import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/features/auth/di.dart';
-import 'package:barber/features/brand/di.dart' as brand_di;
 import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/home/di.dart';
 import 'package:barber/features/home/domain/entities/home_data.dart';
@@ -35,17 +33,7 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
             ? homeState.data.locations
             : <LocationEntity>[];
 
-    useEffect(() {
-      var cancelled = false;
-      final notifier = ref.read(homeNotifierProvider.notifier);
-      final brandFuture = ref.read(brand_di.defaultBrandProvider.future);
-      Future.microtask(() async {
-        final cachedBrand = await brandFuture;
-        if (!cancelled) notifier.load(cachedBrand: cachedBrand);
-      });
-      return () => cancelled = true;
-    }, []);
-
+    // Home data loaded centrally by DashboardPage when barber dashboard mounts.
     final firstName = _firstName(user?.fullName);
 
     return RefreshIndicator(
@@ -165,6 +153,9 @@ class _BarberHomeHeader extends StatelessWidget {
     );
   }
 }
+
+
+
 
 class _ScanHeroCard extends StatelessWidget {
   const _ScanHeroCard({required this.onTap});

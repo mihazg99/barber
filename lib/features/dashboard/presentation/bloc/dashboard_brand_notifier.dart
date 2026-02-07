@@ -12,9 +12,14 @@ class DashboardBrandNotifier extends BaseNotifier<BrandEntity?, Failure> {
   final BrandRepository _brandRepository;
   final String _brandId;
 
-  Future<void> load() async {
+  /// Load brand. Pass [cachedBrand] to avoid duplicate Firestore read (e.g. from defaultBrandProvider).
+  Future<void> load({BrandEntity? cachedBrand}) async {
     if (_brandId.isEmpty) {
       setData(null);
+      return;
+    }
+    if (cachedBrand != null && cachedBrand.brandId == _brandId) {
+      setData(cachedBrand);
       return;
     }
     await execute(

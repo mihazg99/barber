@@ -884,6 +884,12 @@ abstract class AppLocalizations {
   /// **'Brijači'**
   String get dashboardNavBarbers;
 
+  /// No description provided for @dashboardNavAnalytics.
+  ///
+  /// In hr, this message translates to:
+  /// **'Analitika'**
+  String get dashboardNavAnalytics;
+
   /// No description provided for @dashboardBookingsTitle.
   ///
   /// In hr, this message translates to:
@@ -895,6 +901,42 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Moja smjena'**
   String get dashboardShiftTitle;
+
+  /// No description provided for @marketingInsightsTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Marketing uvid'**
+  String get marketingInsightsTitle;
+
+  /// No description provided for @averageTicketValue.
+  ///
+  /// In hr, this message translates to:
+  /// **'Prosječna vrijednost kartice'**
+  String get averageTicketValue;
+
+  /// No description provided for @todayRevenue.
+  ///
+  /// In hr, this message translates to:
+  /// **'Današnji prihod'**
+  String get todayRevenue;
+
+  /// No description provided for @todayAppointments.
+  ///
+  /// In hr, this message translates to:
+  /// **'Termini danas'**
+  String get todayAppointments;
+
+  /// No description provided for @newCustomersToday.
+  ///
+  /// In hr, this message translates to:
+  /// **'Novi kupci'**
+  String get newCustomersToday;
+
+  /// No description provided for @noShowsToday.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nedolasci'**
+  String get noShowsToday;
 
   /// No description provided for @addNewItem.
   ///

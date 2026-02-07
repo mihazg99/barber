@@ -422,10 +422,31 @@ class AppLocalizationsHr extends AppLocalizations {
   String get dashboardNavBarbers => 'Brijači';
 
   @override
+  String get dashboardNavAnalytics => 'Analitika';
+
+  @override
   String get dashboardBookingsTitle => 'Moji termini';
 
   @override
   String get dashboardShiftTitle => 'Moja smjena';
+
+  @override
+  String get marketingInsightsTitle => 'Marketing uvid';
+
+  @override
+  String get averageTicketValue => 'Prosječna vrijednost kartice';
+
+  @override
+  String get todayRevenue => 'Današnji prihod';
+
+  @override
+  String get todayAppointments => 'Termini danas';
+
+  @override
+  String get newCustomersToday => 'Novi kupci';
+
+  @override
+  String get noShowsToday => 'Nedolasci';
 
   @override
   String get addNewItem => 'Dodaj novu stavku';

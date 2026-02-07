@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -22,13 +21,6 @@ class DashboardServicesTab extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useEffect(() {
-      Future.microtask(() {
-        ref.read(dashboardServicesNotifierProvider.notifier).load();
-      });
-      return null;
-    }, []);
-
     final state = ref.watch(dashboardServicesNotifierProvider);
 
     return GestureDetector(

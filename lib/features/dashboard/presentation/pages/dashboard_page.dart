@@ -7,10 +7,13 @@ import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/auth/domain/entities/user_role.dart';
+import 'package:barber/features/brand/di.dart' as brand_di;
 import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/brand/presentation/widgets/app_header.dart';
+import 'package:barber/features/home/di.dart' as home_di;
 import 'package:barber/features/dashboard/presentation/config/dashboard_nav_config.dart';
 import 'package:barber/features/home/presentation/widgets/home_drawer.dart';
+import 'package:barber/features/dashboard/presentation/tabs/dashboard_analytics_tab.dart';
 import 'package:barber/features/dashboard/presentation/tabs/dashboard_barber_home_tab.dart';
 import 'package:barber/features/dashboard/presentation/tabs/dashboard_brand_tab.dart';
 import 'package:barber/features/dashboard/presentation/tabs/dashboard_barbers_tab.dart';
@@ -30,6 +33,26 @@ class DashboardPage extends HookConsumerWidget {
     final role = user?.role ?? UserRole.user;
     final navItems = DashboardNavConfig.forRole(role, context.l10n);
     final superadminTabIndex = useState(0);
+
+    // Centralized data load: fetch once when dashboard mounts. Reduces 11+ reads to 5.
+    useEffect(() {
+      Future.microtask(() async {
+        if (role == UserRole.superadmin) {
+          final cachedBrand = await ref.read(brand_di.defaultBrandProvider.future);
+          await ref.read(dashboardBrandNotifierProvider.notifier).load(cachedBrand: cachedBrand);
+          await Future.wait([
+            ref.read(dashboardLocationsNotifierProvider.notifier).load(),
+            ref.read(dashboardServicesNotifierProvider.notifier).load(),
+            ref.read(dashboardRewardsNotifierProvider.notifier).load(),
+            ref.read(dashboardBarbersNotifierProvider.notifier).load(),
+          ]);
+        } else if (role == UserRole.barber) {
+          final cachedBrand = await ref.read(brand_di.defaultBrandProvider.future);
+          ref.read(home_di.homeNotifierProvider.notifier).load(cachedBrand: cachedBrand);
+        }
+      });
+      return null;
+    }, [role]);
     final barberTabIndex = ref.watch(dashboardBarberTabIndexProvider);
     final barberTabNotifier = ref.read(dashboardBarberTabIndexProvider.notifier);
 
@@ -54,12 +77,13 @@ class DashboardPage extends HookConsumerWidget {
           )
         : IndexedStack(
             index: selectedIndex,
-            children: const [
-              DashboardBrandTab(),
-              DashboardLocationsTab(),
-              DashboardServicesTab(),
-              DashboardRewardsTab(),
-              DashboardBarbersTab(),
+            children: [
+              const DashboardBrandTab(),
+              const DashboardLocationsTab(),
+              const DashboardServicesTab(),
+              const DashboardRewardsTab(),
+              const DashboardBarbersTab(),
+              DashboardAnalyticsTab(isSelected: selectedIndex == 5),
             ],
           );
 

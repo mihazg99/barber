@@ -1,7 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:dartz/dartz.dart';
+
 import 'package:barber/core/di.dart';
+import 'package:barber/core/errors/failure.dart';
+import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/core/state/base_state.dart';
+import 'package:barber/features/stats/di.dart' as stats_di;
+import 'package:barber/features/stats/domain/entities/dashboard_stats_entity.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/booking/di.dart' as booking_di;
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
@@ -33,6 +39,24 @@ final barberHomeNotifierProvider = StateNotifierProvider.autoDispose<
   BarberHomeNotifier,
   BaseState<BarberHomeData>
 >((ref) => BarberHomeNotifier());
+
+/// Current barber for the logged-in user (when they have a linked barber record).
+final currentBarberProvider =
+    FutureProvider.autoDispose<BarberEntity?>((ref) async {
+  final uid = ref.watch(currentUserProvider).valueOrNull?.userId;
+  if (uid == null || uid.isEmpty) return null;
+  final barberRepo = ref.watch(barbers_di.barberRepositoryProvider);
+  final r = await barberRepo.getByUserId(uid);
+  return r.getOrElse(() => null);
+});
+
+/// Dashboard stats (daily + monthly) for a location. Uses pre-aggregated docs, no appointments query.
+final dashboardStatsProvider = FutureProvider.autoDispose
+    .family<Either<Failure, DashboardStatsEntity>, String>((ref, locationId) async {
+  if (locationId.isEmpty) return Left(FirestoreFailure('locationId required'));
+  final statsRepo = ref.watch(stats_di.statsRepositoryProvider);
+  return statsRepo.getDashboardStats(locationId, DateTime.now());
+});
 
 /// Stream of upcoming (today or future) scheduled appointments for the current barber.
 /// When barber marks visit complete, UI updates automatically.

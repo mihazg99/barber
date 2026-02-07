@@ -421,10 +421,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardNavBarbers => 'Barbers';
 
   @override
+  String get dashboardNavAnalytics => 'Analytics';
+
+  @override
   String get dashboardBookingsTitle => 'My Bookings';
 
   @override
   String get dashboardShiftTitle => 'My Shift';
+
+  @override
+  String get marketingInsightsTitle => 'Marketing Insights';
+
+  @override
+  String get averageTicketValue => 'Avg. ticket value';
+
+  @override
+  String get todayRevenue => 'Today\'s revenue';
+
+  @override
+  String get todayAppointments => 'Appointments today';
+
+  @override
+  String get newCustomersToday => 'New customers';
+
+  @override
+  String get noShowsToday => 'No-shows';
 
   @override
   String get addNewItem => 'Add new item';

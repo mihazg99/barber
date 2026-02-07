@@ -180,6 +180,7 @@ Detailed records of all bookings.
 | `total_price` | Number | Total price |
 | `status` | String | One of: `scheduled`, `completed`, `cancelled`, `no_show` |
 | `created_at` | ServerTimestamp | Set on create (use `FieldValue.serverTimestamp()`) |
+| `no_show_counted` | Boolean (optional) | Set by Cloud Function when no_show stats aggregated (idempotency) |
 
 ---
 
@@ -224,6 +225,35 @@ User spent points to "buy" a reward. Document ID is encoded in the QR code the c
 
 ---
 
+## 11. `daily_stats` (Subcollection under locations)
+
+Pre-aggregated daily metrics per location. Path: `locations/{location_id}/daily_stats/{YYYY-MM-DD}`. Updated by Cloud Function `onBookingComplete` when appointments complete or are marked no_show.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| **doc_id** | — | `YYYY-MM-DD` (date key) |
+| `total_revenue` | Number | Sum of completed appointment prices |
+| `appointments_count` | Number | Count of completed appointments |
+| `new_customers` | Number | Count of first-time completers (lifetime_value was 0) |
+| `no_shows` | Number | Count of no-show appointments |
+| `service_breakdown` | Map\<String, int\> | service_id → count of appointments including that service |
+
+---
+
+## 12. `monthly_stats` (Subcollection under locations)
+
+Pre-aggregated monthly metrics per location. Path: `locations/{location_id}/monthly_stats/{YYYY-MM}`. Updated by Cloud Function `onBookingComplete` when appointments complete.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| **doc_id** | — | `YYYY-MM` (month key) |
+| `total_revenue` | Number | Sum of completed appointment prices |
+| `top_barber_id` | String (optional) | Barber with most appointments (computed client-side from barber_appointments) |
+| `retention_rate` | Number (optional) | 0.0–1.0, computed by batch job |
+| `barber_appointments` | Map\<String, int\> | barber_id → appointment count |
+
+---
+
 ## Security rules (firestore.rules)
 
 Rules are tuned to avoid **dependency storms** and deny spikes during login/logout:
@@ -243,6 +273,7 @@ Rules are tuned to avoid **dependency storms** and deny spikes during login/logo
   - Users → `features/auth/`  
   - Availability & Appointments → `features/booking/`  
   - Rewards & Redemptions → `features/rewards/`  
+  - Stats (daily_stats, monthly_stats) → `features/stats/`  
 - **Working hours value type:** `lib/core/value_objects/working_hours.dart`
 
 ---

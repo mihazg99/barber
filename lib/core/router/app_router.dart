@@ -27,6 +27,7 @@ import 'package:barber/features/onboarding/presentation/pages/onboarding_page.da
 
 import 'package:barber/core/di.dart';
 import 'package:barber/features/auth/presentation/pages/auth_page.dart';
+import 'package:barber/features/splash/presentation/pages/splash_page.dart';
 
 import 'app_routes.dart';
 
@@ -66,6 +67,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   });
 
   return GoRouter(
+    initialLocation: AppRoute.splash.path,
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
       // Use container from context so we don't use ref during "dependency changed"
@@ -86,6 +88,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isStaff = container.read(isStaffProvider);
       final path = state.uri.path;
       final location = state.uri.toString();
+
+      // Splash: stay until we know destination, then redirect
+      if (path == AppRoute.splash.path) {
+        if (!onboardingCompleted) return AppRoute.onboarding.path;
+        final isAuthAsync = container.read(isAuthenticatedProvider);
+        if (isAuthAsync.isLoading) return null;
+        if (isAuthAsync.valueOrNull != true) return AppRoute.auth.path;
+        final userAsync = container.read(currentUserProvider);
+        if (userAsync.isLoading) return null;
+        if (!isProfileComplete) return AppRoute.auth.path;
+        return isStaff ? AppRoute.dashboard.path : AppRoute.home.path;
+      }
+
       // Firebase auth callback deep link (e.g. after login/verify) – not an app route; send to correct screen.
       if (location.contains('firebaseauth') ||
           location.contains('auth/callback')) {
@@ -136,6 +151,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        name: AppRoute.splash.name,
+        path: AppRoute.splash.path,
+        pageBuilder:
+            (context, state) =>
+                NoTransitionPage(child: const SplashPage()),
+      ),
       GoRoute(
         name: AppRoute.onboarding.name,
         path: AppRoute.onboarding.path,

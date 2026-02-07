@@ -19,13 +19,6 @@ class DashboardBrandTab extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useEffect(() {
-      Future.microtask(() {
-        ref.read(dashboardBrandNotifierProvider.notifier).load();
-      });
-      return null;
-    }, []);
-
     final state = ref.watch(dashboardBrandNotifierProvider);
     final brandId =
         ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
