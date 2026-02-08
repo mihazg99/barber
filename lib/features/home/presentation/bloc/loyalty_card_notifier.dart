@@ -17,4 +17,6 @@ class LoyaltyCardNotifier extends StateNotifier<LoyaltyCardState> {
   void flip() => state = state.copyWith(isFlipped: !state.isFlipped);
 
   void flipToFront() => state = state.copyWith(isFlipped: false);
+
+  void flipToBack() => state = state.copyWith(isFlipped: true);
 }

@@ -133,7 +133,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           !isProfileComplete &&
           path != AppRoute.auth.path) {
         final userAsync = container.read(currentUserProvider);
-        if (userAsync.isLoading) return null;
+        if (userAsync.isLoading) return AppRoute.splash.path;
         return AppRoute.auth.path;
       }
       if (isAuthenticated && path == AppRoute.auth.path) {
@@ -155,8 +155,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: AppRoute.splash.name,
         path: AppRoute.splash.path,
         pageBuilder:
-            (context, state) =>
-                NoTransitionPage(child: const SplashPage()),
+            (context, state) => NoTransitionPage(child: const SplashPage()),
       ),
       GoRoute(
         name: AppRoute.onboarding.name,

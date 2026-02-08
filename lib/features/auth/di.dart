@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:barber/core/di.dart';
 import 'package:barber/core/firebase/default_brand_id.dart' as brand_id;
 import 'package:barber/core/state/base_state.dart';
+import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:barber/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:barber/features/auth/domain/entities/auth_step.dart';
@@ -42,12 +43,17 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 final authNotifierProvider =
-    StateNotifierProvider<AuthNotifier, BaseState<AuthFlowData>>((ref) {
+    StateNotifierProvider.autoDispose<AuthNotifier, BaseState<AuthFlowData>>((
+      ref,
+    ) {
       return AuthNotifier(
         ref.watch(authRepositoryProvider),
         ref.watch(userRepositoryProvider),
         onSignInUser: (user) {
           ref.read(lastSignedInUserProvider.notifier).state = user;
+        },
+        onPreSignIn: () async {
+          await ref.read(defaultBrandProvider.future);
         },
       );
     });
@@ -101,7 +107,9 @@ final isProfileCompleteProvider = Provider<bool>((ref) {
     return last.fullName.trim().isNotEmpty && last.phone.trim().isNotEmpty;
   }
   final user = ref.watch(currentUserProvider).valueOrNull;
-  return user != null && user.fullName.trim().isNotEmpty && user.phone.trim().isNotEmpty;
+  return user != null &&
+      user.fullName.trim().isNotEmpty &&
+      user.phone.trim().isNotEmpty;
 });
 
 /// True when user has barber or superadmin role. They navigate to dashboard, not main app.

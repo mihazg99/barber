@@ -154,7 +154,11 @@ class _BookingPageState extends ConsumerState<BookingPage> {
       );
       if (alreadyHasUpcoming) {
         if (!mounted) return;
-        final appt = ref.read(upcomingAppointmentProvider).valueOrNull;
+        final upcomingState = ref.read(upcomingAppointmentProvider);
+        final appt =
+            upcomingState is BaseData<AppointmentEntity?>
+                ? upcomingState.data
+                : null;
         // ignore: use_build_context_synchronously
         _showError(
           alreadyHasUpcomingMsg,
@@ -242,7 +246,11 @@ class _BookingPageState extends ConsumerState<BookingPage> {
               failure.code == 'user-has-active-appointment';
           final message =
               isAlreadyHasUpcoming ? alreadyHasUpcomingMsg : failure.message;
-          final appt = ref.read(upcomingAppointmentProvider).valueOrNull;
+          final upcomingState = ref.read(upcomingAppointmentProvider);
+          final appt =
+              upcomingState is BaseData<AppointmentEntity?>
+                  ? upcomingState.data
+                  : null;
           _showError(
             message,
             actionLabel:
@@ -382,13 +390,13 @@ class _BookingPageState extends ConsumerState<BookingPage> {
                 bookingState.preselectedBarberId!.isEmpty
             ? barbersFiltered
             : [
-                ...barbersFiltered.where(
-                  (b) => b.barberId == bookingState.preselectedBarberId,
-                ),
-                ...barbersFiltered.where(
-                  (b) => b.barberId != bookingState.preselectedBarberId,
-                ),
-              ];
+              ...barbersFiltered.where(
+                (b) => b.barberId == bookingState.preselectedBarberId,
+              ),
+              ...barbersFiltered.where(
+                (b) => b.barberId != bookingState.preselectedBarberId,
+              ),
+            ];
 
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,

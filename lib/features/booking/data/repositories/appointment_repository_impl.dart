@@ -88,7 +88,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
-  Future<Either<Failure, AppointmentEntity?>> getActiveScheduledAppointmentForUser(
+  Future<Either<Failure, AppointmentEntity?>>
+  getActiveScheduledAppointmentForUser(
     String userId,
   ) async {
     try {
@@ -111,9 +112,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         ),
       );
     } catch (e) {
-      return Left(FirestoreFailure(
-        'Failed to get active appointment for user: $e',
-      ));
+      return Left(
+        FirestoreFailure(
+          'Failed to get active appointment for user: $e',
+        ),
+      );
     }
   }
 
@@ -140,9 +143,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       }
       return const Right(null);
     } catch (e) {
-      return Left(FirestoreFailure(
-        'Failed to clear active appointment lock: $e',
-      ));
+      return Left(
+        FirestoreFailure(
+          'Failed to clear active appointment lock: $e',
+        ),
+      );
     }
   }
 
@@ -154,11 +159,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     return FirestoreLogger.logStream<String?>(
       '${FirestoreCollections.userBookingLocks}/$userId',
       lockRef.snapshots().map((snap) {
-      final data = snap.data();
-      if (data == null) return null;
-      final id = data['active_appointment_id'] as String?;
-      return (id != null && id.isNotEmpty) ? id : null;
-    }),
+        final data = snap.data();
+        if (data == null) return null;
+        final id = data['active_appointment_id'] as String?;
+        return (id != null && id.isNotEmpty) ? id : null;
+      }),
     );
   }
 
@@ -184,12 +189,18 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       _col
           .where('barber_id', isEqualTo: barberId)
           .where('status', isEqualTo: AppointmentStatus.scheduled)
-          .where('start_time', isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart))
+          .where(
+            'start_time',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart),
+          )
           .orderBy('start_time')
           .snapshots()
-          .map((snap) => snap.docs
-              .map((d) => AppointmentFirestoreMapper.fromFirestore(d))
-              .toList()),
+          .map(
+            (snap) =>
+                snap.docs
+                    .map((d) => AppointmentFirestoreMapper.fromFirestore(d))
+                    .toList(),
+          ),
     );
   }
 }

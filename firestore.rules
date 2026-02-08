@@ -28,7 +28,7 @@ service cloud.firestore {
     // Private: users — strict userId matching. No get() on read.
     // -------------------------------------------------------------------------
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
       allow create: if request.auth != null
         && request.auth.uid == userId
         && (!('role' in request.resource.data) || request.resource.data.role == 'user');
@@ -93,8 +93,7 @@ service cloud.firestore {
     match /appointments/{appointmentId} {
       allow read: if request.auth != null
         && (resource.data.user_id == request.auth.uid
-            || isSuperadmin()
-            || (isBarberOrSuperadmin() && resource.data.barber_id == userBarberId()));
+            || isBarberOrSuperadmin());
       allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
       allow update: if request.auth != null
         && (resource.data.user_id == request.auth.uid || isBarberOrSuperadmin());
@@ -105,7 +104,7 @@ service cloud.firestore {
     // Private: user_booking_locks — strict userId matching. No get() on read.
     // -------------------------------------------------------------------------
     match /user_booking_locks/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
       allow create, update: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
       allow delete: if false;
     }
@@ -114,7 +113,7 @@ service cloud.firestore {
     // Private: reward_redemptions — user sees own; barber redeem uses get on write only.
     // -------------------------------------------------------------------------
     match /reward_redemptions/{redemptionId} {
-      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow read: if request.auth != null && (resource.data.user_id == request.auth.uid || isBarberOrSuperadmin());
       allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
       allow update: if request.auth != null
         && isBarberOrSuperadmin()

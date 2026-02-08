@@ -37,8 +37,9 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
     this._barberRepository,
     this._serviceRepository,
     this._brandRepository,
-    this._bookingTransaction,
-  );
+    this._bookingTransaction, {
+    this.isStaff = false,
+  });
 
   final AppointmentRepository _appointmentRepository;
   final LocationRepository _locationRepository;
@@ -46,6 +47,7 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
   final ServiceRepository _serviceRepository;
   final BrandRepository _brandRepository;
   final BookingTransaction _bookingTransaction;
+  final bool isStaff;
 
   /// Loads appointment and related display data from Firebase.
   Future<void> load(String appointmentId) async {
@@ -78,8 +80,7 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
           );
         }
         if (serviceNames.isEmpty) {
-          serviceNames =
-              appt.serviceIds.map((id) => 'Service ($id)').toList();
+          serviceNames = appt.serviceIds.map((id) => 'Service ($id)').toList();
         }
 
         final locationName = locationResult.fold(
@@ -92,10 +93,10 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
         );
         final brand = brandResult.fold((_) => null, (b) => b);
         final cancelHoursMinimum = brand?.cancelHoursMinimum ?? 0;
-        final (canCancel, cancelHoursRequired) = _computeCancelPolicy(
-          appt.startTime,
-          cancelHoursMinimum,
-        );
+        final (canCancel, cancelHoursRequired) =
+            isStaff
+                ? (true, null)
+                : _computeCancelPolicy(appt.startTime, cancelHoursMinimum);
 
         setData(
           ManageBookingData(
@@ -137,11 +138,15 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
 
     // Do not call setLoading() - it would unmount the page body and prevent
     // the success callback from running. The UI shows button spinner via _isCancelling.
-    final brandResult = await _brandRepository.getById(d.appointment.brandId);
-    final cancelHours = brandResult.fold(
-      (_) => 0,
-      (b) => b?.cancelHoursMinimum ?? 0,
-    );
+    int cancelHours = 0;
+    if (!isStaff) {
+      final brandResult = await _brandRepository.getById(d.appointment.brandId);
+      cancelHours = brandResult.fold(
+        (_) => 0,
+        (b) => b?.cancelHoursMinimum ?? 0,
+      );
+    }
+
     final result = await _bookingTransaction.cancelAppointment(
       d.appointment,
       cancelHoursMinimum: cancelHours,

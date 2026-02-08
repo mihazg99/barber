@@ -10,13 +10,16 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
     this._authRepository,
     this._userRepository, {
     void Function(UserEntity?)? onSignInUser,
-  })  : _onSignInUser = onSignInUser {
+    Future<void> Function()? onPreSignIn,
+  }) : _onSignInUser = onSignInUser,
+       _onPreSignIn = onPreSignIn {
     setData(const AuthFlowData(step: AuthStep.landing));
   }
 
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
   final void Function(UserEntity?)? _onSignInUser;
+  final Future<void> Function()? _onPreSignIn;
 
   /// Sends OTP to [phone]. On success, moves to OTP verification step.
   Future<void> sendOtp(String phone) async {
@@ -71,11 +74,15 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
   }
 
   /// Saves profile (full name and phone) and completes flow. Router redirects when profile is complete.
-  Future<void> submitProfile(UserEntity user, String fullName, String phone) async {
+  Future<void> submitProfile(
+    UserEntity user,
+    String fullName,
+    String phone,
+  ) async {
     final current = data;
     final trimmedName = fullName.trim();
     final trimmedPhone = phone.trim();
-    
+
     if (trimmedName.isEmpty) {
       setData(
         (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
@@ -84,7 +91,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
       );
       return;
     }
-    
+
     if (trimmedPhone.isEmpty || trimmedPhone.length < 10) {
       setData(
         (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
@@ -93,7 +100,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
       );
       return;
     }
-    
+
     setData(
       (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
         isLoading: true,
@@ -117,6 +124,11 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
         (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
           isLoading: false,
           errorMessage: null,
+          step: AuthStep.landing,
+          user: user.copyWith(
+            fullName: trimmedName,
+            phone: trimmedPhone,
+          ),
         ),
       ),
     );
@@ -151,6 +163,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
   Future<void> signInWithGoogle({required bool requireSmsVerification}) async {
     final current = data ?? const AuthFlowData(step: AuthStep.landing);
     setData(current.copyWith(isLoading: true, errorMessage: null));
+    await _onPreSignIn?.call();
     final result = await _authRepository.signInWithGoogle();
     result.fold(
       (failure) {
@@ -169,8 +182,9 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
       (user) {
         _onSignInUser?.call(user);
         // Always go to profile step to collect phone number (unless both name and phone are present)
-        final needsProfile = user.fullName.trim().isEmpty || user.phone.trim().isEmpty;
-        
+        final needsProfile =
+            user.fullName.trim().isEmpty || user.phone.trim().isEmpty;
+
         if (needsProfile) {
           // Move to profile step
           setData(
@@ -197,6 +211,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
   Future<void> signInWithApple({required bool requireSmsVerification}) async {
     final current = data ?? const AuthFlowData(step: AuthStep.landing);
     setData(current.copyWith(isLoading: true, errorMessage: null));
+    await _onPreSignIn?.call();
     final result = await _authRepository.signInWithApple();
     result.fold(
       (failure) {
@@ -215,8 +230,9 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
       (user) {
         _onSignInUser?.call(user);
         // Always go to profile step to collect phone number (unless both name and phone are present)
-        final needsProfile = user.fullName.trim().isEmpty || user.phone.trim().isEmpty;
-        
+        final needsProfile =
+            user.fullName.trim().isEmpty || user.phone.trim().isEmpty;
+
         if (needsProfile) {
           // Move to profile step
           setData(

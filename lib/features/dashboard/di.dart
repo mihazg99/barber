@@ -41,8 +41,9 @@ final barberHomeNotifierProvider = StateNotifierProvider.autoDispose<
 >((ref) => BarberHomeNotifier());
 
 /// Current barber for the logged-in user (when they have a linked barber record).
-final currentBarberProvider =
-    FutureProvider.autoDispose<BarberEntity?>((ref) async {
+final currentBarberProvider = FutureProvider.autoDispose<BarberEntity?>((
+  ref,
+) async {
   final uid = ref.watch(currentUserProvider).valueOrNull?.userId;
   if (uid == null || uid.isEmpty) return null;
   final barberRepo = ref.watch(barbers_di.barberRepositoryProvider);
@@ -51,8 +52,10 @@ final currentBarberProvider =
 });
 
 /// Dashboard stats (daily + monthly) for a location. Uses pre-aggregated docs, no appointments query.
-final dashboardStatsProvider = FutureProvider.autoDispose
-    .family<Either<Failure, DashboardStatsEntity>, String>((ref, locationId) async {
+final dashboardStatsProvider = FutureProvider.autoDispose.family<
+  Either<Failure, DashboardStatsEntity>,
+  String
+>((ref, locationId) async {
   if (locationId.isEmpty) return Left(FirestoreFailure('locationId required'));
   final statsRepo = ref.watch(stats_di.statsRepositoryProvider);
   return statsRepo.getDashboardStats(locationId, DateTime.now());
@@ -61,18 +64,39 @@ final dashboardStatsProvider = FutureProvider.autoDispose
 /// Stream of upcoming (today or future) scheduled appointments for the current barber.
 /// When barber marks visit complete, UI updates automatically.
 /// Returns [] if user is not a linked barber (e.g. superadmin without barber record).
-final barberUpcomingAppointmentsProvider =
-    StreamProvider.autoDispose<List<AppointmentEntity>>((ref) {
-  final uid = ref.watch(currentUserProvider).valueOrNull?.userId;
-  if (uid == null || uid.isEmpty) return Stream.value([]);
-  final barberRepo = ref.watch(barbers_di.barberRepositoryProvider);
+/// Stream of upcoming (today or future) scheduled appointments for the current barber.
+/// When barber marks visit complete, UI updates automatically.
+/// Returns [] if user is not a linked barber (e.g. superadmin without barber record).
+final barberUpcomingAppointmentsProvider = StreamProvider.autoDispose<
+  List<AppointmentEntity>
+>((ref) {
+  final userAsync = ref.watch(currentUserProvider);
   final apptRepo = ref.watch(booking_di.appointmentRepositoryProvider);
-  return Stream.fromFuture(
-    barberRepo.getByUserId(uid).then((r) => r.getOrElse(() => null)),
-  ).asyncExpand((barber) {
-    if (barber == null) return Stream.value([]);
-    return apptRepo.watchUpcomingAppointmentsForBarber(barber.barberId);
-  });
+
+  // If we have the user, check if they have a barberId linked directly on the user doc (optimization).
+  return userAsync.when(
+    data: (user) {
+      if (user == null) return Stream.value([]);
+
+      // If user doc has barberId, use it directly to save a read to the barbers collection.
+      if (user.barberId.isNotEmpty) {
+        return apptRepo.watchUpcomingAppointmentsForBarber(user.barberId);
+      }
+
+      // Fallback: use the currentBarberProvider which queries the barbers collection.
+      // We convert the future to a stream and use asyncExpand to switch to the appointments stream.
+      return ref.watch(currentBarberProvider.future).asStream().asyncExpand((
+        barber,
+      ) {
+        if (barber == null) return Stream.value([]);
+        return apptRepo.watchUpcomingAppointmentsForBarber(barber.barberId);
+      });
+    },
+    // Keep loading state until we have user data.
+    loading: () => const Stream.empty(),
+    // Forward errors.
+    error: (e, st) => Stream.error(e, st),
+  );
 });
 
 final dashboardBrandNotifierProvider =
@@ -99,23 +123,24 @@ final dashboardLocationsNotifierProvider = StateNotifierProvider<
 
 /// Locations state for the dashboard locations tab. Reuses home data when on default brand
 /// so we avoid a duplicate Firestore read when the tab mounts (home already loaded locations).
-final dashboardLocationsViewProvider = Provider<BaseState<List<LocationEntity>>>((ref) {
-  final dashboardState = ref.watch(dashboardLocationsNotifierProvider);
-  final homeState = ref.watch(home_di.homeNotifierProvider);
-  final brandId =
-      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-  final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
+final dashboardLocationsViewProvider =
+    Provider<BaseState<List<LocationEntity>>>((ref) {
+      final dashboardState = ref.watch(dashboardLocationsNotifierProvider);
+      final homeState = ref.watch(home_di.homeNotifierProvider);
+      final brandId =
+          ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
+      final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
 
-  if (dashboardState is BaseData<List<LocationEntity>> ||
-      dashboardState is BaseError<List<LocationEntity>>) {
-    return dashboardState;
-  }
-  if (homeState is BaseData<HomeData> &&
-      homeState.data.brand?.brandId == effectiveBrandId) {
-    return BaseData(homeState.data.locations);
-  }
-  return dashboardState;
-});
+      if (dashboardState is BaseData<List<LocationEntity>> ||
+          dashboardState is BaseError<List<LocationEntity>>) {
+        return dashboardState;
+      }
+      if (homeState is BaseData<HomeData> &&
+          homeState.data.brand?.brandId == effectiveBrandId) {
+        return BaseData(homeState.data.locations);
+      }
+      return dashboardState;
+    });
 
 final dashboardServicesNotifierProvider = StateNotifierProvider<
   DashboardServicesNotifier,

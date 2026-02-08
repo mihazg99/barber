@@ -16,6 +16,7 @@ import 'package:barber/features/barbers/di.dart' as barbers_di;
 import 'package:barber/features/locations/di.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/services/di.dart' as services_di;
+import 'package:barber/features/auth/di.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final availabilityRepositoryProvider = Provider<AvailabilityRepository>((ref) {
@@ -41,6 +42,7 @@ final manageBookingNotifierProvider = StateNotifierProvider.family<
   BaseState<ManageBookingData>,
   String
 >((ref, appointmentId) {
+  final isStaff = ref.watch(isStaffProvider);
   return ManageBookingNotifier(
     ref.watch(appointmentRepositoryProvider),
     ref.watch(locationRepositoryProvider),
@@ -48,6 +50,7 @@ final manageBookingNotifierProvider = StateNotifierProvider.family<
     ref.watch(services_di.serviceRepositoryProvider),
     ref.watch(brandRepositoryProvider),
     ref.watch(bookingTransactionProvider),
+    isStaff: isStaff,
   )..load(appointmentId);
 });
 
