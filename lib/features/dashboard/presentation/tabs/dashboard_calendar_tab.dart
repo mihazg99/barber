@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
@@ -12,7 +13,6 @@ import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 
-import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
 import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/home/di.dart';
@@ -25,8 +25,11 @@ class DashboardCalendarTab extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appointmentsAsync = ref.watch(barberUpcomingAppointmentsProvider);
-    final user = ref.watch(currentUserProvider).valueOrNull;
+    final selectedDate = useState(DateTime.now());
+    final dayAppointmentsAsync = ref.watch(
+      appointmentsForDateProvider(selectedDate.value),
+    );
+
     final homeState = ref.watch(homeNotifierProvider);
     final locations =
         homeState is BaseData<HomeData>
@@ -34,20 +37,17 @@ class DashboardCalendarTab extends HookConsumerWidget {
             : <LocationEntity>[];
     final brand = homeState is BaseData<HomeData> ? homeState.data.brand : null;
 
-    final selectedDate = useState(DateTime.now());
-
-    return appointmentsAsync.when(
-      data: (appointments) {
-        final dayAppointments = _getAppointmentsForDay(
-          appointments,
-          selectedDate.value,
-        );
-
+    return dayAppointmentsAsync.when(
+      data: (dayAppointments) {
         return Column(
           children: [
             _CalendarHeader(
               selectedDate: selectedDate.value,
-              onDateChanged: (date) => selectedDate.value = date,
+              onDateChanged: (date) {
+                // Expand window if needed before changing date
+                expandCalendarWindowIfNeeded(ref, date);
+                selectedDate.value = date;
+              },
               appointmentCount: dayAppointments.length,
             ),
             Expanded(
@@ -70,22 +70,6 @@ class DashboardCalendarTab extends HookConsumerWidget {
             ),
           ),
     );
-  }
-
-  static List<AppointmentEntity> _getAppointmentsForDay(
-    List<AppointmentEntity> appointments,
-    DateTime day,
-  ) {
-    final filtered =
-        appointments.where((appointment) {
-          final appointmentDate = appointment.startTime;
-          return appointmentDate.year == day.year &&
-              appointmentDate.month == day.month &&
-              appointmentDate.day == day.day;
-        }).toList();
-
-    filtered.sort((a, b) => a.startTime.compareTo(b.startTime));
-    return filtered;
   }
 }
 
@@ -148,7 +132,7 @@ class _CalendarHeader extends HookWidget {
 }
 
 /// Date selector with navigation.
-class _DateSelector extends HookWidget {
+class _DateSelector extends HookConsumerWidget {
   const _DateSelector({
     required this.selectedDate,
     required this.onDateChanged,
@@ -160,7 +144,7 @@ class _DateSelector extends HookWidget {
   final String locale;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.appColors;
     final dateFormat = DateFormat('EEEE, MMM d', locale);
     final dateStr = dateFormat.format(selectedDate);
@@ -180,24 +164,10 @@ class _DateSelector extends HookWidget {
         Expanded(
           child: InkWell(
             onTap: () async {
-              final picked = await showDatePicker(
+              final picked = await _showCalendarPicker(
                 context: context,
+                ref: ref,
                 initialDate: selectedDate,
-                firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                lastDate: DateTime.now().add(const Duration(days: 365)),
-                builder: (context, child) {
-                  return Theme(
-                    data: Theme.of(context).copyWith(
-                      colorScheme: ColorScheme.dark(
-                        primary: colors.primaryColor,
-                        onPrimary: colors.primaryWhiteColor,
-                        surface: colors.menuBackgroundColor,
-                        onSurface: colors.primaryTextColor,
-                      ),
-                    ),
-                    child: child!,
-                  );
-                },
               );
               if (picked != null) {
                 onDateChanged(picked);
@@ -805,4 +775,105 @@ class _LargeAppointmentLayout extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Shows a custom calendar picker dialog with appointment markers.
+Future<DateTime?> _showCalendarPicker({
+  required BuildContext context,
+  required WidgetRef ref,
+  required DateTime initialDate,
+}) async {
+  final colors = context.appColors;
+  final markers = ref.read(calendarMarkersProvider);
+  final locale = Localizations.localeOf(context).toString();
+  DateTime? selectedDate;
+
+  return showDialog<DateTime>(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        backgroundColor: colors.menuBackgroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: 400, // Fixed height to prevent animation
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TableCalendar(
+                  firstDay: DateTime.now().subtract(const Duration(days: 365)),
+                  lastDay: DateTime.now().add(const Duration(days: 365)),
+                  focusedDay: initialDate,
+                  locale: locale,
+                  selectedDayPredicate:
+                      (day) => isSameDay(selectedDate ?? initialDate, day),
+                  onDaySelected: (selected, focused) {
+                    selectedDate = selected;
+                    Navigator.of(context).pop(selected);
+                  },
+                  calendarFormat: CalendarFormat.month,
+                  availableCalendarFormats: const {
+                    CalendarFormat.month: 'Month',
+                  },
+                  daysOfWeekHeight: 40,
+                  rowHeight: 48,
+                  sixWeekMonthsEnforced:
+                      true, // Always show 6 weeks to maintain consistent height
+                  headerStyle: HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                    titleTextStyle: context.appTextStyles.h2.copyWith(
+                      fontSize: 16,
+                      color: colors.primaryTextColor,
+                    ),
+                    leftChevronIcon: Icon(
+                      Icons.chevron_left,
+                      color: colors.primaryTextColor,
+                    ),
+                    rightChevronIcon: Icon(
+                      Icons.chevron_right,
+                      color: colors.primaryTextColor,
+                    ),
+                  ),
+                  calendarStyle: CalendarStyle(
+                    todayDecoration: BoxDecoration(
+                      color: colors.primaryColor.withValues(alpha: 0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    selectedDecoration: BoxDecoration(
+                      color: colors.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    defaultTextStyle: context.appTextStyles.body.copyWith(
+                      color: colors.primaryTextColor,
+                    ),
+                    weekendTextStyle: context.appTextStyles.body.copyWith(
+                      color: colors.primaryTextColor,
+                    ),
+                    outsideTextStyle: context.appTextStyles.body.copyWith(
+                      color: colors.secondaryTextColor.withValues(alpha: 0.5),
+                    ),
+                    markerDecoration: BoxDecoration(
+                      color: colors.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    markerSize: 6,
+                    markersMaxCount: 3,
+                  ),
+                  eventLoader: (day) {
+                    final dayOnly = DateTime(day.year, day.month, day.day);
+                    final count = markers[dayOnly] ?? 0;
+                    return List.generate(count, (_) => 'event');
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }

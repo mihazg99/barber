@@ -226,4 +226,35 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           ),
     );
   }
+
+  @override
+  Stream<List<AppointmentEntity>> watchAppointmentsForBarberInRange(
+    String barberId,
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    return FirestoreLogger.logStream<List<AppointmentEntity>>(
+      '${FirestoreCollections.appointments}?barber_id=$barberId&range=${startDate.toIso8601String()}_${endDate.toIso8601String()}',
+      _col
+          .where('barber_id', isEqualTo: barberId)
+          .where('status', isEqualTo: AppointmentStatus.scheduled)
+          .where(
+            'start_time',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+          )
+          .where(
+            'start_time',
+            isLessThanOrEqualTo: Timestamp.fromDate(endDate),
+          )
+          .orderBy('start_time')
+          .snapshots()
+          .map(
+            (snap) {
+              return snap.docs
+                  .map((d) => AppointmentFirestoreMapper.fromFirestore(d))
+                  .toList();
+            },
+          ),
+    );
+  }
 }

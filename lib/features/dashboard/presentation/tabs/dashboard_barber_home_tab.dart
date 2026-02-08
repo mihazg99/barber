@@ -27,7 +27,7 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
     final userAsync = ref.watch(currentUserProvider);
     final lastUser = ref.watch(lastSignedInUserProvider);
     final user = userAsync.valueOrNull ?? lastUser;
-    final appointmentsAsync = ref.watch(barberUpcomingAppointmentsProvider);
+    final appointmentsAsync = ref.watch(calendarWindowAppointmentsProvider);
     final homeState = ref.watch(homeNotifierProvider);
     final tabNotifier = ref.read(dashboardBarberTabIndexProvider.notifier);
     final locations =
@@ -40,7 +40,7 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
 
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(barberUpcomingAppointmentsProvider);
+        ref.invalidate(calendarWindowAppointmentsProvider);
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),

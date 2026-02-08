@@ -42,6 +42,15 @@ abstract class AppointmentRepository {
     String userId,
   );
 
+  /// Stream of appointments for a barber within a specific date range.
+  /// Used for calendar view to minimize reads by loading only visible window.
+  /// Sorted by start_time ascending.
+  Stream<List<AppointmentEntity>> watchAppointmentsForBarberInRange(
+    String barberId,
+    DateTime startDate,
+    DateTime endDate,
+  );
+
   /// Updates appointment status.
   Future<Either<Failure, void>> updateStatus(
     String appointmentId,

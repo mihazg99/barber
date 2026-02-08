@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dartz/dartz.dart';
@@ -98,6 +99,149 @@ final barberUpcomingAppointmentsProvider = StreamProvider.autoDispose<
     return apptRepo.watchUpcomingAppointmentsForBarber(barber.barberId);
   });
 });
+
+/// Manages the current date range window for the calendar.
+/// Starts with 10-day window (today - 2 to today + 7), expands when user navigates beyond range.
+final calendarWindowProvider = StateProvider.autoDispose<DateTimeRange>((ref) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+
+  return DateTimeRange(
+    start: today.subtract(const Duration(days: 2)),
+    end: today.add(const Duration(days: 7)),
+  );
+});
+
+/// Stream of appointments for the current calendar window.
+/// Uses ref.keepAlive() to prevent disposal when switching tabs.
+/// This is the ONLY provider that queries Firestore for calendar data.
+final calendarWindowAppointmentsProvider =
+    StreamProvider.autoDispose<List<AppointmentEntity>>((ref) {
+      final window = ref.watch(calendarWindowProvider);
+      final userAsync = ref.watch(currentUserProvider);
+      final user = userAsync.valueOrNull;
+      final apptRepo = ref.watch(booking_di.appointmentRepositoryProvider);
+
+      // Keep stream alive to prevent re-reads on tab switches
+      final link = ref.keepAlive();
+
+      // Auto-dispose after 5 minutes of inactivity to free memory
+      Timer? timer;
+      ref.onDispose(() => timer?.cancel());
+      ref.onCancel(() {
+        timer = Timer(const Duration(minutes: 5), () {
+          link.close();
+        });
+      });
+      ref.onResume(() {
+        timer?.cancel();
+      });
+
+      if (user == null) {
+        if (userAsync.isLoading) {
+          return Stream.fromFuture(Completer<List<AppointmentEntity>>().future);
+        }
+        return Stream.value([]);
+      }
+
+      if (user.barberId.isNotEmpty) {
+        return apptRepo.watchAppointmentsForBarberInRange(
+          user.barberId,
+          window.start,
+          window.end,
+        );
+      }
+
+      return ref.watch(currentBarberProvider.future).asStream().asyncExpand((
+        barber,
+      ) {
+        if (barber == null) {
+          return Stream.value([]);
+        }
+        return apptRepo.watchAppointmentsForBarberInRange(
+          barber.barberId,
+          window.start,
+          window.end,
+        );
+      });
+    });
+
+/// Appointments for a specific date, filtered from the window provider.
+/// This does NOT query Firestore - it filters from already-loaded data.
+/// Selecting different dates will NOT trigger new reads.
+final appointmentsForDateProvider = Provider.autoDispose
+    .family<AsyncValue<List<AppointmentEntity>>, DateTime>((ref, date) {
+      final windowAsync = ref.watch(calendarWindowAppointmentsProvider);
+
+      return windowAsync.whenData((appointments) {
+        // Filter for the specific date (client-side, zero reads)
+        final filtered =
+            appointments.where((appointment) {
+              final appointmentDate = appointment.startTime;
+              return appointmentDate.year == date.year &&
+                  appointmentDate.month == date.month &&
+                  appointmentDate.day == date.day;
+            }).toList();
+
+        // Already sorted by start_time from Firestore query
+        return filtered;
+      });
+    });
+
+/// Calendar markers showing which days have appointments.
+/// Uses data from the existing window - zero additional reads.
+/// Returns a map of date -> appointment count for marker display.
+final calendarMarkersProvider = Provider.autoDispose<Map<DateTime, int>>((ref) {
+  final windowAsync = ref.watch(calendarWindowAppointmentsProvider);
+
+  return windowAsync.when(
+    data: (appointments) {
+      final Map<DateTime, int> markers = {};
+
+      for (final appointment in appointments) {
+        final date = DateTime(
+          appointment.startTime.year,
+          appointment.startTime.month,
+          appointment.startTime.day,
+        );
+        markers[date] = (markers[date] ?? 0) + 1;
+      }
+
+      return markers;
+    },
+    loading: () => {},
+    error: (_, __) => {},
+  );
+});
+
+/// Expands the calendar window to include the target date if needed.
+/// Call this when user navigates to a date outside current window.
+/// Merges with existing window to prevent data loss.
+void expandCalendarWindowIfNeeded(WidgetRef ref, DateTime targetDate) {
+  final currentWindow = ref.read(calendarWindowProvider);
+  final targetDay = DateTime(targetDate.year, targetDate.month, targetDate.day);
+
+  // Check if target is outside current window
+  if (targetDay.isBefore(currentWindow.start) ||
+      targetDay.isAfter(currentWindow.end)) {
+    // Expand window to include target date while keeping existing range
+    // This merges the windows instead of replacing, preventing data loss
+    final newStart =
+        targetDay.isBefore(currentWindow.start)
+            ? targetDay.subtract(const Duration(days: 5))
+            : currentWindow.start;
+
+    final newEnd =
+        targetDay.isAfter(currentWindow.end)
+            ? targetDay.add(const Duration(days: 10))
+            : currentWindow.end;
+
+    ref.read(calendarWindowProvider.notifier).state = DateTimeRange(
+      start: newStart,
+      end: newEnd,
+    );
+  }
+}
 
 final dashboardBrandNotifierProvider =
     StateNotifierProvider<DashboardBrandNotifier, BaseState<BrandEntity?>>((
