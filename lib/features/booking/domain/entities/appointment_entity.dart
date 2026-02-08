@@ -21,6 +21,8 @@ class AppointmentEntity extends Equatable {
     required this.endTime,
     required this.totalPrice,
     required this.status,
+    required this.customerName,
+    required this.serviceName,
     this.createdAt,
   });
 
@@ -36,18 +38,26 @@ class AppointmentEntity extends Equatable {
   final String status;
   final DateTime? createdAt;
 
+  /// Denormalized customer name for display
+  final String customerName;
+
+  /// Denormalized service name for display (comma-separated if multiple)
+  final String serviceName;
+
   @override
   List<Object?> get props => [
-        appointmentId,
-        brandId,
-        locationId,
-        userId,
-        barberId,
-        serviceIds,
-        startTime,
-        endTime,
-        totalPrice,
-        status,
-        createdAt,
-      ];
+    appointmentId,
+    brandId,
+    locationId,
+    userId,
+    barberId,
+    serviceIds,
+    startTime,
+    endTime,
+    totalPrice,
+    status,
+    createdAt,
+    customerName,
+    serviceName,
+  ];
 }

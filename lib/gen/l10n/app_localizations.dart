@@ -848,6 +848,12 @@ abstract class AppLocalizations {
   /// **'Termini'**
   String get dashboardNavBookings;
 
+  /// No description provided for @dashboardNavCalendar.
+  ///
+  /// In hr, this message translates to:
+  /// **'Kalendar'**
+  String get dashboardNavCalendar;
+
   /// No description provided for @dashboardNavShift.
   ///
   /// In hr, this message translates to:
@@ -1807,6 +1813,102 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'OTVORENO SADA {open} - {close}'**
   String openNow(String open, String close);
+
+  /// No description provided for @calendarTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Kalendar'**
+  String get calendarTitle;
+
+  /// No description provided for @calendarToday.
+  ///
+  /// In hr, this message translates to:
+  /// **'Danas'**
+  String get calendarToday;
+
+  /// No description provided for @calendarNoAppointments.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nema termina'**
+  String get calendarNoAppointments;
+
+  /// No description provided for @calendarAppointmentsCount.
+  ///
+  /// In hr, this message translates to:
+  /// **'{count} termin(a)'**
+  String calendarAppointmentsCount(int count);
+
+  /// No description provided for @calendarViewDay.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dan'**
+  String get calendarViewDay;
+
+  /// No description provided for @calendarViewWeek.
+  ///
+  /// In hr, this message translates to:
+  /// **'Tjedan'**
+  String get calendarViewWeek;
+
+  /// No description provided for @calendarViewMonth.
+  ///
+  /// In hr, this message translates to:
+  /// **'Mjesec'**
+  String get calendarViewMonth;
+
+  /// No description provided for @calendarAppointmentDetails.
+  ///
+  /// In hr, this message translates to:
+  /// **'Detalji termina'**
+  String get calendarAppointmentDetails;
+
+  /// No description provided for @calendarClient.
+  ///
+  /// In hr, this message translates to:
+  /// **'Klijent'**
+  String get calendarClient;
+
+  /// No description provided for @calendarService.
+  ///
+  /// In hr, this message translates to:
+  /// **'Usluga'**
+  String get calendarService;
+
+  /// No description provided for @calendarTime.
+  ///
+  /// In hr, this message translates to:
+  /// **'Vrijeme'**
+  String get calendarTime;
+
+  /// No description provided for @calendarDuration.
+  ///
+  /// In hr, this message translates to:
+  /// **'Trajanje'**
+  String get calendarDuration;
+
+  /// No description provided for @calendarPrice.
+  ///
+  /// In hr, this message translates to:
+  /// **'Cijena'**
+  String get calendarPrice;
+
+  /// No description provided for @calendarStatus.
+  ///
+  /// In hr, this message translates to:
+  /// **'Status'**
+  String get calendarStatus;
+
+  /// No description provided for @calendarLocation.
+  ///
+  /// In hr, this message translates to:
+  /// **'Lokacija'**
+  String get calendarLocation;
+
+  /// No description provided for @errorLoadingAppointments.
+  ///
+  /// In hr, this message translates to:
+  /// **'Greška pri učitavanju termina'**
+  String get errorLoadingAppointments;
 }
 
 class _AppLocalizationsDelegate

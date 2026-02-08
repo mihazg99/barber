@@ -212,6 +212,13 @@ class _BookingPageState extends ConsumerState<BookingPage> {
         Duration(minutes: bookingState.totalDurationMinutes),
       );
 
+      // Get user data for customer name
+      final userResult = await ref.read(userRepositoryProvider).getById(userId);
+      final customerName = userResult.fold(
+        (_) => 'Customer',
+        (user) => user?.fullName ?? 'Customer',
+      );
+
       // Create appointment entity
       final appointment = AppointmentEntity(
         appointmentId: appointmentId,
@@ -224,6 +231,8 @@ class _BookingPageState extends ConsumerState<BookingPage> {
         endTime: endTime,
         totalPrice: bookingState.totalPrice,
         status: AppointmentStatus.scheduled,
+        customerName: customerName,
+        serviceName: bookingState.selectedService!.name,
       );
 
       // Create appointment + update availability in one transaction (prevents double booking)

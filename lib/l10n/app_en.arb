@@ -174,6 +174,7 @@
 
   "dashboardNavHome": "Home",
   "dashboardNavBookings": "Bookings",
+  "dashboardNavCalendar": "Calendar",
   "dashboardNavShift": "Shift",
   "dashboardNavBrand": "Brand",
   "dashboardNavLocations": "Locations",
@@ -389,5 +390,29 @@
         "type": "String"
       }
     }
-  }
+  },
+
+  "calendarTitle": "Calendar",
+  "calendarToday": "Today",
+  "calendarNoAppointments": "No appointments",
+  "calendarAppointmentsCount": "{count} appointment(s)",
+  "@calendarAppointmentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarViewDay": "Day",
+  "calendarViewWeek": "Week",
+  "calendarViewMonth": "Month",
+  "calendarAppointmentDetails": "Appointment details",
+  "calendarClient": "Client",
+  "calendarService": "Service",
+  "calendarTime": "Time",
+  "calendarDuration": "Duration",
+  "calendarPrice": "Price",
+  "calendarStatus": "Status",
+  "calendarLocation": "Location",
+  "errorLoadingAppointments": "Error loading appointments"
 }

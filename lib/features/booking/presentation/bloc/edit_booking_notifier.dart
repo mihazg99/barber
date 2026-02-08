@@ -123,8 +123,7 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
           );
         }
         if (serviceNames.isEmpty) {
-          serviceNames =
-              appt.serviceIds.map((id) => 'Service ($id)').toList();
+          serviceNames = appt.serviceIds.map((id) => 'Service ($id)').toList();
         }
 
         final locationName = locationResult.fold(
@@ -194,10 +193,7 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
     if (cancelResult.isLeft()) return false;
 
     final newAppointmentId =
-        _firestore
-            .collection(FirestoreCollections.appointments)
-            .doc()
-            .id;
+        _firestore.collection(FirestoreCollections.appointments).doc().id;
     final dateStr =
         '${s.selectedDate!.year}-${s.selectedDate!.month.toString().padLeft(2, '0')}-'
         '${s.selectedDate!.day.toString().padLeft(2, '0')}';
@@ -229,6 +225,8 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
       endTime: endTime,
       totalPrice: s.appointment.totalPrice,
       status: AppointmentStatus.scheduled,
+      customerName: s.appointment.customerName,
+      serviceName: s.appointment.serviceName,
     );
 
     final bufferTime = brand?.bufferTime ?? 0;

@@ -17,7 +17,7 @@ import 'package:barber/features/dashboard/presentation/tabs/dashboard_analytics_
 import 'package:barber/features/dashboard/presentation/tabs/dashboard_barber_home_tab.dart';
 import 'package:barber/features/dashboard/presentation/tabs/dashboard_brand_tab.dart';
 import 'package:barber/features/dashboard/presentation/tabs/dashboard_barbers_tab.dart';
-import 'package:barber/features/dashboard/presentation/tabs/dashboard_bookings_tab.dart';
+import 'package:barber/features/dashboard/presentation/tabs/dashboard_calendar_tab.dart';
 import 'package:barber/features/dashboard/presentation/tabs/dashboard_locations_tab.dart';
 import 'package:barber/features/dashboard/presentation/tabs/dashboard_rewards_tab.dart';
 import 'package:barber/features/dashboard/presentation/tabs/dashboard_services_tab.dart';
@@ -29,17 +29,25 @@ class DashboardPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider).valueOrNull;
+    final userAsync = ref.watch(currentUserProvider);
+    final lastUser = ref.watch(lastSignedInUserProvider);
+    final user = userAsync.valueOrNull ?? lastUser;
+
+    // Use fallback for role so useEffect/useState dependencies are stable
     final role = user?.role ?? UserRole.user;
-    final navItems = DashboardNavConfig.forRole(role, context.l10n);
+
     final superadminTabIndex = useState(0);
 
     // Centralized data load: fetch once when dashboard mounts. Reduces 11+ reads to 5.
     useEffect(() {
       Future.microtask(() async {
         if (role == UserRole.superadmin) {
-          final cachedBrand = await ref.read(brand_di.defaultBrandProvider.future);
-          await ref.read(dashboardBrandNotifierProvider.notifier).load(cachedBrand: cachedBrand);
+          final cachedBrand = await ref.read(
+            brand_di.defaultBrandProvider.future,
+          );
+          await ref
+              .read(dashboardBrandNotifierProvider.notifier)
+              .load(cachedBrand: cachedBrand);
           await Future.wait([
             ref.read(dashboardLocationsNotifierProvider.notifier).load(),
             ref.read(dashboardServicesNotifierProvider.notifier).load(),
@@ -47,14 +55,30 @@ class DashboardPage extends HookConsumerWidget {
             ref.read(dashboardBarbersNotifierProvider.notifier).load(),
           ]);
         } else if (role == UserRole.barber) {
-          final cachedBrand = await ref.read(brand_di.defaultBrandProvider.future);
-          ref.read(home_di.homeNotifierProvider.notifier).load(cachedBrand: cachedBrand);
+          final cachedBrand = await ref.read(
+            brand_di.defaultBrandProvider.future,
+          );
+          // Force refresh of appointments to ensure we have the latest user/barber ID
+          ref.invalidate(barberUpcomingAppointmentsProvider);
+
+          ref
+              .read(home_di.homeNotifierProvider.notifier)
+              .load(cachedBrand: cachedBrand);
         }
       });
       return null;
     }, [role]);
+
     final barberTabIndex = ref.watch(dashboardBarberTabIndexProvider);
-    final barberTabNotifier = ref.read(dashboardBarberTabIndexProvider.notifier);
+    final barberTabNotifier = ref.read(
+      dashboardBarberTabIndexProvider.notifier,
+    );
+
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final navItems = DashboardNavConfig.forRole(role, context.l10n);
 
     final isBarber = role == UserRole.barber;
     final selectedIndex = isBarber ? barberTabIndex : superadminTabIndex.value;
@@ -66,26 +90,27 @@ class DashboardPage extends HookConsumerWidget {
       }
     }
 
-    final body = isBarber
-        ? IndexedStack(
-            index: selectedIndex,
-            children: const [
-              DashboardBarberHomeTab(),
-              DashboardBookingsTab(),
-              DashboardShiftTab(),
-            ],
-          )
-        : IndexedStack(
-            index: selectedIndex,
-            children: [
-              const DashboardBrandTab(),
-              const DashboardLocationsTab(),
-              const DashboardServicesTab(),
-              const DashboardRewardsTab(),
-              const DashboardBarbersTab(),
-              DashboardAnalyticsTab(isSelected: selectedIndex == 5),
-            ],
-          );
+    final body =
+        isBarber
+            ? IndexedStack(
+              index: selectedIndex,
+              children: const [
+                DashboardBarberHomeTab(),
+                DashboardCalendarTab(),
+                DashboardShiftTab(),
+              ],
+            )
+            : IndexedStack(
+              index: selectedIndex,
+              children: [
+                const DashboardBrandTab(),
+                const DashboardLocationsTab(),
+                const DashboardServicesTab(),
+                const DashboardRewardsTab(),
+                const DashboardBarbersTab(),
+                DashboardAnalyticsTab(isSelected: selectedIndex == 5),
+              ],
+            );
 
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
@@ -162,7 +187,8 @@ class _NavItem extends StatelessWidget {
             Icon(
               item.icon,
               size: 22,
-              color: isSelected ? colors.primaryColor : colors.secondaryTextColor,
+              color:
+                  isSelected ? colors.primaryColor : colors.secondaryTextColor,
             ),
             const SizedBox(height: 2),
             Text(
@@ -170,7 +196,10 @@ class _NavItem extends StatelessWidget {
               style: context.appTextStyles.medium.copyWith(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? colors.primaryColor : colors.secondaryTextColor,
+                color:
+                    isSelected
+                        ? colors.primaryColor
+                        : colors.secondaryTextColor,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

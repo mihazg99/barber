@@ -51,29 +51,30 @@ class LoyaltyCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserStreamProvider);
+    final lastUser = ref.watch(lastSignedInUserProvider);
+    final userValue = currentUserAsync.valueOrNull ?? lastUser;
 
-    return switch (currentUserAsync) {
-      AsyncLoading() => const Column(
+    return switch (userValue) {
+      null => switch (currentUserAsync) {
+        AsyncLoading() => const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 4),
+              child: _LoyaltyCardShimmer(),
+            ),
+            Gap(_sectionSpacing),
+          ],
+        ),
+        _ => const SizedBox.shrink(),
+      },
+      final value => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 4),
-            child: _LoyaltyCardShimmer(),
-          ),
+          _LoyaltyCardContent(user: value),
           Gap(_sectionSpacing),
         ],
       ),
-      AsyncData(:final value) =>
-        value == null
-            ? const SizedBox.shrink()
-            : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _LoyaltyCardContent(user: value),
-                Gap(_sectionSpacing),
-              ],
-            ),
-      _ => const SizedBox.shrink(),
     };
   }
 }

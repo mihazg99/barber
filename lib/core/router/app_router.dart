@@ -31,6 +31,9 @@ import 'package:barber/features/splash/presentation/pages/splash_page.dart';
 
 import 'app_routes.dart';
 
+// Track first run globally to persist across provider rebuilds (e.g. on logout)
+bool _isFirstRun = true;
+
 final goRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = ref.watch(routerRefreshNotifierProvider);
 
@@ -67,9 +70,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   });
 
   return GoRouter(
-    initialLocation: AppRoute.splash.path,
+    initialLocation: AppRoute.auth.path,
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
+      // Force splash screen on first run (app startup) when landing on default route,
+      // but allow Auth as fallback for future refreshes to avoid splash flash.
+      if (_isFirstRun && state.uri.path == AppRoute.auth.path) {
+        _isFirstRun = false;
+        return AppRoute.splash.path;
+      }
+      _isFirstRun = false;
+
       // Use container from context so we don't use ref during "dependency changed"
       // (e.g. when refreshNotifier.notify() runs from ref.listen), which would throw.
       final container = ProviderScope.containerOf(context);
@@ -133,7 +144,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           !isProfileComplete &&
           path != AppRoute.auth.path) {
         final userAsync = container.read(currentUserProvider);
-        if (userAsync.isLoading) return AppRoute.splash.path;
+        if (userAsync.isLoading) return AppRoute.auth.path;
         return AppRoute.auth.path;
       }
       if (isAuthenticated && path == AppRoute.auth.path) {

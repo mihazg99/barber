@@ -404,6 +404,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get dashboardNavBookings => 'Termini';
 
   @override
+  String get dashboardNavCalendar => 'Kalendar';
+
+  @override
   String get dashboardNavShift => 'Smjena';
 
   @override
@@ -905,4 +908,54 @@ class AppLocalizationsHr extends AppLocalizations {
   String openNow(String open, String close) {
     return 'OTVORENO SADA $open - $close';
   }
+
+  @override
+  String get calendarTitle => 'Kalendar';
+
+  @override
+  String get calendarToday => 'Danas';
+
+  @override
+  String get calendarNoAppointments => 'Nema termina';
+
+  @override
+  String calendarAppointmentsCount(int count) {
+    return '$count termin(a)';
+  }
+
+  @override
+  String get calendarViewDay => 'Dan';
+
+  @override
+  String get calendarViewWeek => 'Tjedan';
+
+  @override
+  String get calendarViewMonth => 'Mjesec';
+
+  @override
+  String get calendarAppointmentDetails => 'Detalji termina';
+
+  @override
+  String get calendarClient => 'Klijent';
+
+  @override
+  String get calendarService => 'Usluga';
+
+  @override
+  String get calendarTime => 'Vrijeme';
+
+  @override
+  String get calendarDuration => 'Trajanje';
+
+  @override
+  String get calendarPrice => 'Cijena';
+
+  @override
+  String get calendarStatus => 'Status';
+
+  @override
+  String get calendarLocation => 'Lokacija';
+
+  @override
+  String get errorLoadingAppointments => 'Greška pri učitavanju termina';
 }

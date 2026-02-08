@@ -17,8 +17,7 @@ class UpcomingAppointmentNotifier
   final AppointmentRepository _repository;
   final String _userId;
 
-  StreamSubscription<String?>? _activeIdSubscription;
-  StreamSubscription<AppointmentEntity?>? _appointmentSubscription;
+  StreamSubscription<List<AppointmentEntity>>? _appointmentsSubscription;
 
   void _startListening() {
     if (_userId.isEmpty) {
@@ -26,44 +25,29 @@ class UpcomingAppointmentNotifier
       return;
     }
     setLoading();
-    _activeIdSubscription = _repository
-        .watchActiveAppointmentId(_userId)
+    _appointmentsSubscription = _repository
+        .watchUpcomingAppointmentsForUser(_userId)
         .listen(
-          (activeId) {
-            _appointmentSubscription?.cancel();
-            _appointmentSubscription = null;
-
-            if (activeId == null || activeId.isEmpty) {
+          (appointments) {
+            if (appointments.isEmpty) {
               setData(null);
               return;
             }
+            // The query filters for scheduled status.
+            // We must filter for start_time >= now and order by start_time client-side.
+            final now = DateTime.now();
+            final upcoming =
+                appointments.where((a) {
+                  return a.status == AppointmentStatus.scheduled &&
+                      a.endTime.isAfter(now);
+                }).toList();
 
-            setLoading();
-            _appointmentSubscription = _repository
-                .watchAppointment(activeId)
-                .listen(
-                  (appointment) {
-                    if (appointment == null) {
-                      setData(null);
-                      return;
-                    }
-
-                    if (appointment.status != AppointmentStatus.scheduled) {
-                      setData(null);
-                      return;
-                    }
-
-                    if (!appointment.startTime.isAfter(DateTime.now())) {
-                      setData(null);
-                      return;
-                    }
-
-                    setData(appointment);
-                  },
-                  onError: (e) {
-                    setError(e.toString(), e);
-                  },
-                );
+            if (upcoming.isEmpty) {
+              setData(null);
+            } else {
+              upcoming.sort((a, b) => a.startTime.compareTo(b.startTime));
+              setData(upcoming.first);
+            }
           },
           onError: (e) {
             setError(e.toString(), e);
@@ -73,8 +57,7 @@ class UpcomingAppointmentNotifier
 
   @override
   void dispose() {
-    _activeIdSubscription?.cancel();
-    _appointmentSubscription?.cancel();
+    _appointmentsSubscription?.cancel();
     super.dispose();
   }
 }

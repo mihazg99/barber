@@ -403,6 +403,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardNavBookings => 'Bookings';
 
   @override
+  String get dashboardNavCalendar => 'Calendar';
+
+  @override
   String get dashboardNavShift => 'Shift';
 
   @override
@@ -900,4 +903,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String openNow(String open, String close) {
     return 'OPEN NOW $open - $close';
   }
+
+  @override
+  String get calendarTitle => 'Calendar';
+
+  @override
+  String get calendarToday => 'Today';
+
+  @override
+  String get calendarNoAppointments => 'No appointments';
+
+  @override
+  String calendarAppointmentsCount(int count) {
+    return '$count appointment(s)';
+  }
+
+  @override
+  String get calendarViewDay => 'Day';
+
+  @override
+  String get calendarViewWeek => 'Week';
+
+  @override
+  String get calendarViewMonth => 'Month';
+
+  @override
+  String get calendarAppointmentDetails => 'Appointment details';
+
+  @override
+  String get calendarClient => 'Client';
+
+  @override
+  String get calendarService => 'Service';
+
+  @override
+  String get calendarTime => 'Time';
+
+  @override
+  String get calendarDuration => 'Duration';
+
+  @override
+  String get calendarPrice => 'Price';
+
+  @override
+  String get calendarStatus => 'Status';
+
+  @override
+  String get calendarLocation => 'Location';
+
+  @override
+  String get errorLoadingAppointments => 'Error loading appointments';
 }

@@ -13,7 +13,8 @@ abstract class AppointmentRepository {
   Future<Either<Failure, List<AppointmentEntity>>> getByUserId(String userId);
 
   /// Fetches the user's active scheduled appointment (from user_booking_locks). Used when barber scans loyalty QR.
-  Future<Either<Failure, AppointmentEntity?>> getActiveScheduledAppointmentForUser(
+  Future<Either<Failure, AppointmentEntity?>>
+  getActiveScheduledAppointmentForUser(
     String userId,
   );
 
@@ -33,6 +34,12 @@ abstract class AppointmentRepository {
   /// Sorted by start_time ascending.
   Stream<List<AppointmentEntity>> watchUpcomingAppointmentsForBarber(
     String barberId,
+  );
+
+  /// Stream of upcoming scheduled appointments for a user (start_time >= now).
+  /// Sorted by start_time ascending.
+  Stream<List<AppointmentEntity>> watchUpcomingAppointmentsForUser(
+    String userId,
   );
 
   /// Updates appointment status.

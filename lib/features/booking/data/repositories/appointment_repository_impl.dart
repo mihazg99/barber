@@ -196,6 +196,29 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           .orderBy('start_time')
           .snapshots()
           .map(
+            (snap) {
+              return snap.docs
+                  .map((d) => AppointmentFirestoreMapper.fromFirestore(d))
+                  .toList();
+            },
+          ),
+    );
+  }
+
+  @override
+  Stream<List<AppointmentEntity>> watchUpcomingAppointmentsForUser(
+    String userId,
+  ) {
+    // Relaxed query to avoid requiring a custom composite index.
+    // We filter by user_id and status (equalities), which usually works without extra indexes.
+    // Time filtering and sorting is done client-side.
+    return FirestoreLogger.logStream<List<AppointmentEntity>>(
+      '${FirestoreCollections.appointments}?user_id=$userId',
+      _col
+          .where('user_id', isEqualTo: userId)
+          .where('status', isEqualTo: AppointmentStatus.scheduled)
+          .snapshots()
+          .map(
             (snap) =>
                 snap.docs
                     .map((d) => AppointmentFirestoreMapper.fromFirestore(d))

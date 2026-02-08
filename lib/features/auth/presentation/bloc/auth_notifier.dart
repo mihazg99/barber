@@ -167,6 +167,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
     final result = await _authRepository.signInWithGoogle();
     result.fold(
       (failure) {
+        if (!mounted) return;
         // Don't show error for cancelled sign-in
         if (failure is! AuthSignInCancelledFailure) {
           setData(
@@ -180,6 +181,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
         }
       },
       (user) {
+        if (!mounted) return;
         _onSignInUser?.call(user);
         // Always go to profile step to collect phone number (unless both name and phone are present)
         final needsProfile =
@@ -261,11 +263,15 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
   }
 
   Future<void> signOut() async {
-    _onSignInUser?.call(null);
     final result = await _authRepository.signOut();
     result.fold(
-      (failure) => setError(failure.message, failure),
-      (_) => reset(),
+      (failure) {
+        if (mounted) setError(failure.message, failure);
+      },
+      (_) {
+        _onSignInUser?.call(null);
+        if (mounted) reset();
+      },
     );
   }
 }

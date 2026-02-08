@@ -20,24 +20,60 @@ abstract final class DashboardNavConfig {
     switch (role) {
       case UserRole.barber:
         return [
-          DashboardNavItem(label: l10n.dashboardNavHome, icon: Icons.home_outlined),
-          DashboardNavItem(label: l10n.dashboardNavBookings, icon: Icons.calendar_today_outlined),
-          DashboardNavItem(label: l10n.dashboardNavShift, icon: Icons.schedule_outlined),
+          DashboardNavItem(
+            label: l10n.dashboardNavHome,
+            icon: Icons.home_outlined,
+          ),
+          DashboardNavItem(
+            label: l10n.dashboardNavCalendar,
+            icon: Icons.calendar_month_outlined,
+          ),
+          DashboardNavItem(
+            label: l10n.dashboardNavShift,
+            icon: Icons.schedule_outlined,
+          ),
         ];
       case UserRole.superadmin:
         return [
-          DashboardNavItem(label: l10n.dashboardNavBrand, icon: Icons.store_outlined),
-          DashboardNavItem(label: l10n.dashboardNavLocations, icon: Icons.location_on_outlined),
-          DashboardNavItem(label: l10n.dashboardNavServices, icon: Icons.content_cut_outlined),
-          DashboardNavItem(label: l10n.dashboardNavRewards, icon: Icons.card_giftcard_outlined),
-          DashboardNavItem(label: l10n.dashboardNavBarbers, icon: Icons.person_outline),
-          DashboardNavItem(label: l10n.dashboardNavAnalytics, icon: Icons.analytics_outlined),
+          DashboardNavItem(
+            label: l10n.dashboardNavBrand,
+            icon: Icons.store_outlined,
+          ),
+          DashboardNavItem(
+            label: l10n.dashboardNavLocations,
+            icon: Icons.location_on_outlined,
+          ),
+          DashboardNavItem(
+            label: l10n.dashboardNavServices,
+            icon: Icons.content_cut_outlined,
+          ),
+          DashboardNavItem(
+            label: l10n.dashboardNavRewards,
+            icon: Icons.card_giftcard_outlined,
+          ),
+          DashboardNavItem(
+            label: l10n.dashboardNavBarbers,
+            icon: Icons.person_outline,
+          ),
+          DashboardNavItem(
+            label: l10n.dashboardNavAnalytics,
+            icon: Icons.analytics_outlined,
+          ),
         ];
       default:
         return [
-          DashboardNavItem(label: l10n.dashboardNavHome, icon: Icons.home_outlined),
-          DashboardNavItem(label: l10n.dashboardNavBookings, icon: Icons.calendar_today_outlined),
-          DashboardNavItem(label: l10n.dashboardNavShift, icon: Icons.schedule_outlined),
+          DashboardNavItem(
+            label: l10n.dashboardNavHome,
+            icon: Icons.home_outlined,
+          ),
+          DashboardNavItem(
+            label: l10n.dashboardNavBookings,
+            icon: Icons.calendar_today_outlined,
+          ),
+          DashboardNavItem(
+            label: l10n.dashboardNavShift,
+            icon: Icons.schedule_outlined,
+          ),
         ];
     }
   }

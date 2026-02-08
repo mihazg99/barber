@@ -70,13 +70,15 @@ class AuthRepositoryImpl implements AuthRepository {
       final existingResult = await _userRepository.getById(user.uid);
       final toSave = existingResult.fold(
         (_) => entity,
-        (existing) => existing != null
-            ? entity.copyWith(
-                fullName: existing.fullName,
-                loyaltyPoints: existing.loyaltyPoints,
-                role: existing.role,
-              )
-            : entity,
+        (existing) =>
+            existing != null
+                ? existing.copyWith(
+                  phone:
+                      existing.phone.isNotEmpty
+                          ? existing.phone
+                          : (user.phoneNumber ?? entity.phone),
+                )
+                : entity,
       );
 
       _onUserLoaded?.call(toSave);
@@ -112,16 +114,16 @@ class AuthRepositoryImpl implements AuthRepository {
       final existingResult = await _userRepository.getById(user.uid);
       final toSave = existingResult.fold(
         (_) => entity,
-        (existing) => existing != null
-            ? entity.copyWith(
-                fullName: existing.fullName.isNotEmpty
-                    ? existing.fullName
-                    : displayName,
-                phone: existing.phone.isNotEmpty ? existing.phone : phone,
-                loyaltyPoints: existing.loyaltyPoints,
-                role: existing.role,
-              )
-            : entity,
+        (existing) =>
+            existing != null
+                ? existing.copyWith(
+                  fullName:
+                      existing.fullName.isNotEmpty
+                          ? existing.fullName
+                          : displayName,
+                  phone: existing.phone.isNotEmpty ? existing.phone : phone,
+                )
+                : entity,
       );
 
       _onUserLoaded?.call(toSave);
@@ -160,16 +162,16 @@ class AuthRepositoryImpl implements AuthRepository {
       final existingResult = await _userRepository.getById(user.uid);
       final toSave = existingResult.fold(
         (_) => entity,
-        (existing) => existing != null
-            ? entity.copyWith(
-                fullName: existing.fullName.isNotEmpty
-                    ? existing.fullName
-                    : displayName,
-                phone: existing.phone.isNotEmpty ? existing.phone : phone,
-                loyaltyPoints: existing.loyaltyPoints,
-                role: existing.role,
-              )
-            : entity,
+        (existing) =>
+            existing != null
+                ? existing.copyWith(
+                  fullName:
+                      existing.fullName.isNotEmpty
+                          ? existing.fullName
+                          : displayName,
+                  phone: existing.phone.isNotEmpty ? existing.phone : phone,
+                )
+                : entity,
       );
 
       _onUserLoaded?.call(toSave);
@@ -181,9 +183,11 @@ class AuthRepositoryImpl implements AuthRepository {
         return Left(AuthSignInCancelledFailure());
       }
       if (e.code == 'apple-sign-in-not-available') {
-        return Left(AuthSignInFailedFailure(
-          'Apple Sign-In is not available. Please ensure you have an Apple Developer Program membership and have configured Sign In with Apple.',
-        ));
+        return Left(
+          AuthSignInFailedFailure(
+            'Apple Sign-In is not available. Please ensure you have an Apple Developer Program membership and have configured Sign In with Apple.',
+          ),
+        );
       }
       return Left(AuthSignInFailedFailure(e.message ?? e.code));
     } catch (e) {

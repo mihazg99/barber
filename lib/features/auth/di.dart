@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -83,7 +84,15 @@ final isLoggingOutProvider = StateProvider<bool>((ref) => false);
 /// When [isLoggingOutProvider] is true, returns Stream.value(null) so listeners are cancelled before auth becomes null.
 final currentUserProvider = StreamProvider<UserEntity?>((ref) {
   if (ref.watch(isLoggingOutProvider)) return Stream.value(null);
+
   final uidAsync = ref.watch(currentUserIdProvider);
+
+  // If auth is strictly loading (no value yet), keep this provider in loading state
+  // by returning a future that doesn't complete.
+  if (uidAsync.isLoading && !uidAsync.hasValue) {
+    return Stream.fromFuture(Completer<UserEntity?>().future);
+  }
+
   final uid = uidAsync.valueOrNull;
   if (uid == null || uid.isEmpty) return Stream.value(null);
   final last = ref.watch(lastSignedInUserProvider);
