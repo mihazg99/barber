@@ -953,4 +953,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorLoadingAppointments => 'Error loading appointments';
+
+  @override
+  String get shiftTabTitle => 'My Shift';
+
+  @override
+  String get shiftWorkingHours => 'Working Hours';
+
+  @override
+  String get shiftTimeOff => 'Time Off';
+
+  @override
+  String get shiftAddTimeOff => 'Add Time Off';
+
+  @override
+  String get shiftNoTimeOff => 'No time-off scheduled';
+
+  @override
+  String get shiftUpcomingTimeOff => 'Upcoming Time Off';
+
+  @override
+  String get timeOffStartDate => 'Start Date';
+
+  @override
+  String get timeOffEndDate => 'End Date';
+
+  @override
+  String get timeOffReason => 'Reason';
+
+  @override
+  String get timeOffReasonVacation => 'Vacation';
+
+  @override
+  String get timeOffReasonSick => 'Sick Leave';
+
+  @override
+  String get timeOffReasonPersonal => 'Personal';
+
+  @override
+  String get timeOffSaved => 'Time-off saved';
+
+  @override
+  String get timeOffDeleted => 'Time-off deleted';
+
+  @override
+  String get timeOffDeleteConfirm => 'Delete time-off?';
+
+  @override
+  String get timeOffDeleteConfirmMessage =>
+      'Are you sure you want to delete this time-off period?';
+
+  @override
+  String get timeOffEdit => 'Edit';
+
+  @override
+  String get timeOffDelete => 'Delete';
+
+  @override
+  String timeOffDateRange(String startDate, String endDate) {
+    return '$startDate - $endDate';
+  }
+
+  @override
+  String get timeOffSelectReason => 'Select reason';
+
+  @override
+  String get timeOffStartDateRequired => 'Start date is required';
+
+  @override
+  String get timeOffEndDateRequired => 'End date is required';
+
+  @override
+  String get timeOffEndBeforeStart => 'End date must be after start date';
+
+  @override
+  String get shiftMyWorkingHours => 'My Working Hours';
+
+  @override
+  String get shiftEditWorkingHours => 'Edit';
+
+  @override
+  String get shiftNoWorkingHours => 'No working hours set';
+
+  @override
+  String get shiftClosed => 'Closed';
+
+  @override
+  String get shiftWorkingHoursSaved => 'Working hours updated successfully';
 }

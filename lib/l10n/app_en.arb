@@ -414,5 +414,44 @@
   "calendarPrice": "Price",
   "calendarStatus": "Status",
   "calendarLocation": "Location",
-  "errorLoadingAppointments": "Error loading appointments"
+  "errorLoadingAppointments": "Error loading appointments",
+
+  "shiftTabTitle": "My Shift",
+  "shiftWorkingHours": "Working Hours",
+  "shiftTimeOff": "Time Off",
+  "shiftAddTimeOff": "Add Time Off",
+  "shiftNoTimeOff": "No time-off scheduled",
+  "shiftUpcomingTimeOff": "Upcoming Time Off",
+  "timeOffStartDate": "Start Date",
+  "timeOffEndDate": "End Date",
+  "timeOffReason": "Reason",
+  "timeOffReasonVacation": "Vacation",
+  "timeOffReasonSick": "Sick Leave",
+  "timeOffReasonPersonal": "Personal",
+  "timeOffSaved": "Time-off saved",
+  "timeOffDeleted": "Time-off deleted",
+  "timeOffDeleteConfirm": "Delete time-off?",
+  "timeOffDeleteConfirmMessage": "Are you sure you want to delete this time-off period?",
+  "timeOffEdit": "Edit",
+  "timeOffDelete": "Delete",
+  "timeOffDateRange": "{startDate} - {endDate}",
+  "@timeOffDateRange": {
+    "placeholders": {
+      "startDate": {
+        "type": "String"
+      },
+      "endDate": {
+        "type": "String"
+      }
+    }
+  },
+  "timeOffSelectReason": "Select reason",
+  "timeOffStartDateRequired": "Start date is required",
+  "timeOffEndDateRequired": "End date is required",
+  "timeOffEndBeforeStart": "End date must be after start date",
+  "shiftMyWorkingHours": "My Working Hours",
+  "shiftEditWorkingHours": "Edit",
+  "shiftNoWorkingHours": "No working hours set",
+  "shiftClosed": "Closed",
+  "shiftWorkingHoursSaved": "Working hours updated successfully"
 }

@@ -1909,6 +1909,174 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Greška pri učitavanju termina'**
   String get errorLoadingAppointments;
+
+  /// No description provided for @shiftTabTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Moja smjena'**
+  String get shiftTabTitle;
+
+  /// No description provided for @shiftWorkingHours.
+  ///
+  /// In hr, this message translates to:
+  /// **'Radno vrijeme'**
+  String get shiftWorkingHours;
+
+  /// No description provided for @shiftTimeOff.
+  ///
+  /// In hr, this message translates to:
+  /// **'Slobodni dani'**
+  String get shiftTimeOff;
+
+  /// No description provided for @shiftAddTimeOff.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dodaj slobodne dane'**
+  String get shiftAddTimeOff;
+
+  /// No description provided for @shiftNoTimeOff.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nema zakazanih slobodnih dana'**
+  String get shiftNoTimeOff;
+
+  /// No description provided for @shiftUpcomingTimeOff.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nadolazeći slobodni dani'**
+  String get shiftUpcomingTimeOff;
+
+  /// No description provided for @timeOffStartDate.
+  ///
+  /// In hr, this message translates to:
+  /// **'Datum početka'**
+  String get timeOffStartDate;
+
+  /// No description provided for @timeOffEndDate.
+  ///
+  /// In hr, this message translates to:
+  /// **'Datum kraja'**
+  String get timeOffEndDate;
+
+  /// No description provided for @timeOffReason.
+  ///
+  /// In hr, this message translates to:
+  /// **'Razlog'**
+  String get timeOffReason;
+
+  /// No description provided for @timeOffReasonVacation.
+  ///
+  /// In hr, this message translates to:
+  /// **'Godišnji odmor'**
+  String get timeOffReasonVacation;
+
+  /// No description provided for @timeOffReasonSick.
+  ///
+  /// In hr, this message translates to:
+  /// **'Bolovanje'**
+  String get timeOffReasonSick;
+
+  /// No description provided for @timeOffReasonPersonal.
+  ///
+  /// In hr, this message translates to:
+  /// **'Osobno'**
+  String get timeOffReasonPersonal;
+
+  /// No description provided for @timeOffSaved.
+  ///
+  /// In hr, this message translates to:
+  /// **'Slobodni dani spremljeni'**
+  String get timeOffSaved;
+
+  /// No description provided for @timeOffDeleted.
+  ///
+  /// In hr, this message translates to:
+  /// **'Slobodni dani obrisani'**
+  String get timeOffDeleted;
+
+  /// No description provided for @timeOffDeleteConfirm.
+  ///
+  /// In hr, this message translates to:
+  /// **'Obrisati slobodne dane?'**
+  String get timeOffDeleteConfirm;
+
+  /// No description provided for @timeOffDeleteConfirmMessage.
+  ///
+  /// In hr, this message translates to:
+  /// **'Jeste li sigurni da želite obrisati ovaj period slobodnih dana?'**
+  String get timeOffDeleteConfirmMessage;
+
+  /// No description provided for @timeOffEdit.
+  ///
+  /// In hr, this message translates to:
+  /// **'Uredi'**
+  String get timeOffEdit;
+
+  /// No description provided for @timeOffDelete.
+  ///
+  /// In hr, this message translates to:
+  /// **'Obriši'**
+  String get timeOffDelete;
+
+  /// No description provided for @timeOffDateRange.
+  ///
+  /// In hr, this message translates to:
+  /// **'{startDate} - {endDate}'**
+  String timeOffDateRange(String startDate, String endDate);
+
+  /// No description provided for @timeOffSelectReason.
+  ///
+  /// In hr, this message translates to:
+  /// **'Odaberite razlog'**
+  String get timeOffSelectReason;
+
+  /// No description provided for @timeOffStartDateRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'Početni datum je obavezan'**
+  String get timeOffStartDateRequired;
+
+  /// No description provided for @timeOffEndDateRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'Krajnji datum je obavezan'**
+  String get timeOffEndDateRequired;
+
+  /// No description provided for @timeOffEndBeforeStart.
+  ///
+  /// In hr, this message translates to:
+  /// **'Krajnji datum mora biti nakon početnog datuma'**
+  String get timeOffEndBeforeStart;
+
+  /// No description provided for @shiftMyWorkingHours.
+  ///
+  /// In hr, this message translates to:
+  /// **'Moje radno vrijeme'**
+  String get shiftMyWorkingHours;
+
+  /// No description provided for @shiftEditWorkingHours.
+  ///
+  /// In hr, this message translates to:
+  /// **'Uredi'**
+  String get shiftEditWorkingHours;
+
+  /// No description provided for @shiftNoWorkingHours.
+  ///
+  /// In hr, this message translates to:
+  /// **'Radno vrijeme nije postavljeno'**
+  String get shiftNoWorkingHours;
+
+  /// No description provided for @shiftClosed.
+  ///
+  /// In hr, this message translates to:
+  /// **'Zatvoreno'**
+  String get shiftClosed;
+
+  /// No description provided for @shiftWorkingHoursSaved.
+  ///
+  /// In hr, this message translates to:
+  /// **'Radno vrijeme uspješno ažurirano'**
+  String get shiftWorkingHoursSaved;
 }
 
 class _AppLocalizationsDelegate

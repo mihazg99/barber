@@ -46,10 +46,13 @@ final barberHomeNotifierProvider = StateNotifierProvider.autoDispose<
 final currentBarberProvider = FutureProvider.autoDispose<BarberEntity?>((
   ref,
 ) async {
-  final uid = ref.watch(currentUserProvider).valueOrNull?.userId;
-  if (uid == null || uid.isEmpty) return null;
+  final userAsync = ref.watch(currentUserProvider);
+  final user = userAsync.valueOrNull;
+
+  if (user == null || user.barberId.isEmpty) return null;
+
   final barberRepo = ref.watch(barbers_di.barberRepositoryProvider);
-  final r = await barberRepo.getByUserId(uid);
+  final r = await barberRepo.getById(user.barberId);
   return r.fold(
     (l) => null,
     (barber) => barber,
@@ -317,4 +320,30 @@ final dashboardBarbersNotifierProvider = StateNotifierProvider<
       ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
   final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
   return DashboardBarbersNotifier(barberRepo, effectiveBrandId);
+});
+
+/// Provider for current barber's effective working hours.
+/// Returns workingHoursOverride if set, otherwise location's default hours.
+/// Used by barber shift tab to display working schedule.
+final barberEffectiveWorkingHoursProvider = FutureProvider.autoDispose((
+  ref,
+) async {
+  final barberAsync = await ref.watch(currentBarberProvider.future);
+  final barber = barberAsync;
+
+  if (barber == null) return null;
+
+  // If barber has override, use it
+  if (barber.workingHoursOverride != null &&
+      barber.workingHoursOverride!.isNotEmpty) {
+    return barber.workingHoursOverride;
+  }
+
+  // Otherwise get location's default hours
+  final locationRepo = ref.watch(locationRepositoryProvider);
+  final result = await locationRepo.getById(barber.locationId);
+  return result.fold(
+    (_) => null,
+    (location) => location?.workingHours,
+  );
 });

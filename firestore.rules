@@ -122,6 +122,19 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // -------------------------------------------------------------------------
+    // Private: time_off — barber sees own; superadmin sees all.
+    // -------------------------------------------------------------------------
+    match /time_off/{timeOffId} {
+      allow read: if request.auth != null
+        && (resource.data.barber_id == userBarberId() || isSuperadmin());
+      allow create: if request.auth != null
+        && isBarberOrSuperadmin()
+        && request.resource.data.barber_id == userBarberId();
+      allow update, delete: if request.auth != null
+        && (resource.data.barber_id == userBarberId() || isSuperadmin());
+    }
+
     // Deny all other collections by default.
     match /{document=**} {
       allow read, write: if false;

@@ -33,13 +33,35 @@ class BarberEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        barberId,
-        brandId,
-        locationId,
-        name,
-        photoUrl,
-        active,
-        workingHoursOverride,
-        userId,
-      ];
+    barberId,
+    brandId,
+    locationId,
+    name,
+    photoUrl,
+    active,
+    workingHoursOverride,
+    userId,
+  ];
+
+  BarberEntity copyWith({
+    String? barberId,
+    String? brandId,
+    String? locationId,
+    String? name,
+    String? photoUrl,
+    bool? active,
+    WorkingHoursMap? workingHoursOverride,
+    String? userId,
+  }) {
+    return BarberEntity(
+      barberId: barberId ?? this.barberId,
+      brandId: brandId ?? this.brandId,
+      locationId: locationId ?? this.locationId,
+      name: name ?? this.name,
+      photoUrl: photoUrl ?? this.photoUrl,
+      active: active ?? this.active,
+      workingHoursOverride: workingHoursOverride ?? this.workingHoursOverride,
+      userId: userId ?? this.userId,
+    );
+  }
 }

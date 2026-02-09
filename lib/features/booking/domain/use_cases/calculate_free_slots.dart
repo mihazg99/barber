@@ -5,12 +5,17 @@ import 'package:barber/features/booking/domain/entities/time_slot.dart';
 import 'package:barber/features/booking/domain/repositories/availability_repository.dart';
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
+import 'package:barber/features/time_off/domain/repositories/time_off_repository.dart';
 
 /// Calculates free time slots for a barber on a given date.
 class CalculateFreeSlots {
-  const CalculateFreeSlots(this._availabilityRepository);
+  const CalculateFreeSlots(
+    this._availabilityRepository,
+    this._timeOffRepository,
+  );
 
   final AvailabilityRepository _availabilityRepository;
+  final TimeOffRepository _timeOffRepository;
 
   /// Get free slots for a single barber on a date.
   /// [bufferTimeMinutes] is the gap after each appointment before the next can start.
@@ -48,6 +53,23 @@ class CalculateFreeSlots {
     if (dayHours == null) {
       if (kDebugMode) print('  ❌ No working hours for $weekday');
       return []; // Closed on this day
+    }
+
+    // Check if barber has time-off on this date
+    final timeOffResult = await _timeOffRepository.getByBarberIdAndDate(
+      barber.barberId,
+      date,
+    );
+    final hasTimeOff = timeOffResult.fold(
+      (_) => false,
+      (timeOffList) => timeOffList.isNotEmpty,
+    );
+
+    if (hasTimeOff) {
+      if (kDebugMode) {
+        print('  ❌ Barber has time-off on $dateStr - no slots available');
+      }
+      return []; // Barber is on time-off
     }
 
     // Fetch availability (booked slots)

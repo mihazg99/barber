@@ -17,14 +17,18 @@ class BarberRepositoryImpl implements BarberRepository {
       _firestore.collection(FirestoreCollections.barbers);
 
   @override
-  Future<Either<Failure, List<BarberEntity>>> getByBrandId(String brandId) async {
+  Future<Either<Failure, List<BarberEntity>>> getByBrandId(
+    String brandId,
+  ) async {
     try {
       final snapshot = await FirestoreLogger.logRead(
         '${FirestoreCollections.barbers}?brand_id=$brandId',
         () => _col.where('brand_id', isEqualTo: brandId).get(),
       );
       final list =
-          snapshot.docs.map((d) => BarberFirestoreMapper.fromFirestore(d)).toList();
+          snapshot.docs
+              .map((d) => BarberFirestoreMapper.fromFirestore(d))
+              .toList();
       return Right(list);
     } catch (e) {
       return Left(FirestoreFailure('Failed to get barbers: $e'));
@@ -41,7 +45,9 @@ class BarberRepositoryImpl implements BarberRepository {
         () => _col.where('location_id', isEqualTo: locationId).get(),
       );
       final list =
-          snapshot.docs.map((d) => BarberFirestoreMapper.fromFirestore(d)).toList();
+          snapshot.docs
+              .map((d) => BarberFirestoreMapper.fromFirestore(d))
+              .toList();
       return Right(list);
     } catch (e) {
       return Left(FirestoreFailure('Failed to get barbers by location: $e'));
@@ -82,8 +88,11 @@ class BarberRepositoryImpl implements BarberRepository {
       await FirestoreLogger.logWrite(
         '${FirestoreCollections.barbers}/${entity.barberId}',
         'set',
-        () => _col.doc(entity.barberId).set(
+        () => _col
+            .doc(entity.barberId)
+            .set(
               BarberFirestoreMapper.toFirestore(entity),
+              SetOptions(merge: true), // Merge to preserve existing fields
             ),
       );
       return const Right(null);

@@ -958,4 +958,92 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get errorLoadingAppointments => 'Greška pri učitavanju termina';
+
+  @override
+  String get shiftTabTitle => 'Moja smjena';
+
+  @override
+  String get shiftWorkingHours => 'Radno vrijeme';
+
+  @override
+  String get shiftTimeOff => 'Slobodni dani';
+
+  @override
+  String get shiftAddTimeOff => 'Dodaj slobodne dane';
+
+  @override
+  String get shiftNoTimeOff => 'Nema zakazanih slobodnih dana';
+
+  @override
+  String get shiftUpcomingTimeOff => 'Nadolazeći slobodni dani';
+
+  @override
+  String get timeOffStartDate => 'Datum početka';
+
+  @override
+  String get timeOffEndDate => 'Datum kraja';
+
+  @override
+  String get timeOffReason => 'Razlog';
+
+  @override
+  String get timeOffReasonVacation => 'Godišnji odmor';
+
+  @override
+  String get timeOffReasonSick => 'Bolovanje';
+
+  @override
+  String get timeOffReasonPersonal => 'Osobno';
+
+  @override
+  String get timeOffSaved => 'Slobodni dani spremljeni';
+
+  @override
+  String get timeOffDeleted => 'Slobodni dani obrisani';
+
+  @override
+  String get timeOffDeleteConfirm => 'Obrisati slobodne dane?';
+
+  @override
+  String get timeOffDeleteConfirmMessage =>
+      'Jeste li sigurni da želite obrisati ovaj period slobodnih dana?';
+
+  @override
+  String get timeOffEdit => 'Uredi';
+
+  @override
+  String get timeOffDelete => 'Obriši';
+
+  @override
+  String timeOffDateRange(String startDate, String endDate) {
+    return '$startDate - $endDate';
+  }
+
+  @override
+  String get timeOffSelectReason => 'Odaberite razlog';
+
+  @override
+  String get timeOffStartDateRequired => 'Početni datum je obavezan';
+
+  @override
+  String get timeOffEndDateRequired => 'Krajnji datum je obavezan';
+
+  @override
+  String get timeOffEndBeforeStart =>
+      'Krajnji datum mora biti nakon početnog datuma';
+
+  @override
+  String get shiftMyWorkingHours => 'Moje radno vrijeme';
+
+  @override
+  String get shiftEditWorkingHours => 'Uredi';
+
+  @override
+  String get shiftNoWorkingHours => 'Radno vrijeme nije postavljeno';
+
+  @override
+  String get shiftClosed => 'Zatvoreno';
+
+  @override
+  String get shiftWorkingHoursSaved => 'Radno vrijeme uspješno ažurirano';
 }

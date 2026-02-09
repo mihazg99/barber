@@ -38,4 +38,7 @@ abstract final class FirestoreCollections {
 
   /// Subcollection under locations: monthly aggregated stats. Path: locations/{id}/monthly_stats/{YYYY-MM}
   static const String monthlyStats = 'monthly_stats';
+
+  /// Barber time-off periods (vacation, sick leave, personal time).
+  static const String timeOff = 'time_off';
 }

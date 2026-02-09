@@ -1,22 +1,22 @@
 {
-  "app_title": "Amore Beauty Studio",
-  "logo_path": "",
+  "app_title": "Core System",
+  "logo_path": "assets/images/platform_logo.png",
   "default_brand_id": "default",
   "currency": "EUR",
-  "font_family": "Poppins",
-  "require_sms_verification": false,
+  "font_family": "Inter",
+  "require_sms_verification": true,
   "colors": {
-    "primary": "#511E1F",
-    "secondary": "#3A1617",
-    "background": "#0C0C0C",
-    "navigation_background": "#1A0F0F",
-    "primary_text": "#EADCCC",
-    "secondary_text": "#D4C4B0",
-    "caption_text": "#B8A896",
+    "primary": "#6366F1",
+    "secondary": "#4338CA",
+    "background": "#020617",
+    "navigation_background": "#0F172A",
+    "primary_text": "#F8FAFC",
+    "secondary_text": "#94A3B8",
+    "caption_text": "#64748B",
     "primary_white": "#FFFFFF",
-    "hint_text": "#9A8A78",
-    "menu_background": "#1A0F0F",
-    "border": "#2A1F1F",
-    "error": "#B00020"
+    "hint_text": "#475569",
+    "menu_background": "#0F172A",
+    "border": "#1E293B",
+    "error": "#EF4444"
   }
 }
