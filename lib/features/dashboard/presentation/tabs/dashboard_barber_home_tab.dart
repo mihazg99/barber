@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -25,8 +24,10 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider).valueOrNull;
-    final appointmentsAsync = ref.watch(barberUpcomingAppointmentsProvider);
+    final userAsync = ref.watch(currentUserProvider);
+    final lastUser = ref.watch(lastSignedInUserProvider);
+    final user = userAsync.valueOrNull ?? lastUser;
+    final appointmentsAsync = ref.watch(calendarWindowAppointmentsProvider);
     final homeState = ref.watch(homeNotifierProvider);
     final tabNotifier = ref.read(dashboardBarberTabIndexProvider.notifier);
     final locations =
@@ -34,18 +35,12 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
             ? homeState.data.locations
             : <LocationEntity>[];
 
-    useEffect(() {
-      Future.microtask(
-        () => ref.read(homeNotifierProvider.notifier).load(),
-      );
-      return null;
-    }, []);
-
+    // Home data loaded centrally by DashboardPage when barber dashboard mounts.
     final firstName = _firstName(user?.fullName);
 
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(barberUpcomingAppointmentsProvider);
+        ref.invalidate(calendarWindowAppointmentsProvider);
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -65,34 +60,91 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
             HomeSectionTitle(title: context.l10n.upcoming),
             SizedBox(height: context.appSizes.paddingSmall),
             switch (appointmentsAsync) {
-              AsyncLoading() => const _TodayShimmer(),
-              AsyncData(:final value) =>
-                value.isEmpty
-                    ? _TodayEmptyCard(
-                      onViewBookings: () => tabNotifier.state = 1,
-                    )
-                    : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ...value.map(
-                          (a) => Padding(
-                            padding: EdgeInsets.only(
-                              bottom: context.appSizes.paddingSmall,
+              AsyncLoading() => Builder(
+                builder: (context) {
+                  return const _TodayShimmer();
+                },
+              ),
+              AsyncData(:final value) => Builder(
+                builder: (context) {
+                  // Check if we have a barber profile issue
+                  final barberAsync = ref.watch(currentBarberProvider);
+                  // If user has no barberId AND currentBarberProvider returned null (data is null), then we have no profile.
+                  if ((user?.barberId.isEmpty ?? true) &&
+                      barberAsync.asData?.value == null &&
+                      !barberAsync.isLoading) {
+                    return Container(
+                      padding: EdgeInsets.all(context.appSizes.paddingMedium),
+                      decoration: BoxDecoration(
+                        color: context.appColors.errorColor.withValues(
+                          alpha: 0.1,
+                        ),
+                        borderRadius: BorderRadius.circular(
+                          context.appSizes.borderRadius,
+                        ),
+                        border: Border.all(
+                          color: context.appColors.errorColor.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'No Barber Profile Found',
+                            style: context.appTextStyles.h3.copyWith(
+                              color: context.appColors.errorColor,
                             ),
-                            child: UpcomingBookingCard(
-                              appointment: a,
-                              locationName: _locationNameFor(
-                                locations,
-                                a.locationId,
-                              ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Your account has the "Barber" role but is not linked to any barber profile. Please contact support or creating a new barber profile.',
+                            style: context.appTextStyles.body.copyWith(
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (value.isEmpty) {
+                    return _TodayEmptyCard(
+                      onViewBookings: () => tabNotifier.state = 1,
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ...value.map(
+                        (a) => Padding(
+                          padding: EdgeInsets.only(
+                            bottom: context.appSizes.paddingSmall,
+                          ),
+                          child: UpcomingBookingCard(
+                            appointment: a,
+                            locationName: _locationNameFor(
+                              locations,
+                              a.locationId,
                             ),
                           ),
                         ),
-                        _ViewBookingsCta(
-                          onTap: () => tabNotifier.state = 1,
-                        ),
-                      ],
-                    ),
+                      ),
+                      _ViewBookingsCta(
+                        onTap: () => tabNotifier.state = 1,
+                      ),
+                    ],
+                  );
+                },
+              ),
+              AsyncError() => Builder(
+                builder: (context) {
+                  return _TodayEmptyCard(
+                    onViewBookings: () => tabNotifier.state = 1,
+                  );
+                },
+              ),
               _ => _TodayEmptyCard(onViewBookings: () => tabNotifier.state = 1),
             },
             SizedBox(height: context.appSizes.paddingLarge),

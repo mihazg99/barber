@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:barber/core/errors/failure.dart';
 import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/core/firebase/collections.dart';
+import 'package:barber/core/firebase/firestore_logger.dart';
 import 'package:barber/features/rewards/data/mappers/redemption_firestore_mapper.dart';
 import 'package:barber/features/rewards/domain/entities/redemption_entity.dart';
 import 'package:barber/features/rewards/domain/repositories/redemption_repository.dart';
@@ -20,7 +21,10 @@ class RedemptionRepositoryImpl implements RedemptionRepository {
     String userId,
   ) async {
     try {
-      final snapshot = await _col.where('user_id', isEqualTo: userId).get();
+      final snapshot = await FirestoreLogger.logRead(
+        '${FirestoreCollections.rewardRedemptions}?user_id=$userId',
+        () => _col.where('user_id', isEqualTo: userId).get(),
+      );
       final list =
           snapshot.docs
               .map((d) => RedemptionFirestoreMapper.fromFirestore(d))
@@ -37,7 +41,10 @@ class RedemptionRepositoryImpl implements RedemptionRepository {
     String redemptionId,
   ) async {
     try {
-      final doc = await _col.doc(redemptionId).get();
+      final doc = await FirestoreLogger.logRead(
+        '${FirestoreCollections.rewardRedemptions}/$redemptionId',
+        () => _col.doc(redemptionId).get(),
+      );
       if (doc.data() == null) return const Right(null);
       return Right(RedemptionFirestoreMapper.fromFirestore(doc));
     } catch (e) {
@@ -52,7 +59,10 @@ class RedemptionRepositoryImpl implements RedemptionRepository {
     required String barberBrandId,
   }) async {
     try {
-      final doc = await _col.doc(redemptionId).get();
+      final doc = await FirestoreLogger.logRead(
+        '${FirestoreCollections.rewardRedemptions}/$redemptionId',
+        () => _col.doc(redemptionId).get(),
+      );
       if (doc.data() == null) {
         return Left(FirestoreFailure('Redemption not found'));
       }
@@ -73,11 +83,15 @@ class RedemptionRepositoryImpl implements RedemptionRepository {
           ),
         );
       }
-      await _col.doc(redemptionId).update({
-        'status': RedemptionStatus.redeemed.value,
-        'redeemed_at': FieldValue.serverTimestamp(),
-        'redeemed_by': redeemedByUserId,
-      });
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.rewardRedemptions}/$redemptionId',
+        'update',
+        () => _col.doc(redemptionId).update({
+          'status': RedemptionStatus.redeemed.value,
+          'redeemed_at': FieldValue.serverTimestamp(),
+          'redeemed_by': redeemedByUserId,
+        }),
+      );
       return const Right(null);
     } on FirebaseException catch (e) {
       return Left(

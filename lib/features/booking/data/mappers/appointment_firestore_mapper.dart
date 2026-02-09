@@ -9,9 +9,10 @@ class AppointmentFirestoreMapper {
   ) {
     final data = doc.data()!;
     final servicesRaw = data['service_ids'];
-    final serviceIds = servicesRaw is List
-        ? (servicesRaw).map((e) => e.toString()).toList()
-        : <String>[];
+    final serviceIds =
+        servicesRaw is List
+            ? (servicesRaw).map((e) => e.toString()).toList()
+            : <String>[];
     final start = data['start_time'] as Timestamp?;
     final end = data['end_time'] as Timestamp?;
     final created = data['created_at'] as Timestamp?;
@@ -26,19 +27,23 @@ class AppointmentFirestoreMapper {
       endTime: end?.toDate() ?? DateTime.now(),
       totalPrice: (data['total_price'] as num?) ?? 0,
       status: data['status'] as String? ?? AppointmentStatus.scheduled,
+      customerName: data['customer_name'] as String? ?? '',
+      serviceName: data['service_name'] as String? ?? '',
       createdAt: created?.toDate(),
     );
   }
 
   static Map<String, dynamic> toFirestore(AppointmentEntity entity) => {
-        'brand_id': entity.brandId,
-        'location_id': entity.locationId,
-        'user_id': entity.userId,
-        'barber_id': entity.barberId,
-        'service_ids': entity.serviceIds,
-        'start_time': Timestamp.fromDate(entity.startTime),
-        'end_time': Timestamp.fromDate(entity.endTime),
-        'total_price': entity.totalPrice,
-        'status': entity.status,
-      };
+    'brand_id': entity.brandId,
+    'location_id': entity.locationId,
+    'user_id': entity.userId,
+    'barber_id': entity.barberId,
+    'service_ids': entity.serviceIds,
+    'start_time': Timestamp.fromDate(entity.startTime),
+    'end_time': Timestamp.fromDate(entity.endTime),
+    'total_price': entity.totalPrice,
+    'status': entity.status,
+    'customer_name': entity.customerName,
+    'service_name': entity.serviceName,
+  };
 }

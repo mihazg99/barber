@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -26,19 +25,14 @@ import 'package:barber/features/loyalty/presentation/pages/loyalty_page.dart';
 import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_page.dart';
 
+import 'package:barber/core/di.dart';
 import 'package:barber/features/auth/presentation/pages/auth_page.dart';
+import 'package:barber/features/splash/presentation/pages/splash_page.dart';
 
 import 'app_routes.dart';
 
-class _AuthRefreshNotifier extends ChangeNotifier {
-  void notify() => notifyListeners();
-}
-
-/// Notify to re-run router redirect (e.g. after profile update).
-final routerRefreshNotifierProvider =
-    ChangeNotifierProvider<_AuthRefreshNotifier>((ref) {
-      return _AuthRefreshNotifier();
-    });
+// Track first run globally to persist across provider rebuilds (e.g. on logout)
+bool _isFirstRun = true;
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = ref.watch(routerRefreshNotifierProvider);
@@ -67,9 +61,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     }
   });
 
+  // When repo sets lastSignedInUser (Google/Apple/OTP sign-in), invalidate currentUser so stream emits cache and router can redirect to home (not profile setup).
+  ref.listen(lastSignedInUserProvider, (prev, next) {
+    if (next != null && ref.read(isAuthenticatedProvider).valueOrNull == true) {
+      ref.invalidate(currentUserProvider);
+      Future.microtask(() => refreshNotifier.notify());
+    }
+  });
+
   return GoRouter(
+    initialLocation: AppRoute.auth.path,
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
+      // Force splash screen on first run (app startup) when landing on default route,
+      // but allow Auth as fallback for future refreshes to avoid splash flash.
+      if (_isFirstRun && state.uri.path == AppRoute.auth.path) {
+        _isFirstRun = false;
+        return AppRoute.splash.path;
+      }
+      _isFirstRun = false;
+
       // Use container from context so we don't use ref during "dependency changed"
       // (e.g. when refreshNotifier.notify() runs from ref.listen), which would throw.
       final container = ProviderScope.containerOf(context);
@@ -88,6 +99,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isStaff = container.read(isStaffProvider);
       final path = state.uri.path;
       final location = state.uri.toString();
+
+      // Splash: stay until we know destination, then redirect
+      if (path == AppRoute.splash.path) {
+        if (!onboardingCompleted) return AppRoute.onboarding.path;
+        final isAuthAsync = container.read(isAuthenticatedProvider);
+        if (isAuthAsync.isLoading) return null;
+        if (isAuthAsync.valueOrNull != true) return AppRoute.auth.path;
+        final userAsync = container.read(currentUserProvider);
+        if (userAsync.isLoading) return null;
+        if (!isProfileComplete) return AppRoute.auth.path;
+        return isStaff ? AppRoute.dashboard.path : AppRoute.home.path;
+      }
+
       // Firebase auth callback deep link (e.g. after login/verify) – not an app route; send to correct screen.
       if (location.contains('firebaseauth') ||
           location.contains('auth/callback')) {
@@ -120,7 +144,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           !isProfileComplete &&
           path != AppRoute.auth.path) {
         final userAsync = container.read(currentUserProvider);
-        if (userAsync.isLoading) return null;
+        if (userAsync.isLoading) return AppRoute.auth.path;
         return AppRoute.auth.path;
       }
       if (isAuthenticated && path == AppRoute.auth.path) {
@@ -138,6 +162,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        name: AppRoute.splash.name,
+        path: AppRoute.splash.path,
+        pageBuilder:
+            (context, state) => NoTransitionPage(child: const SplashPage()),
+      ),
       GoRoute(
         name: AppRoute.onboarding.name,
         path: AppRoute.onboarding.path,
@@ -226,6 +256,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             child: BookingPage(
               initialBarberId: query['barberId'],
               initialServiceId: query['serviceId'],
+              initialLocationId: query['locationId'],
             ),
           );
         },

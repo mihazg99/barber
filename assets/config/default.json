@@ -1,21 +1,22 @@
 {
-  "app_title": "Kingsman Barbershop",
-  "logo_path": "",
+  "app_title": "Core System",
+  "logo_path": "assets/images/platform_logo.png",
   "default_brand_id": "default",
   "currency": "EUR",
-  "font_family": "Poppins",
+  "font_family": "Inter",
+  "require_sms_verification": true,
   "colors": {
-    "primary": "#9B784A",
-    "secondary": "#1A1614",
-    "background": "#000000",
-    "navigation_background": "#0A0A0A",
-    "primary_text": "#E7E1CC",
-    "secondary_text": "#C4B89E",
-    "caption_text": "#8D8470",
+    "primary": "#6366F1",
+    "secondary": "#4338CA",
+    "background": "#020617",
+    "navigation_background": "#0F172A",
+    "primary_text": "#F8FAFC",
+    "secondary_text": "#94A3B8",
+    "caption_text": "#64748B",
     "primary_white": "#FFFFFF",
-    "hint_text": "#6B6658",
-    "menu_background": "#1A1A1A",
-    "border": "#3A3530",
-    "error": "#B00020"
+    "hint_text": "#475569",
+    "menu_background": "#0F172A",
+    "border": "#1E293B",
+    "error": "#EF4444"
   }
 }

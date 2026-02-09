@@ -174,14 +174,22 @@
 
   "dashboardNavHome": "Početna",
   "dashboardNavBookings": "Termini",
+  "dashboardNavCalendar": "Kalendar",
   "dashboardNavShift": "Smjena",
   "dashboardNavBrand": "Brend",
   "dashboardNavLocations": "Lokacije",
   "dashboardNavServices": "Usluge",
   "dashboardNavRewards": "Nagrade",
   "dashboardNavBarbers": "Brijači",
+  "dashboardNavAnalytics": "Analitika",
   "dashboardBookingsTitle": "Moji termini",
   "dashboardShiftTitle": "Moja smjena",
+  "marketingInsightsTitle": "Marketing uvid",
+  "averageTicketValue": "Prosječna vrijednost kartice",
+  "todayRevenue": "Današnji prihod",
+  "todayAppointments": "Termini danas",
+  "newCustomersToday": "Novi kupci",
+  "noShowsToday": "Nedolasci",
 
   "addNewItem": "Dodaj novu stavku",
   "addItemTitle": "Naslov",
@@ -382,5 +390,68 @@
         "type": "String"
       }
     }
-  }
+  },
+
+  "calendarTitle": "Kalendar",
+  "calendarToday": "Danas",
+  "calendarNoAppointments": "Nema termina",
+  "calendarAppointmentsCount": "{count} termin(a)",
+  "@calendarAppointmentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarViewDay": "Dan",
+  "calendarViewWeek": "Tjedan",
+  "calendarViewMonth": "Mjesec",
+  "calendarAppointmentDetails": "Detalji termina",
+  "calendarClient": "Klijent",
+  "calendarService": "Usluga",
+  "calendarTime": "Vrijeme",
+  "calendarDuration": "Trajanje",
+  "calendarPrice": "Cijena",
+  "calendarStatus": "Status",
+  "calendarLocation": "Lokacija",
+  "errorLoadingAppointments": "Greška pri učitavanju termina",
+
+  "shiftTabTitle": "Moja smjena",
+  "shiftWorkingHours": "Radno vrijeme",
+  "shiftTimeOff": "Slobodni dani",
+  "shiftAddTimeOff": "Dodaj slobodne dane",
+  "shiftNoTimeOff": "Nema zakazanih slobodnih dana",
+  "shiftUpcomingTimeOff": "Nadolazeći slobodni dani",
+  "timeOffStartDate": "Datum početka",
+  "timeOffEndDate": "Datum kraja",
+  "timeOffReason": "Razlog",
+  "timeOffReasonVacation": "Godišnji odmor",
+  "timeOffReasonSick": "Bolovanje",
+  "timeOffReasonPersonal": "Osobno",
+  "timeOffSaved": "Slobodni dani spremljeni",
+  "timeOffDeleted": "Slobodni dani obrisani",
+  "timeOffDeleteConfirm": "Obrisati slobodne dane?",
+  "timeOffDeleteConfirmMessage": "Jeste li sigurni da želite obrisati ovaj period slobodnih dana?",
+  "timeOffEdit": "Uredi",
+  "timeOffDelete": "Obriši",
+  "timeOffDateRange": "{startDate} - {endDate}",
+  "@timeOffDateRange": {
+    "placeholders": {
+      "startDate": {
+        "type": "String"
+      },
+      "endDate": {
+        "type": "String"
+      }
+    }
+  },
+  "timeOffSelectReason": "Odaberite razlog",
+  "timeOffStartDateRequired": "Početni datum je obavezan",
+  "timeOffEndDateRequired": "Krajnji datum je obavezan",
+  "timeOffEndBeforeStart": "Krajnji datum mora biti nakon početnog datuma",
+  "shiftMyWorkingHours": "Moje radno vrijeme",
+  "shiftEditWorkingHours": "Uredi",
+  "shiftNoWorkingHours": "Radno vrijeme nije postavljeno",
+  "shiftClosed": "Zatvoreno",
+  "shiftWorkingHoursSaved": "Radno vrijeme uspješno ažurirano"
 }

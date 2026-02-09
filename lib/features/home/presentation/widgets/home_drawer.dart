@@ -35,11 +35,19 @@ class HomeDrawer extends ConsumerWidget {
                 ),
               ),
               onTap: () async {
+                final container = ProviderScope.containerOf(context);
+                // Set flag FIRST (before pop/signOut) so providers return null streams and cancel listeners
+                // immediately—avoids PERMISSION_DENIED spike when auth becomes null.
+                container.read(isLoggingOutProvider.notifier).state = true;
                 Navigator.of(context).pop();
-                await ref.read(authNotifierProvider.notifier).signOut();
-                ref.invalidate(currentUserProvider);
-                ref.invalidate(upcomingAppointmentProvider);
-                ref.invalidate(homeNotifierProvider);
+                container.invalidate(upcomingAppointmentProvider);
+                container.invalidate(currentUserProvider);
+                container.read(upcomingAppointmentProvider);
+                container.read(currentUserProvider);
+                await container.read(authNotifierProvider.notifier).signOut();
+                container.read(isLoggingOutProvider.notifier).state = false;
+                container.invalidate(lastSignedInUserProvider);
+                container.invalidate(homeNotifierProvider);
               },
             ),
           ],

@@ -403,6 +403,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardNavBookings => 'Bookings';
 
   @override
+  String get dashboardNavCalendar => 'Calendar';
+
+  @override
   String get dashboardNavShift => 'Shift';
 
   @override
@@ -421,10 +424,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardNavBarbers => 'Barbers';
 
   @override
+  String get dashboardNavAnalytics => 'Analytics';
+
+  @override
   String get dashboardBookingsTitle => 'My Bookings';
 
   @override
   String get dashboardShiftTitle => 'My Shift';
+
+  @override
+  String get marketingInsightsTitle => 'Marketing Insights';
+
+  @override
+  String get averageTicketValue => 'Avg. ticket value';
+
+  @override
+  String get todayRevenue => 'Today\'s revenue';
+
+  @override
+  String get todayAppointments => 'Appointments today';
+
+  @override
+  String get newCustomersToday => 'New customers';
+
+  @override
+  String get noShowsToday => 'No-shows';
 
   @override
   String get addNewItem => 'Add new item';
@@ -879,4 +903,141 @@ class AppLocalizationsEn extends AppLocalizations {
   String openNow(String open, String close) {
     return 'OPEN NOW $open - $close';
   }
+
+  @override
+  String get calendarTitle => 'Calendar';
+
+  @override
+  String get calendarToday => 'Today';
+
+  @override
+  String get calendarNoAppointments => 'No appointments';
+
+  @override
+  String calendarAppointmentsCount(int count) {
+    return '$count appointment(s)';
+  }
+
+  @override
+  String get calendarViewDay => 'Day';
+
+  @override
+  String get calendarViewWeek => 'Week';
+
+  @override
+  String get calendarViewMonth => 'Month';
+
+  @override
+  String get calendarAppointmentDetails => 'Appointment details';
+
+  @override
+  String get calendarClient => 'Client';
+
+  @override
+  String get calendarService => 'Service';
+
+  @override
+  String get calendarTime => 'Time';
+
+  @override
+  String get calendarDuration => 'Duration';
+
+  @override
+  String get calendarPrice => 'Price';
+
+  @override
+  String get calendarStatus => 'Status';
+
+  @override
+  String get calendarLocation => 'Location';
+
+  @override
+  String get errorLoadingAppointments => 'Error loading appointments';
+
+  @override
+  String get shiftTabTitle => 'My Shift';
+
+  @override
+  String get shiftWorkingHours => 'Working Hours';
+
+  @override
+  String get shiftTimeOff => 'Time Off';
+
+  @override
+  String get shiftAddTimeOff => 'Add Time Off';
+
+  @override
+  String get shiftNoTimeOff => 'No time-off scheduled';
+
+  @override
+  String get shiftUpcomingTimeOff => 'Upcoming Time Off';
+
+  @override
+  String get timeOffStartDate => 'Start Date';
+
+  @override
+  String get timeOffEndDate => 'End Date';
+
+  @override
+  String get timeOffReason => 'Reason';
+
+  @override
+  String get timeOffReasonVacation => 'Vacation';
+
+  @override
+  String get timeOffReasonSick => 'Sick Leave';
+
+  @override
+  String get timeOffReasonPersonal => 'Personal';
+
+  @override
+  String get timeOffSaved => 'Time-off saved';
+
+  @override
+  String get timeOffDeleted => 'Time-off deleted';
+
+  @override
+  String get timeOffDeleteConfirm => 'Delete time-off?';
+
+  @override
+  String get timeOffDeleteConfirmMessage =>
+      'Are you sure you want to delete this time-off period?';
+
+  @override
+  String get timeOffEdit => 'Edit';
+
+  @override
+  String get timeOffDelete => 'Delete';
+
+  @override
+  String timeOffDateRange(String startDate, String endDate) {
+    return '$startDate - $endDate';
+  }
+
+  @override
+  String get timeOffSelectReason => 'Select reason';
+
+  @override
+  String get timeOffStartDateRequired => 'Start date is required';
+
+  @override
+  String get timeOffEndDateRequired => 'End date is required';
+
+  @override
+  String get timeOffEndBeforeStart => 'End date must be after start date';
+
+  @override
+  String get shiftMyWorkingHours => 'My Working Hours';
+
+  @override
+  String get shiftEditWorkingHours => 'Edit';
+
+  @override
+  String get shiftNoWorkingHours => 'No working hours set';
+
+  @override
+  String get shiftClosed => 'Closed';
+
+  @override
+  String get shiftWorkingHoursSaved => 'Working hours updated successfully';
 }

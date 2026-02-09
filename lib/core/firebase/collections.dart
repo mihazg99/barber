@@ -32,4 +32,13 @@ abstract final class FirestoreCollections {
 
   /// User reward redemptions: user spent points to "buy" a reward; doc id used in QR for barber to scan and mark redeemed.
   static const String rewardRedemptions = 'reward_redemptions';
+
+  /// Subcollection under locations: daily aggregated stats. Path: locations/{id}/daily_stats/{YYYY-MM-DD}
+  static const String dailyStats = 'daily_stats';
+
+  /// Subcollection under locations: monthly aggregated stats. Path: locations/{id}/monthly_stats/{YYYY-MM}
+  static const String monthlyStats = 'monthly_stats';
+
+  /// Barber time-off periods (vacation, sick leave, personal time).
+  static const String timeOff = 'time_off';
 }

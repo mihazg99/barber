@@ -4,6 +4,7 @@
 
 - **`firebase_app.dart`** – Firebase initialization (call before `runApp`).
 - **`collections.dart`** – Firestore collection name constants. Used by feature **data** layers (datasources/repositories).
+- **`firestore_logger.dart`** – Logs every Firestore read/write/stream/transaction to the **terminal** in debug builds. Look for `[Firestore]` in the run console; failures show `READ FAILED` / `WRITE ... FAILED` with `PERMISSION-DENIED` or other error codes so you can spot rule denials in real time.
 
 **Where entities live:** Each feature owns its own domain and data layer:
 

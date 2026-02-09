@@ -3,8 +3,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:barber/core/di.dart';
-import 'package:barber/core/firebase/default_brand_id.dart';
-import 'package:barber/core/router/app_router.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -15,7 +13,6 @@ import 'package:barber/features/auth/presentation/widgets/auth_landing.dart';
 import 'package:barber/features/auth/presentation/widgets/auth_otp_input.dart';
 import 'package:barber/features/auth/presentation/widgets/auth_phone_input.dart';
 import 'package:barber/features/auth/presentation/widgets/auth_profile_input.dart';
-import 'package:barber/features/brand/di.dart';
 
 class AuthPage extends HookConsumerWidget {
   const AuthPage({super.key});
@@ -25,19 +22,13 @@ class AuthPage extends HookConsumerWidget {
     final authState = ref.watch(authNotifierProvider);
     final notifier = ref.read(authNotifierProvider.notifier);
 
-    // Get brand to check if SMS verification is required
-    final configBrandId =
-        ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-    final brandId =
-        configBrandId.isNotEmpty ? configBrandId : fallbackBrandId;
-    final brandAsync = ref.watch(
-      FutureProvider.autoDispose((ref) async {
-        final result = await ref.watch(brandRepositoryProvider).getById(brandId);
-        return result.fold((_) => null, (brand) => brand);
-      }),
-    );
+    // From app config to avoid Firestore reads on auth screen (unauthenticated).
     final requireSmsVerification =
-        brandAsync.valueOrNull?.requireSmsVerification ?? false;
+        ref
+            .watch(flavorConfigProvider)
+            .values
+            .brandConfig
+            .requireSmsVerification;
 
     final data = switch (authState) {
       BaseData(:final data) => data,
@@ -86,24 +77,43 @@ class _AuthStepContent extends ConsumerWidget {
     final isAuthenticated =
         ref.watch(isAuthenticatedProvider).valueOrNull ?? false;
     final isProfileComplete = ref.watch(isProfileCompleteProvider);
-    final currentUser = ref.watch(currentUserProvider).valueOrNull;
+    final currentUserAsync = ref.watch(currentUserProvider);
+    final currentUser = currentUserAsync.valueOrNull;
+
+    // Loading if auth finished but we are waiting for user profile data/check
+    final isAuthLoading = isAuthenticated && currentUserAsync.isLoading;
 
     // Profile step: show when (a) we're in profile step with user (right after OTP, before auth stream updates)
-    // or (b) authenticated but profile incomplete. Use data.user first so we don't flash loading.
+    // or (b) authenticated but profile incomplete (and loaded). Use data.user first so we don't flash loading.
     final showProfile =
         (data.isProfileInfo && data.user != null) ||
-        (isAuthenticated && !isProfileComplete);
+        (isAuthenticated && !isProfileComplete && !isAuthLoading);
+
     if (showProfile) {
       final user = data.user ?? currentUser;
       if (user == null) {
+        // Should not happen if !isAuthLoading logic works and user is loaded,
+        // but as safety fallback we show loading.
         return const _AuthLoading();
       }
       return AuthProfileInput(
         user: user,
         onSubmit: (fullName, phone) async {
           await notifier.submitProfile(user, fullName, phone);
-          ref.invalidate(currentUserProvider);
-          await ref.read(currentUserProvider.future);
+
+          // Check for errors before proceeding
+          final state = ref.read(authNotifierProvider);
+          if (state is BaseError ||
+              (state is BaseData<AuthFlowData> &&
+                  state.data.errorMessage != null)) {
+            return;
+          }
+
+          // Update cache immediately to prevent flash of incomplete profile state during reload
+          ref.read(lastSignedInUserProvider.notifier).state = user.copyWith(
+            fullName: fullName,
+            phone: phone,
+          );
           ref.read(routerRefreshNotifierProvider).notify();
         },
         isLoading: data.isLoading,
@@ -115,20 +125,25 @@ class _AuthStepContent extends ConsumerWidget {
       // Check if Apple Sign-In is available (only on iOS and if configured)
       final appleSignInAvailableAsync = ref.watch(
         FutureProvider.autoDispose<bool>((ref) async {
-          return await ref.watch(authRepositoryProvider).isAppleSignInAvailable();
+          return await ref
+              .watch(authRepositoryProvider)
+              .isAppleSignInAvailable();
         }),
       );
       final isAppleSignInAvailable =
           appleSignInAvailableAsync.valueOrNull ?? false;
 
       return AuthLanding(
-        onGoogleSignIn: () => notifier.signInWithGoogle(
-          requireSmsVerification: requireSmsVerification,
-        ),
-        onAppleSignIn: () => notifier.signInWithApple(
-          requireSmsVerification: requireSmsVerification,
-        ),
-        isLoading: data.isLoading,
+        onGoogleSignIn:
+            () => notifier.signInWithGoogle(
+              requireSmsVerification: requireSmsVerification,
+            ),
+        onAppleSignIn:
+            () => notifier.signInWithApple(
+              requireSmsVerification: requireSmsVerification,
+            ),
+        // Show loading if notifier is loading OR if we are waiting for profile check
+        isLoading: data.isLoading || isAuthLoading,
         errorMessage: data.errorMessage,
         showAppleSignIn: isAppleSignInAvailable,
       );
@@ -139,7 +154,7 @@ class _AuthStepContent extends ConsumerWidget {
         phone: data.phone ?? '',
         onVerify: notifier.verifyOtp,
         onBack: notifier.backToPhoneInput,
-        isLoading: data.isLoading,
+        isLoading: data.isLoading || isAuthLoading,
         errorMessage: data.errorMessage,
       );
     }

@@ -32,35 +32,58 @@ class BarberFormPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isEdit = barber != null;
     final nameController = useTextEditingController(text: barber?.name ?? '');
-    final photoUrlController = useTextEditingController(text: barber?.photoUrl ?? '');
+    final photoUrlController = useTextEditingController(
+      text: barber?.photoUrl ?? '',
+    );
     final active = useState(barber?.active ?? true);
     final selectedLocationId = useState<String?>(barber?.locationId);
-    final showWorkingHours = useState(barber?.workingHoursOverride != null && barber!.workingHoursOverride!.isNotEmpty);
+    final showWorkingHours = useState(
+      barber?.workingHoursOverride != null &&
+          barber!.workingHoursOverride!.isNotEmpty,
+    );
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
     final locations = useState<List<LocationEntity>>([]);
-    final brandId = ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
+    final currentLocation = useState<LocationEntity?>(null);
+    final brandId =
+        ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
     final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
     final locationRepo = ref.watch(locationRepositoryProvider);
     final notifier = ref.read(dashboardBarbersNotifierProvider.notifier);
 
     final openControllers = useMemoized(
-      () => List.generate(
-        7,
-        (i) => TextEditingController(
-          text: barber?.workingHoursOverride?[_dayKeys[i]]?.open ?? '',
-        ),
-      ),
-      [barber?.workingHoursOverride],
+      () {
+        final controllers = List.generate(
+          7,
+          (i) {
+            // Use barber override if exists, otherwise use location default
+            final value =
+                barber?.workingHoursOverride?[_dayKeys[i]]?.open ??
+                currentLocation.value?.workingHours[_dayKeys[i]]?.open ??
+                '';
+            return TextEditingController(text: value);
+          },
+        );
+        return controllers;
+      },
+      // No dependency - only create once to preserve user input
     );
     final closeControllers = useMemoized(
-      () => List.generate(
-        7,
-        (i) => TextEditingController(
-          text: barber?.workingHoursOverride?[_dayKeys[i]]?.close ?? '',
-        ),
-      ),
-      [barber?.workingHoursOverride],
+      () {
+        final controllers = List.generate(
+          7,
+          (i) {
+            // Use barber override if exists, otherwise use location default
+            final value =
+                barber?.workingHoursOverride?[_dayKeys[i]]?.close ??
+                currentLocation.value?.workingHours[_dayKeys[i]]?.close ??
+                '';
+            return TextEditingController(text: value);
+          },
+        );
+        return controllers;
+      },
+      // No dependency - only create once to preserve user input
     );
 
     useEffect(() {
@@ -71,11 +94,41 @@ class BarberFormPage extends HookConsumerWidget {
           if (selectedLocationId.value == null && list.isNotEmpty) {
             selectedLocationId.value = list.first.locationId;
           }
+          // Load current location for default hours
+          if (barber?.locationId != null) {
+            currentLocation.value = list.firstWhere(
+              (loc) => loc.locationId == barber!.locationId,
+              orElse: () => list.first,
+            );
+          } else if (list.isNotEmpty) {
+            currentLocation.value = list.first;
+          }
         });
       }
+
       loadLocations();
       return null;
     }, [effectiveBrandId, locationRepo]);
+
+    // Update controllers when location loads (only if barber has no override)
+    useEffect(() {
+      if (currentLocation.value != null &&
+          barber?.workingHoursOverride == null) {
+        final locationHours = currentLocation.value!.workingHours;
+        for (var i = 0; i < 7; i++) {
+          final dayKey = _dayKeys[i];
+          final open = locationHours[dayKey]?.open ?? '';
+          final close = locationHours[dayKey]?.close ?? '';
+          if (openControllers[i].text.isEmpty && open.isNotEmpty) {
+            openControllers[i].text = open;
+          }
+          if (closeControllers[i].text.isEmpty && close.isNotEmpty) {
+            closeControllers[i].text = close;
+          }
+        }
+      }
+      return null;
+    }, [currentLocation.value]);
 
     useEffect(
       () => () {
@@ -111,8 +164,20 @@ class BarberFormPage extends HookConsumerWidget {
         return;
       }
 
+      print('🔵 Form - showWorkingHours.value: ${showWorkingHours.value}');
+
       WorkingHoursMap? override;
-      if (showWorkingHours.value) {
+      // Check if any working hours fields have values, regardless of expansion state
+      bool hasAnyWorkingHours = false;
+      for (var i = 0; i < 7; i++) {
+        if (openControllers[i].text.trim().isNotEmpty ||
+            closeControllers[i].text.trim().isNotEmpty) {
+          hasAnyWorkingHours = true;
+          break;
+        }
+      }
+
+      if (hasAnyWorkingHours) {
         override = {};
         for (var i = 0; i < 7; i++) {
           final open = _normalizeTime(openControllers[i].text.trim());
@@ -128,7 +193,8 @@ class BarberFormPage extends HookConsumerWidget {
         }
       }
 
-      final barberId = isEdit ? barber!.barberId : _slugFromName(nameController.text.trim());
+      final barberId =
+          isEdit ? barber!.barberId : _slugFromName(nameController.text.trim());
       final entity = BarberEntity(
         barberId: barberId,
         brandId: effectiveBrandId,
@@ -143,7 +209,9 @@ class BarberFormPage extends HookConsumerWidget {
       await notifier.save(entity);
 
       if (!context.mounted) return;
-      final messenger = rootScaffoldMessengerKey.currentState ?? ScaffoldMessenger.maybeOf(context);
+      final messenger =
+          rootScaffoldMessengerKey.currentState ??
+          ScaffoldMessenger.maybeOf(context);
       if (notifier.hasError) {
         messenger?.showSnackBar(
           SnackBar(
@@ -154,7 +222,11 @@ class BarberFormPage extends HookConsumerWidget {
       } else {
         messenger?.showSnackBar(
           SnackBar(
-            content: Text(isEdit ? context.l10n.dashboardBarberSaved : context.l10n.dashboardBarberCreated),
+            content: Text(
+              isEdit
+                  ? context.l10n.dashboardBarberSaved
+                  : context.l10n.dashboardBarberCreated,
+            ),
             backgroundColor: context.appColors.primaryColor,
           ),
         );
@@ -167,7 +239,9 @@ class BarberFormPage extends HookConsumerWidget {
       appBar: AppBar(
         leading: CustomBackButton(onPressed: () => Navigator.of(context).pop()),
         title: Text(
-          isEdit ? context.l10n.dashboardBarberEdit : context.l10n.dashboardBarberAdd,
+          isEdit
+              ? context.l10n.dashboardBarberEdit
+              : context.l10n.dashboardBarberAdd,
           style: context.appTextStyles.h2.copyWith(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -188,10 +262,11 @@ class BarberFormPage extends HookConsumerWidget {
                 title: context.l10n.dashboardBarberName,
                 hint: context.l10n.dashboardBarberNameHint,
                 controller: nameController,
-                validator: (v) =>
-                    (v?.trim().isEmpty ?? true)
-                        ? context.l10n.dashboardBarberNameRequired
-                        : null,
+                validator:
+                    (v) =>
+                        (v?.trim().isEmpty ?? true)
+                            ? context.l10n.dashboardBarberNameRequired
+                            : null,
               ),
               Gap(context.appSizes.paddingMedium),
               CustomTextField.withTitle(
@@ -210,26 +285,32 @@ class BarberFormPage extends HookConsumerWidget {
               Gap(context.appSizes.paddingSmall),
               locations.value.isEmpty
                   ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: context.appSizes.paddingSmall),
-                      child: Text(
-                        context.l10n.dashboardBarberNoLocations,
-                        style: context.appTextStyles.caption.copyWith(
-                          color: context.appColors.captionTextColor,
-                        ),
+                    padding: EdgeInsets.symmetric(
+                      vertical: context.appSizes.paddingSmall,
+                    ),
+                    child: Text(
+                      context.l10n.dashboardBarberNoLocations,
+                      style: context.appTextStyles.caption.copyWith(
+                        color: context.appColors.captionTextColor,
                       ),
-                    )
+                    ),
+                  )
                   : DropdownButtonFormField<String>(
-                      value: selectedLocationId.value,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: context.appColors.secondaryColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
+                    value: selectedLocationId.value,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: context.appColors.secondaryColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          context.appSizes.borderRadius,
                         ),
                       ),
-                      dropdownColor: context.appColors.menuBackgroundColor,
-                      items: locations.value
-                          .map((loc) => DropdownMenuItem(
+                    ),
+                    dropdownColor: context.appColors.menuBackgroundColor,
+                    items:
+                        locations.value
+                            .map(
+                              (loc) => DropdownMenuItem(
                                 value: loc.locationId,
                                 child: Text(
                                   loc.name,
@@ -237,14 +318,16 @@ class BarberFormPage extends HookConsumerWidget {
                                     color: context.appColors.primaryTextColor,
                                   ),
                                 ),
-                              ))
-                          .toList(),
-                      onChanged: (v) => selectedLocationId.value = v,
-                      validator: (v) =>
-                          (v == null || v.isEmpty)
-                              ? context.l10n.dashboardBarberLocationRequired
-                              : null,
-                    ),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (v) => selectedLocationId.value = v,
+                    validator:
+                        (v) =>
+                            (v == null || v.isEmpty)
+                                ? context.l10n.dashboardBarberLocationRequired
+                                : null,
+                  ),
               Gap(context.appSizes.paddingMedium),
               SwitchListTile(
                 title: Text(
@@ -255,7 +338,9 @@ class BarberFormPage extends HookConsumerWidget {
                 ),
                 value: active.value,
                 onChanged: (v) => active.value = v,
-                activeTrackColor: context.appColors.primaryColor.withValues(alpha: 0.5),
+                activeTrackColor: context.appColors.primaryColor.withValues(
+                  alpha: 0.5,
+                ),
                 activeThumbColor: context.appColors.primaryColor,
               ),
               Gap(context.appSizes.paddingMedium),
@@ -275,7 +360,8 @@ class BarberFormPage extends HookConsumerWidget {
                     color: context.appColors.captionTextColor,
                   ),
                 ),
-                onExpansionChanged: (expanded) => showWorkingHours.value = expanded,
+                onExpansionChanged:
+                    (expanded) => showWorkingHours.value = expanded,
                 children: [
                   Gap(context.appSizes.paddingSmall),
                   ...List.generate(
@@ -285,7 +371,8 @@ class BarberFormPage extends HookConsumerWidget {
                       openController: openControllers[i],
                       closeController: closeControllers[i],
                       timeFormatError: context.l10n.dashboardLocationTimeFormat,
-                      startBeforeEndError: context.l10n.dashboardLocationStartBeforeEnd,
+                      startBeforeEndError:
+                          context.l10n.dashboardLocationStartBeforeEnd,
                     ),
                   ),
                   Gap(context.appSizes.paddingSmall),
@@ -318,7 +405,9 @@ class BarberFormPage extends HookConsumerWidget {
         .replaceAll(RegExp(r'\s+'), '-')
         .replaceAll(RegExp(r'-+'), '-')
         .replaceAll(RegExp(r'^-|-$'), '');
-    return slug.isNotEmpty ? slug : 'barber-${DateTime.now().millisecondsSinceEpoch}';
+    return slug.isNotEmpty
+        ? slug
+        : 'barber-${DateTime.now().millisecondsSinceEpoch}';
   }
 }
 
@@ -366,7 +455,9 @@ class _BarberWorkingHoursRow extends StatelessWidget {
                   horizontal: context.appSizes.paddingMedium,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    context.appSizes.borderRadius,
+                  ),
                 ),
               ),
               inputFormatters: [
@@ -377,7 +468,12 @@ class _BarberWorkingHoursRow extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text('–', style: context.appTextStyles.medium.copyWith(color: context.appColors.captionTextColor)),
+            child: Text(
+              '–',
+              style: context.appTextStyles.medium.copyWith(
+                color: context.appColors.captionTextColor,
+              ),
+            ),
           ),
           Expanded(
             child: TextFormField(
@@ -391,7 +487,9 @@ class _BarberWorkingHoursRow extends StatelessWidget {
                   horizontal: context.appSizes.paddingMedium,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    context.appSizes.borderRadius,
+                  ),
                 ),
               ),
               inputFormatters: [
@@ -400,11 +498,18 @@ class _BarberWorkingHoursRow extends StatelessWidget {
               ],
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return null;
-                final formatErr = validateTimeFormat(v, formatError: timeFormatError);
+                final formatErr = validateTimeFormat(
+                  v,
+                  formatError: timeFormatError,
+                );
                 if (formatErr != null) return formatErr;
                 final open = openController.text.trim();
                 if (open.isEmpty) return null;
-                return validateStartBeforeEnd(open, v, errorMessage: startBeforeEndError);
+                return validateStartBeforeEnd(
+                  open,
+                  v,
+                  errorMessage: startBeforeEndError,
+                );
               },
             ),
           ),

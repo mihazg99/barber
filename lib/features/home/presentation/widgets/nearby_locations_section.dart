@@ -12,7 +12,6 @@ import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/value_objects/working_hours.dart';
 import 'package:barber/core/widgets/shimmer_placeholder.dart';
 import 'package:barber/features/home/di.dart';
-import 'package:barber/features/home/domain/entities/home_data.dart';
 import 'package:barber/features/home/presentation/widgets/home_section_title.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 
@@ -203,7 +202,9 @@ class _LocationCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => context.push(AppRoute.booking.path),
+        onTap: () => context.push(
+          '${AppRoute.booking.path}?locationId=${location.locationId}',
+        ),
         borderRadius: BorderRadius.circular(_cardRadius),
         child: Container(
           decoration: BoxDecoration(
@@ -288,7 +289,9 @@ class _LocationCard extends StatelessWidget {
                     ],
                     Gap(context.appSizes.paddingSmall),
                     _BookNowPill(
-                      onTap: () => context.push(AppRoute.booking.path),
+                      onTap: () => context.push(
+                        '${AppRoute.booking.path}?locationId=${location.locationId}',
+                      ),
                     ),
                   ],
                 ),

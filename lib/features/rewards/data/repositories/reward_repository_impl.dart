@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:barber/core/errors/failure.dart';
 import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/core/firebase/collections.dart';
+import 'package:barber/core/firebase/firestore_logger.dart';
 import 'package:barber/features/rewards/data/mappers/reward_firestore_mapper.dart';
 import 'package:barber/features/rewards/domain/entities/reward_entity.dart';
 import 'package:barber/features/rewards/domain/repositories/reward_repository.dart';
@@ -21,7 +22,10 @@ class RewardRepositoryImpl implements RewardRepository {
     bool includeInactive = false,
   }) async {
     try {
-      final snapshot = await _col.where('brand_id', isEqualTo: brandId).get();
+      final snapshot = await FirestoreLogger.logRead(
+        '${FirestoreCollections.rewards}?brand_id=$brandId',
+        () => _col.where('brand_id', isEqualTo: brandId).get(),
+      );
       var list =
           snapshot.docs
               .map((d) => RewardFirestoreMapper.fromFirestore(d))
@@ -39,7 +43,10 @@ class RewardRepositoryImpl implements RewardRepository {
   @override
   Future<Either<Failure, RewardEntity?>> getById(String rewardId) async {
     try {
-      final doc = await _col.doc(rewardId).get();
+      final doc = await FirestoreLogger.logRead(
+        '${FirestoreCollections.rewards}/$rewardId',
+        () => _col.doc(rewardId).get(),
+      );
       if (doc.data() == null) return const Right(null);
       return Right(RewardFirestoreMapper.fromFirestore(doc));
     } catch (e) {
@@ -50,11 +57,13 @@ class RewardRepositoryImpl implements RewardRepository {
   @override
   Future<Either<Failure, void>> set(RewardEntity entity) async {
     try {
-      await _col
-          .doc(entity.rewardId)
-          .set(
-            RewardFirestoreMapper.toFirestore(entity),
-          );
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.rewards}/${entity.rewardId}',
+        'set',
+        () => _col
+            .doc(entity.rewardId)
+            .set(RewardFirestoreMapper.toFirestore(entity)),
+      );
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to set reward: $e'));
@@ -64,7 +73,11 @@ class RewardRepositoryImpl implements RewardRepository {
   @override
   Future<Either<Failure, void>> delete(String rewardId) async {
     try {
-      await _col.doc(rewardId).delete();
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.rewards}/$rewardId',
+        'delete',
+        () => _col.doc(rewardId).delete(),
+      );
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to delete reward: $e'));

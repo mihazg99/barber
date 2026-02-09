@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:barber/core/l10n/app_localizations_ext.dart';
@@ -17,13 +18,29 @@ import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
 import 'package:barber/features/brand/di.dart' as brand_di;
 import 'package:barber/features/home/di.dart';
+import 'package:barber/core/di.dart';
 
 const _sectionSpacing = 28.0;
 
+final _log = Logger(printer: PrettyPrinter(methodCount: 0));
+
 void _playPointsAwardedHaptic() {
+  // Chaotic haptic pattern like Apple Pay
   HapticFeedback.mediumImpact();
-  Future.delayed(const Duration(milliseconds: 50), () {
+  Future.delayed(const Duration(milliseconds: 80), () {
     HapticFeedback.lightImpact();
+  });
+  Future.delayed(const Duration(milliseconds: 140), () {
+    HapticFeedback.lightImpact();
+  });
+  Future.delayed(const Duration(milliseconds: 220), () {
+    HapticFeedback.mediumImpact();
+  });
+  Future.delayed(const Duration(milliseconds: 280), () {
+    HapticFeedback.lightImpact();
+  });
+  Future.delayed(const Duration(milliseconds: 360), () {
+    HapticFeedback.heavyImpact();
   });
 }
 
@@ -34,29 +51,30 @@ class LoyaltyCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserStreamProvider);
+    final lastUser = ref.watch(lastSignedInUserProvider);
+    final userValue = currentUserAsync.valueOrNull ?? lastUser;
 
-    return switch (currentUserAsync) {
-      AsyncLoading() => const Column(
+    return switch (userValue) {
+      null => switch (currentUserAsync) {
+        AsyncLoading() => const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 4),
+              child: _LoyaltyCardShimmer(),
+            ),
+            Gap(_sectionSpacing),
+          ],
+        ),
+        _ => const SizedBox.shrink(),
+      },
+      final value => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 4),
-            child: _LoyaltyCardShimmer(),
-          ),
+          _LoyaltyCardContent(user: value),
           Gap(_sectionSpacing),
         ],
       ),
-      AsyncData(:final value) =>
-        value == null
-            ? const SizedBox.shrink()
-            : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _LoyaltyCardContent(user: value),
-                Gap(_sectionSpacing),
-              ],
-            ),
-      _ => const SizedBox.shrink(),
     };
   }
 }
@@ -69,8 +87,10 @@ class _LoyaltyCardContent extends HookConsumerWidget {
 
   static const _cardHeight = 156.0;
   static const _flipDuration = Duration(milliseconds: 400);
-  static const _pointsRollDuration = Duration(milliseconds: 1200);
+  static const _pointsRollDuration = Duration(milliseconds: 1500);
   static const _backQrSize = 120.0;
+  static const _flipToBackDelay = Duration(milliseconds: 100);
+  static const _flipToFrontDelay = Duration(milliseconds: 600);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -107,17 +127,55 @@ class _LoyaltyCardContent extends HookConsumerWidget {
     final rollStart = useRef<int>(user.loyaltyPoints);
     final rollEnd = useRef<int>(user.loyaltyPoints);
 
+    // Scale animation for points display during counting
+    final scaleController = useAnimationController(
+      duration: const Duration(milliseconds: 800),
+    );
+    final scaleCurve = useMemoized(
+      () => Tween<double>(begin: 1.0, end: 1.15).animate(
+        CurvedAnimation(
+          parent: scaleController,
+          curve: Curves.easeInOut,
+        ),
+      ),
+      [scaleController],
+    );
+    useAnimation(scaleCurve);
+
     useEffect(() {
       if (user.loyaltyPoints > previousPoints.value) {
+        final pointsAdded = user.loyaltyPoints - previousPoints.value;
+        _log.d(
+          'LoyaltyCard: Points increased from ${previousPoints.value} to ${user.loyaltyPoints} (+$pointsAdded)',
+        );
         rollStart.value = previousPoints.value;
         rollEnd.value = user.loyaltyPoints;
-        Future(() {
-          notifier.flipToFront();
+
+        // Multi-stage animation sequence
+        Future(() async {
+          // Stage 1: Flip to back (showing QR being scanned)
+          _log.d('LoyaltyCard: Stage 1 - Flip to back');
+          notifier.flipToBack();
+          await Future.delayed(_flipToBackDelay);
+
+          // Stage 2: Start haptic feedback
+          _log.d('LoyaltyCard: Stage 2 - Haptic feedback');
           _playPointsAwardedHaptic();
-          pointsController.forward().then((_) {
-            previousPoints.value = user.loyaltyPoints;
-            pointsController.reset();
-          });
+          await Future.delayed(_flipToFrontDelay);
+
+          // Stage 3: Flip to front and start counting animation
+          _log.d('LoyaltyCard: Stage 3 - Flip to front and count');
+          notifier.flipToFront();
+          await Future.delayed(const Duration(milliseconds: 200));
+
+          // Stage 4: Animate points counting with scale
+          _log.d('LoyaltyCard: Stage 4 - Animate counting');
+          scaleController.forward().then((_) => scaleController.reverse());
+          await pointsController.forward();
+
+          previousPoints.value = user.loyaltyPoints;
+          pointsController.reset();
+          _log.d('LoyaltyCard: Animation complete');
         });
       } else if (!pointsController.isAnimating) {
         previousPoints.value = user.loyaltyPoints;
@@ -143,10 +201,12 @@ class _LoyaltyCardContent extends HookConsumerWidget {
                 .round()
             : user.loyaltyPoints;
 
-    final brandName = ref.watch(brand_di.headerBrandNameProvider).valueOrNull;
+    final brandName =
+        ref.watch(brand_di.headerBrandNameProvider).valueOrNull ??
+        ref.watch(flavorConfigProvider).values.brandConfig.appTitle;
 
     void onCardTap() {
-      if (flipController.isAnimating) return;
+      if (flipController.isAnimating || pointsController.isAnimating) return;
       notifier.flip();
     }
 
@@ -181,6 +241,7 @@ class _LoyaltyCardContent extends HookConsumerWidget {
                   accent: accent,
                   flipT: flipCurve.value,
                   onQrTap: onCardTap,
+                  pointsScale: scaleCurve.value,
                 ),
               ),
             ],
@@ -201,6 +262,7 @@ class _LoyaltyCardFrontFace extends HookWidget {
     required this.accent,
     required this.flipT,
     required this.onQrTap,
+    required this.pointsScale,
   });
 
   final UserEntity user;
@@ -210,6 +272,7 @@ class _LoyaltyCardFrontFace extends HookWidget {
   final Color accent;
   final double flipT;
   final VoidCallback onQrTap;
+  final double pointsScale;
 
   static const _chipSize = 36.0;
   // Kingsman-style golden chip (from default.json: primary #9B784A, secondary #1A1614)
@@ -265,54 +328,54 @@ class _LoyaltyCardFrontFace extends HookWidget {
                   ),
                 ],
               ),
-              child: InkWell(
-                onTap: () => context.push(AppRoute.loyalty.path),
-                borderRadius: BorderRadius.circular(cardRadius),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: _chipSize,
-                            height: _chipSize * 0.75,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(6),
-                              gradient: const LinearGradient(
-                                colors: [
-                                  _chipGoldTop,
-                                  _chipGoldBottom,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              border: Border.all(
-                                color: _chipGoldBorder,
-                                width: 1,
-                              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: _chipSize,
+                          height: _chipSize * 0.75,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            gradient: const LinearGradient(
+                              colors: [
+                                _chipGoldTop,
+                                _chipGoldBottom,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            border: Border.all(
+                              color: _chipGoldBorder,
+                              width: 1,
                             ),
                           ),
-                          Text(
-                            context.l10n.loyaltyTitle,
-                            style: context.appTextStyles.caption.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 2.4,
-                              color: c.captionTextColor.withValues(alpha: 0.9),
-                            ),
+                        ),
+                        Text(
+                          context.l10n.loyaltyTitle,
+                          style: context.appTextStyles.caption.copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2.4,
+                            color: c.captionTextColor.withValues(alpha: 0.9),
                           ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Transform.scale(
+                          scale: pointsScale,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
                             '$displayedPoints ${context.l10n.loyaltyPointsAbbrev}',
                             style: context.appTextStyles.h2.copyWith(
                               fontSize: 22,
@@ -325,36 +388,48 @@ class _LoyaltyCardFrontFace extends HookWidget {
                               ],
                             ),
                           ),
-                          _SmallTappableQr(
-                            userId: user.userId,
-                            colors: c,
-                            onTap: onQrTap,
-                          ),
-                        ],
-                      ),
-                      const Gap(10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              user.fullName.trim().isEmpty
-                                  ? context.l10n.loyaltyMember
-                                  : user.fullName.toUpperCase(),
-                              style: context.appTextStyles.caption.copyWith(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 1.2,
-                                color: c.secondaryTextColor.withValues(
-                                  alpha: 0.95,
-                                ),
+                        ),
+                        _SmallTappableQr(
+                          userId: user.userId,
+                          colors: c,
+                          onTap: onQrTap,
+                        ),
+                      ],
+                    ),
+                    const Gap(10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            user.fullName.trim().isEmpty
+                                ? context.l10n.loyaltyMember
+                                : user.fullName.toUpperCase(),
+                            style: context.appTextStyles.caption.copyWith(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.2,
+                              color: c.secondaryTextColor.withValues(
+                                alpha: 0.95,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          Row(
+                        ),
+                        TextButton(
+                          onPressed: () => context.push(AppRoute.loyalty.path),
+                          style: TextButton.styleFrom(
+                            foregroundColor: accent,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
@@ -373,10 +448,10 @@ class _LoyaltyCardFrontFace extends HookWidget {
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -554,7 +629,7 @@ class _LoyaltyCardBackFace extends HookWidget {
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 2.4,
-                        color: colors.primaryColorOnDark,
+                        color: colors.captionTextColor.withValues(alpha: 0.9),
                       ),
                       textAlign: TextAlign.center,
                     ),

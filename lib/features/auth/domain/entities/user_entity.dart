@@ -12,6 +12,13 @@ class UserEntity extends Equatable {
     required this.brandId,
     required this.loyaltyPoints,
     this.role = UserRole.user,
+    this.lastBookingDate,
+    this.nextVisitDue,
+    this.averageVisitInterval = 30,
+    this.lifetimeValue = 0.0,
+    this.remindedThisCycle = false,
+    this.preferredBarberId = '',
+    this.barberId = '',
   });
 
   final String userId;
@@ -26,6 +33,27 @@ class UserEntity extends Equatable {
   /// User role. Only [UserRole.user] can be self-assigned. barber/superadmin via Admin SDK.
   final UserRole role;
 
+  /// Last booking completion date (set by Cloud Function onBookingComplete).
+  final DateTime? lastBookingDate;
+
+  /// Next visit due date (lastBookingDate + averageVisitInterval days).
+  final DateTime? nextVisitDue;
+
+  /// Average days between visits. Default 30.
+  final int averageVisitInterval;
+
+  /// Lifetime spend (sum of completed appointment prices).
+  final double lifetimeValue;
+
+  /// Whether a reminder was sent this cycle (reset on new booking).
+  final bool remindedThisCycle;
+
+  /// Barber ID from most recent completed appointment.
+  final String preferredBarberId;
+
+  /// Barber ID if this user record is linked to a barber.
+  final String barberId;
+
   UserEntity copyWith({
     String? userId,
     String? fullName,
@@ -34,25 +62,45 @@ class UserEntity extends Equatable {
     String? brandId,
     int? loyaltyPoints,
     UserRole? role,
-  }) =>
-      UserEntity(
-        userId: userId ?? this.userId,
-        fullName: fullName ?? this.fullName,
-        phone: phone ?? this.phone,
-        fcmToken: fcmToken ?? this.fcmToken,
-        brandId: brandId ?? this.brandId,
-        loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
-        role: role ?? this.role,
-      );
+    DateTime? lastBookingDate,
+    DateTime? nextVisitDue,
+    int? averageVisitInterval,
+    double? lifetimeValue,
+    bool? remindedThisCycle,
+    String? preferredBarberId,
+    String? barberId,
+  }) => UserEntity(
+    userId: userId ?? this.userId,
+    fullName: fullName ?? this.fullName,
+    phone: phone ?? this.phone,
+    fcmToken: fcmToken ?? this.fcmToken,
+    brandId: brandId ?? this.brandId,
+    loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
+    role: role ?? this.role,
+    lastBookingDate: lastBookingDate ?? this.lastBookingDate,
+    nextVisitDue: nextVisitDue ?? this.nextVisitDue,
+    averageVisitInterval: averageVisitInterval ?? this.averageVisitInterval,
+    lifetimeValue: lifetimeValue ?? this.lifetimeValue,
+    remindedThisCycle: remindedThisCycle ?? this.remindedThisCycle,
+    preferredBarberId: preferredBarberId ?? this.preferredBarberId,
+    barberId: barberId ?? this.barberId,
+  );
 
   @override
   List<Object?> get props => [
-        userId,
-        fullName,
-        phone,
-        fcmToken,
-        brandId,
-        loyaltyPoints,
-        role,
-      ];
+    userId,
+    fullName,
+    phone,
+    fcmToken,
+    brandId,
+    loyaltyPoints,
+    role,
+    lastBookingDate,
+    nextVisitDue,
+    averageVisitInterval,
+    lifetimeValue,
+    remindedThisCycle,
+    preferredBarberId,
+    barberId,
+  ];
 }

@@ -10,6 +10,7 @@ import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/features/auth/di.dart';
+import 'package:barber/features/brand/di.dart' as brand_di;
 import 'package:barber/features/home/di.dart';
 import 'package:barber/features/brand/presentation/widgets/app_header.dart';
 import 'package:barber/features/home/presentation/widgets/barbers_section.dart';
@@ -25,10 +26,14 @@ class HomePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useEffect(() {
-      Future.microtask(() {
-        ref.read(homeNotifierProvider.notifier).load();
+      var cancelled = false;
+      final notifier = ref.read(homeNotifierProvider.notifier);
+      final brandFuture = ref.read(brand_di.defaultBrandProvider.future);
+      Future.microtask(() async {
+        final cachedBrand = await brandFuture;
+        if (!cancelled) notifier.load(cachedBrand: cachedBrand);
       });
-      return null;
+      return () => cancelled = true;
     }, []);
 
     final homeState = ref.watch(homeNotifierProvider);
@@ -127,7 +132,10 @@ class _HomeError extends ConsumerWidget {
           ),
           Gap(context.appSizes.paddingMedium),
           TextButton.icon(
-            onPressed: () => ref.read(homeNotifierProvider.notifier).refresh(),
+            onPressed: () {
+                final cachedBrand = ref.read(brand_di.defaultBrandProvider).valueOrNull;
+                ref.read(homeNotifierProvider.notifier).refresh(cachedBrand: cachedBrand);
+              },
             icon: Icon(Icons.refresh, color: context.appColors.primaryColor),
             label: Text(
               context.l10n.retry,

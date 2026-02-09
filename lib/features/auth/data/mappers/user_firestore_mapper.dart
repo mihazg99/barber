@@ -16,15 +16,27 @@ class UserFirestoreMapper {
       brandId: data['brand_id'] as String? ?? '',
       loyaltyPoints: (data['loyalty_points'] as num?)?.toInt() ?? 0,
       role: UserRole.fromString(data[_fieldRole] as String?),
+      lastBookingDate: (data['last_booking_date'] as Timestamp?)?.toDate(),
+      nextVisitDue: (data['next_visit_due'] as Timestamp?)?.toDate(),
+      averageVisitInterval:
+          (data['average_visit_interval'] as num?)?.toInt() ?? 30,
+      lifetimeValue: (data['lifetime_value'] as num?)?.toDouble() ?? 0.0,
+      remindedThisCycle: data['reminded_this_cycle'] as bool? ?? false,
+      preferredBarberId: data['preferred_barber_id'] as String? ?? '',
+      barberId: data['barber_id'] as String? ?? '',
     );
   }
 
+  /// Client-writable fields only. Marketing fields (last_booking_date,
+  /// next_visit_due, lifetime_value, etc.) are server-managed by Cloud Functions
+  /// and must not be overwritten by the client.
   static Map<String, dynamic> toFirestore(UserEntity entity) => {
-        'full_name': entity.fullName,
-        'phone': entity.phone,
-        'fcm_token': entity.fcmToken,
-        'brand_id': entity.brandId,
-        'loyalty_points': entity.loyaltyPoints,
-        _fieldRole: entity.role.value,
-      };
+    'full_name': entity.fullName,
+    'phone': entity.phone,
+    'fcm_token': entity.fcmToken,
+    'brand_id': entity.brandId,
+    'loyalty_points': entity.loyaltyPoints,
+    'barber_id': entity.barberId,
+    _fieldRole: entity.role.value,
+  };
 }

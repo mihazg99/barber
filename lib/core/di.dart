@@ -9,6 +9,16 @@ import 'package:barber/core/data/database/app_database.dart';
 /// Root ScaffoldMessenger key for showing snackbars from anywhere (e.g. dashboard tabs).
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
+/// Notify to re-run router redirect. Placed in core so auth/di can trigger it when sign-in user is cached (avoids profile-setup redirect for returning users).
+class RouterRefreshNotifier extends ChangeNotifier {
+  void notify() => notifyListeners();
+}
+
+final routerRefreshNotifierProvider =
+    ChangeNotifierProvider<RouterRefreshNotifier>((ref) {
+      return RouterRefreshNotifier();
+    });
+
 /// DATA
 
 final flavorConfigProvider = Provider<FlavorConfig>((ref) {

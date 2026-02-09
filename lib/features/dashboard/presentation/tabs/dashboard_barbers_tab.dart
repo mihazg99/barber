@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -22,16 +21,8 @@ class DashboardBarbersTab extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useEffect(() {
-      Future.microtask(() {
-        ref.read(dashboardBarbersNotifierProvider.notifier).load();
-        ref.read(dashboardLocationsNotifierProvider.notifier).load();
-      });
-      return null;
-    }, []);
-
     final state = ref.watch(dashboardBarbersNotifierProvider);
-    final locationsState = ref.watch(dashboardLocationsNotifierProvider);
+    final locationsState = ref.watch(dashboardLocationsViewProvider);
     final locations =
         locationsState is BaseData<List<LocationEntity>>
             ? locationsState.data

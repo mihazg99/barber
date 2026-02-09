@@ -404,6 +404,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get dashboardNavBookings => 'Termini';
 
   @override
+  String get dashboardNavCalendar => 'Kalendar';
+
+  @override
   String get dashboardNavShift => 'Smjena';
 
   @override
@@ -422,10 +425,31 @@ class AppLocalizationsHr extends AppLocalizations {
   String get dashboardNavBarbers => 'Brijači';
 
   @override
+  String get dashboardNavAnalytics => 'Analitika';
+
+  @override
   String get dashboardBookingsTitle => 'Moji termini';
 
   @override
   String get dashboardShiftTitle => 'Moja smjena';
+
+  @override
+  String get marketingInsightsTitle => 'Marketing uvid';
+
+  @override
+  String get averageTicketValue => 'Prosječna vrijednost kartice';
+
+  @override
+  String get todayRevenue => 'Današnji prihod';
+
+  @override
+  String get todayAppointments => 'Termini danas';
+
+  @override
+  String get newCustomersToday => 'Novi kupci';
+
+  @override
+  String get noShowsToday => 'Nedolasci';
 
   @override
   String get addNewItem => 'Dodaj novu stavku';
@@ -884,4 +908,142 @@ class AppLocalizationsHr extends AppLocalizations {
   String openNow(String open, String close) {
     return 'OTVORENO SADA $open - $close';
   }
+
+  @override
+  String get calendarTitle => 'Kalendar';
+
+  @override
+  String get calendarToday => 'Danas';
+
+  @override
+  String get calendarNoAppointments => 'Nema termina';
+
+  @override
+  String calendarAppointmentsCount(int count) {
+    return '$count termin(a)';
+  }
+
+  @override
+  String get calendarViewDay => 'Dan';
+
+  @override
+  String get calendarViewWeek => 'Tjedan';
+
+  @override
+  String get calendarViewMonth => 'Mjesec';
+
+  @override
+  String get calendarAppointmentDetails => 'Detalji termina';
+
+  @override
+  String get calendarClient => 'Klijent';
+
+  @override
+  String get calendarService => 'Usluga';
+
+  @override
+  String get calendarTime => 'Vrijeme';
+
+  @override
+  String get calendarDuration => 'Trajanje';
+
+  @override
+  String get calendarPrice => 'Cijena';
+
+  @override
+  String get calendarStatus => 'Status';
+
+  @override
+  String get calendarLocation => 'Lokacija';
+
+  @override
+  String get errorLoadingAppointments => 'Greška pri učitavanju termina';
+
+  @override
+  String get shiftTabTitle => 'Moja smjena';
+
+  @override
+  String get shiftWorkingHours => 'Radno vrijeme';
+
+  @override
+  String get shiftTimeOff => 'Slobodni dani';
+
+  @override
+  String get shiftAddTimeOff => 'Dodaj slobodne dane';
+
+  @override
+  String get shiftNoTimeOff => 'Nema zakazanih slobodnih dana';
+
+  @override
+  String get shiftUpcomingTimeOff => 'Nadolazeći slobodni dani';
+
+  @override
+  String get timeOffStartDate => 'Datum početka';
+
+  @override
+  String get timeOffEndDate => 'Datum kraja';
+
+  @override
+  String get timeOffReason => 'Razlog';
+
+  @override
+  String get timeOffReasonVacation => 'Godišnji odmor';
+
+  @override
+  String get timeOffReasonSick => 'Bolovanje';
+
+  @override
+  String get timeOffReasonPersonal => 'Osobno';
+
+  @override
+  String get timeOffSaved => 'Slobodni dani spremljeni';
+
+  @override
+  String get timeOffDeleted => 'Slobodni dani obrisani';
+
+  @override
+  String get timeOffDeleteConfirm => 'Obrisati slobodne dane?';
+
+  @override
+  String get timeOffDeleteConfirmMessage =>
+      'Jeste li sigurni da želite obrisati ovaj period slobodnih dana?';
+
+  @override
+  String get timeOffEdit => 'Uredi';
+
+  @override
+  String get timeOffDelete => 'Obriši';
+
+  @override
+  String timeOffDateRange(String startDate, String endDate) {
+    return '$startDate - $endDate';
+  }
+
+  @override
+  String get timeOffSelectReason => 'Odaberite razlog';
+
+  @override
+  String get timeOffStartDateRequired => 'Početni datum je obavezan';
+
+  @override
+  String get timeOffEndDateRequired => 'Krajnji datum je obavezan';
+
+  @override
+  String get timeOffEndBeforeStart =>
+      'Krajnji datum mora biti nakon početnog datuma';
+
+  @override
+  String get shiftMyWorkingHours => 'Moje radno vrijeme';
+
+  @override
+  String get shiftEditWorkingHours => 'Uredi';
+
+  @override
+  String get shiftNoWorkingHours => 'Radno vrijeme nije postavljeno';
+
+  @override
+  String get shiftClosed => 'Zatvoreno';
+
+  @override
+  String get shiftWorkingHoursSaved => 'Radno vrijeme uspješno ažurirano';
 }

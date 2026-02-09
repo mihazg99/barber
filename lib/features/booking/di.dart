@@ -16,6 +16,8 @@ import 'package:barber/features/barbers/di.dart' as barbers_di;
 import 'package:barber/features/locations/di.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/services/di.dart' as services_di;
+import 'package:barber/features/auth/di.dart';
+import 'package:barber/features/time_off/di.dart' as time_off_di;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final availabilityRepositoryProvider = Provider<AvailabilityRepository>((ref) {
@@ -33,7 +35,10 @@ final bookingTransactionProvider = Provider<BookingTransaction>((ref) {
 });
 
 final calculateFreeSlotsProvider = Provider<CalculateFreeSlots>((ref) {
-  return CalculateFreeSlots(ref.watch(availabilityRepositoryProvider));
+  return CalculateFreeSlots(
+    ref.watch(availabilityRepositoryProvider),
+    ref.watch(time_off_di.timeOffRepositoryProvider),
+  );
 });
 
 final manageBookingNotifierProvider = StateNotifierProvider.family<
@@ -41,6 +46,7 @@ final manageBookingNotifierProvider = StateNotifierProvider.family<
   BaseState<ManageBookingData>,
   String
 >((ref, appointmentId) {
+  final isStaff = ref.watch(isStaffProvider);
   return ManageBookingNotifier(
     ref.watch(appointmentRepositoryProvider),
     ref.watch(locationRepositoryProvider),
@@ -48,6 +54,7 @@ final manageBookingNotifierProvider = StateNotifierProvider.family<
     ref.watch(services_di.serviceRepositoryProvider),
     ref.watch(brandRepositoryProvider),
     ref.watch(bookingTransactionProvider),
+    isStaff: isStaff,
   )..load(appointmentId);
 });
 

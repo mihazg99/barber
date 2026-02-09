@@ -292,15 +292,15 @@ class UpcomingBooking extends ConsumerWidget {
         HomeSectionTitle(title: context.l10n.upcoming),
         Gap(context.appSizes.paddingSmall),
         switch (upcomingAsync) {
-          AsyncLoading() => const _UpcomingShimmer(),
-          AsyncData(:final value) =>
-            value == null
+          BaseLoading() => const _UpcomingShimmer(),
+          BaseData(:final data) =>
+            data == null
                 ? NoUpcomingBookingCTA(
                   onTap: () => context.push(AppRoute.booking.path),
                 )
                 : UpcomingBookingCard(
-                  appointment: value,
-                  locationName: _locationNameFor(locations, value.locationId),
+                  appointment: data,
+                  locationName: _locationNameFor(locations, data.locationId),
                 ),
           _ => NoUpcomingBookingCTA(
             onTap: () => context.push(AppRoute.booking.path),

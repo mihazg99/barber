@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:barber/core/errors/failure.dart';
 import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/core/firebase/collections.dart';
+import 'package:barber/core/firebase/firestore_logger.dart';
 import 'package:barber/features/locations/data/mappers/location_firestore_mapper.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 import 'package:barber/features/locations/domain/repositories/location_repository.dart';
@@ -18,7 +19,10 @@ class LocationRepositoryImpl implements LocationRepository {
   @override
   Future<Either<Failure, List<LocationEntity>>> getByBrandId(String brandId) async {
     try {
-      final snapshot = await _col.where('brand_id', isEqualTo: brandId).get();
+      final snapshot = await FirestoreLogger.logRead(
+        '${FirestoreCollections.locations}?brand_id=$brandId',
+        () => _col.where('brand_id', isEqualTo: brandId).get(),
+      );
       final list = snapshot.docs
           .map((d) => LocationFirestoreMapper.fromFirestore(d))
           .toList();
@@ -31,7 +35,10 @@ class LocationRepositoryImpl implements LocationRepository {
   @override
   Future<Either<Failure, LocationEntity?>> getById(String locationId) async {
     try {
-      final doc = await _col.doc(locationId).get();
+      final doc = await FirestoreLogger.logRead(
+        '${FirestoreCollections.locations}/$locationId',
+        () => _col.doc(locationId).get(),
+      );
       if (doc.data() == null) return const Right(null);
       return Right(LocationFirestoreMapper.fromFirestore(doc));
     } catch (e) {
@@ -42,9 +49,13 @@ class LocationRepositoryImpl implements LocationRepository {
   @override
   Future<Either<Failure, void>> set(LocationEntity entity) async {
     try {
-      await _col.doc(entity.locationId).set(
-            LocationFirestoreMapper.toFirestore(entity),
-          );
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.locations}/${entity.locationId}',
+        'set',
+        () => _col.doc(entity.locationId).set(
+              LocationFirestoreMapper.toFirestore(entity),
+            ),
+      );
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to set location: $e'));
@@ -54,7 +65,11 @@ class LocationRepositoryImpl implements LocationRepository {
   @override
   Future<Either<Failure, void>> delete(String locationId) async {
     try {
-      await _col.doc(locationId).delete();
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.locations}/$locationId',
+        'delete',
+        () => _col.doc(locationId).delete(),
+      );
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to delete location: $e'));

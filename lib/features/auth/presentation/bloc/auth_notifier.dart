@@ -6,12 +6,20 @@ import 'package:barber/features/auth/domain/repositories/auth_repository.dart';
 import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 
 class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
-  AuthNotifier(this._authRepository, this._userRepository) {
+  AuthNotifier(
+    this._authRepository,
+    this._userRepository, {
+    void Function(UserEntity?)? onSignInUser,
+    Future<void> Function()? onPreSignIn,
+  }) : _onSignInUser = onSignInUser,
+       _onPreSignIn = onPreSignIn {
     setData(const AuthFlowData(step: AuthStep.landing));
   }
 
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
+  final void Function(UserEntity?)? _onSignInUser;
+  final Future<void> Function()? _onPreSignIn;
 
   /// Sends OTP to [phone]. On success, moves to OTP verification step.
   Future<void> sendOtp(String phone) async {
@@ -52,6 +60,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
         current.copyWith(isLoading: false, errorMessage: failure.message),
       ),
       (user) {
+        _onSignInUser?.call(user);
         final needsProfile = user.fullName.trim().isEmpty;
         setData(
           current.copyWith(
@@ -65,11 +74,15 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
   }
 
   /// Saves profile (full name and phone) and completes flow. Router redirects when profile is complete.
-  Future<void> submitProfile(UserEntity user, String fullName, String phone) async {
+  Future<void> submitProfile(
+    UserEntity user,
+    String fullName,
+    String phone,
+  ) async {
     final current = data;
     final trimmedName = fullName.trim();
     final trimmedPhone = phone.trim();
-    
+
     if (trimmedName.isEmpty) {
       setData(
         (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
@@ -78,7 +91,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
       );
       return;
     }
-    
+
     if (trimmedPhone.isEmpty || trimmedPhone.length < 10) {
       setData(
         (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
@@ -87,7 +100,7 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
       );
       return;
     }
-    
+
     setData(
       (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
         isLoading: true,
@@ -111,6 +124,11 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
         (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
           isLoading: false,
           errorMessage: null,
+          step: AuthStep.landing,
+          user: user.copyWith(
+            fullName: trimmedName,
+            phone: trimmedPhone,
+          ),
         ),
       ),
     );
@@ -141,13 +159,15 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
     );
   }
 
-  /// Signs in with Google. On success, checks if SMS verification is needed.
+  /// Signs in with Google. Always leads to profile completion to collect phone number.
   Future<void> signInWithGoogle({required bool requireSmsVerification}) async {
     final current = data ?? const AuthFlowData(step: AuthStep.landing);
     setData(current.copyWith(isLoading: true, errorMessage: null));
+    await _onPreSignIn?.call();
     final result = await _authRepository.signInWithGoogle();
     result.fold(
       (failure) {
+        if (!mounted) return;
         // Don't show error for cancelled sign-in
         if (failure is! AuthSignInCancelledFailure) {
           setData(
@@ -161,19 +181,13 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
         }
       },
       (user) {
-        final needsProfile = user.fullName.trim().isEmpty;
-        final needsSms = requireSmsVerification;
-        
-        if (needsSms) {
-          // Move to phone input step for SMS verification
-          setData(
-            current.copyWith(
-              isLoading: false,
-              step: AuthStep.phoneInput,
-              user: user,
-            ),
-          );
-        } else if (needsProfile) {
+        if (!mounted) return;
+        _onSignInUser?.call(user);
+        // Always go to profile step to collect phone number (unless both name and phone are present)
+        final needsProfile =
+            user.fullName.trim().isEmpty || user.phone.trim().isEmpty;
+
+        if (needsProfile) {
           // Move to profile step
           setData(
             current.copyWith(
@@ -195,10 +209,11 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
     );
   }
 
-  /// Signs in with Apple. On success, checks if SMS verification is needed.
+  /// Signs in with Apple. Always leads to profile completion to collect phone number.
   Future<void> signInWithApple({required bool requireSmsVerification}) async {
     final current = data ?? const AuthFlowData(step: AuthStep.landing);
     setData(current.copyWith(isLoading: true, errorMessage: null));
+    await _onPreSignIn?.call();
     final result = await _authRepository.signInWithApple();
     result.fold(
       (failure) {
@@ -215,19 +230,12 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
         }
       },
       (user) {
-        final needsProfile = user.fullName.trim().isEmpty;
-        final needsSms = requireSmsVerification;
-        
-        if (needsSms) {
-          // Move to phone input step for SMS verification
-          setData(
-            current.copyWith(
-              isLoading: false,
-              step: AuthStep.phoneInput,
-              user: user,
-            ),
-          );
-        } else if (needsProfile) {
+        _onSignInUser?.call(user);
+        // Always go to profile step to collect phone number (unless both name and phone are present)
+        final needsProfile =
+            user.fullName.trim().isEmpty || user.phone.trim().isEmpty;
+
+        if (needsProfile) {
           // Move to profile step
           setData(
             current.copyWith(
@@ -257,8 +265,13 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
   Future<void> signOut() async {
     final result = await _authRepository.signOut();
     result.fold(
-      (failure) => setError(failure.message, failure),
-      (_) => reset(),
+      (failure) {
+        if (mounted) setError(failure.message, failure);
+      },
+      (_) {
+        _onSignInUser?.call(null);
+        if (mounted) reset();
+      },
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:barber/core/errors/failure.dart';
 import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/core/firebase/collections.dart';
+import 'package:barber/core/firebase/firestore_logger.dart';
 import 'package:barber/features/booking/data/mappers/appointment_firestore_mapper.dart';
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
 import 'package:barber/features/booking/domain/entities/booked_slot.dart';
@@ -42,7 +43,9 @@ class BookingTransaction {
         .doc(docId);
 
     try {
-      await _firestore.runTransaction((Transaction transaction) async {
+      await FirestoreLogger.logTransaction(
+        'booking createBookingWithSlot',
+        (Transaction transaction) async {
         // 0. Enforce one active appointment per user (atomic with slot booking)
         // Uses user_booking_locks/{userId} - transaction can only read docs by ref, not query.
         final lockRef = _firestore
@@ -126,7 +129,9 @@ class BookingTransaction {
           'user_id': appointment.userId,
           'active_appointment_id': appointment.appointmentId,
         }, SetOptions(merge: true));
-      });
+        },
+        _firestore,
+      );
       return const Right(null);
     } on FirebaseException catch (e) {
       if (e.code == 'slot-taken') {
@@ -228,7 +233,9 @@ class BookingTransaction {
         .doc(appointment.userId);
 
     try {
-      await _firestore.runTransaction((Transaction transaction) async {
+      await FirestoreLogger.logTransaction(
+        'booking cancelBooking',
+        (Transaction transaction) async {
         // Firestore requires all reads before any writes.
         final availabilitySnap = await transaction.get(availabilityRef);
         final lockSnap = await transaction.get(lockRef);
@@ -263,7 +270,9 @@ class BookingTransaction {
             'active_appointment_id': FieldValue.delete(),
           });
         }
-      });
+        },
+        _firestore,
+      );
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to cancel appointment: $e'));
@@ -286,7 +295,9 @@ class BookingTransaction {
         .doc(userId);
 
     try {
-      await _firestore.runTransaction((Transaction transaction) async {
+      await FirestoreLogger.logTransaction(
+        'booking completeVisitAndAwardLoyaltyPoints',
+        (Transaction transaction) async {
         final apptSnap = await transaction.get(appointmentRef);
         if (!apptSnap.exists || apptSnap.data() == null) {
           throw FirebaseException(
@@ -320,7 +331,9 @@ class BookingTransaction {
             'active_appointment_id': FieldValue.delete(),
           });
         }
-      });
+        },
+        _firestore,
+      );
       return const Right(null);
     } on FirebaseException catch (e) {
       return Left(FirestoreFailure(e.message ?? 'Failed to complete visit'));

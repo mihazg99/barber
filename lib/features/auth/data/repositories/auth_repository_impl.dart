@@ -11,11 +11,17 @@ import 'package:barber/features/auth/domain/repositories/auth_repository.dart';
 import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl(this._authDataSource, this._userRepository, this._brandId);
+  AuthRepositoryImpl(
+    this._authDataSource,
+    this._userRepository,
+    this._brandId, {
+    void Function(UserEntity)? onUserLoaded,
+  }) : _onUserLoaded = onUserLoaded;
 
   final AuthRemoteDataSource _authDataSource;
   final UserRepository _userRepository;
   final String _brandId;
+  final void Function(UserEntity)? _onUserLoaded;
 
   @override
   String? get currentUserId => _authDataSource.auth.currentUser?.uid;
@@ -64,15 +70,18 @@ class AuthRepositoryImpl implements AuthRepository {
       final existingResult = await _userRepository.getById(user.uid);
       final toSave = existingResult.fold(
         (_) => entity,
-        (existing) => existing != null
-            ? entity.copyWith(
-                fullName: existing.fullName,
-                loyaltyPoints: existing.loyaltyPoints,
-                role: existing.role,
-              )
-            : entity,
+        (existing) =>
+            existing != null
+                ? existing.copyWith(
+                  phone:
+                      existing.phone.isNotEmpty
+                          ? existing.phone
+                          : (user.phoneNumber ?? entity.phone),
+                )
+                : entity,
       );
 
+      _onUserLoaded?.call(toSave);
       final setResult = await _userRepository.set(toSave);
       // Always return user so profile step can show; if set failed, user can retry on submit.
       return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
@@ -105,18 +114,19 @@ class AuthRepositoryImpl implements AuthRepository {
       final existingResult = await _userRepository.getById(user.uid);
       final toSave = existingResult.fold(
         (_) => entity,
-        (existing) => existing != null
-            ? entity.copyWith(
-                fullName: existing.fullName.isNotEmpty
-                    ? existing.fullName
-                    : displayName,
-                phone: existing.phone.isNotEmpty ? existing.phone : phone,
-                loyaltyPoints: existing.loyaltyPoints,
-                role: existing.role,
-              )
-            : entity,
+        (existing) =>
+            existing != null
+                ? existing.copyWith(
+                  fullName:
+                      existing.fullName.isNotEmpty
+                          ? existing.fullName
+                          : displayName,
+                  phone: existing.phone.isNotEmpty ? existing.phone : phone,
+                )
+                : entity,
       );
 
+      _onUserLoaded?.call(toSave);
       final setResult = await _userRepository.set(toSave);
       // Always return user so profile step can show; if set failed, user can retry on submit.
       return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
@@ -152,18 +162,19 @@ class AuthRepositoryImpl implements AuthRepository {
       final existingResult = await _userRepository.getById(user.uid);
       final toSave = existingResult.fold(
         (_) => entity,
-        (existing) => existing != null
-            ? entity.copyWith(
-                fullName: existing.fullName.isNotEmpty
-                    ? existing.fullName
-                    : displayName,
-                phone: existing.phone.isNotEmpty ? existing.phone : phone,
-                loyaltyPoints: existing.loyaltyPoints,
-                role: existing.role,
-              )
-            : entity,
+        (existing) =>
+            existing != null
+                ? existing.copyWith(
+                  fullName:
+                      existing.fullName.isNotEmpty
+                          ? existing.fullName
+                          : displayName,
+                  phone: existing.phone.isNotEmpty ? existing.phone : phone,
+                )
+                : entity,
       );
 
+      _onUserLoaded?.call(toSave);
       final setResult = await _userRepository.set(toSave);
       // Always return user so profile step can show; if set failed, user can retry on submit.
       return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
@@ -172,9 +183,11 @@ class AuthRepositoryImpl implements AuthRepository {
         return Left(AuthSignInCancelledFailure());
       }
       if (e.code == 'apple-sign-in-not-available') {
-        return Left(AuthSignInFailedFailure(
-          'Apple Sign-In is not available. Please ensure you have an Apple Developer Program membership and have configured Sign In with Apple.',
-        ));
+        return Left(
+          AuthSignInFailedFailure(
+            'Apple Sign-In is not available. Please ensure you have an Apple Developer Program membership and have configured Sign In with Apple.',
+          ),
+        );
       }
       return Left(AuthSignInFailedFailure(e.message ?? e.code));
     } catch (e) {

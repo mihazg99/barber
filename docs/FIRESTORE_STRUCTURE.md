@@ -111,6 +111,7 @@ App users (clients). Document ID = Firebase Auth UID.
 | `brand_id` | String | Brand the user belongs to |
 | `loyalty_points` | Number | Single loyalty card: points for this user (brand) |
 | `role` | String | One of: `user`, `barber`, `superadmin`. Default `user`. **Security:** Clients can only create/keep `user`. `barber` and `superadmin` must be assigned via Firebase Admin SDK (Cloud Functions, admin tool). |
+| `barber_id` | String (optional) | When `role == 'barber'`, set to the **barbers** document id (e.g. `luka`) so security rules can allow the barber to read appointments where they are assigned. Required for barber dashboard “upcoming appointments” to work. |
 
 ### Role-based navigation
 
@@ -126,6 +127,8 @@ Role is stored in Firestore `users/{uid}.role`. Client app cannot set `barber` o
 const admin = require('firebase-admin');
 await admin.firestore().collection('users').doc(uid).update({ role: 'barber' });
 // or { role: 'superadmin' }
+// When assigning barber, also set barber_id to the barbers document id so the barber can read their assigned appointments:
+await admin.firestore().collection('users').doc(uid).update({ role: 'barber', barber_id: barberDocId });
 ```
 
 ---
@@ -177,6 +180,7 @@ Detailed records of all bookings.
 | `total_price` | Number | Total price |
 | `status` | String | One of: `scheduled`, `completed`, `cancelled`, `no_show` |
 | `created_at` | ServerTimestamp | Set on create (use `FieldValue.serverTimestamp()`) |
+| `no_show_counted` | Boolean (optional) | Set by Cloud Function when no_show stats aggregated (idempotency) |
 
 ---
 
@@ -221,6 +225,43 @@ User spent points to "buy" a reward. Document ID is encoded in the QR code the c
 
 ---
 
+## 11. `daily_stats` (Subcollection under locations)
+
+Pre-aggregated daily metrics per location. Path: `locations/{location_id}/daily_stats/{YYYY-MM-DD}`. Updated by Cloud Function `onBookingComplete` when appointments complete or are marked no_show.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| **doc_id** | — | `YYYY-MM-DD` (date key) |
+| `total_revenue` | Number | Sum of completed appointment prices |
+| `appointments_count` | Number | Count of completed appointments |
+| `new_customers` | Number | Count of first-time completers (lifetime_value was 0) |
+| `no_shows` | Number | Count of no-show appointments |
+| `service_breakdown` | Map\<String, int\> | service_id → count of appointments including that service |
+
+---
+
+## 12. `monthly_stats` (Subcollection under locations)
+
+Pre-aggregated monthly metrics per location. Path: `locations/{location_id}/monthly_stats/{YYYY-MM}`. Updated by Cloud Function `onBookingComplete` when appointments complete.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| **doc_id** | — | `YYYY-MM` (month key) |
+| `total_revenue` | Number | Sum of completed appointment prices |
+| `top_barber_id` | String (optional) | Barber with most appointments (computed client-side from barber_appointments) |
+| `retention_rate` | Number (optional) | 0.0–1.0, computed by batch job |
+| `barber_appointments` | Map\<String, int\> | barber_id → appointment count |
+
+---
+
+## Security rules (firestore.rules)
+
+Rules are tuned to avoid **dependency storms** and deny spikes during login/logout:
+
+- **Reads are decoupled from role checks:** No `get()` (user document lookup) is used on any **read** path. Public collections (`brands`, `locations`, `barbers`, `services`, `availability`, `rewards`) allow read for any authenticated user. Private data (`users`, `appointments`, `user_booking_locks`, `reward_redemptions`) use strict **userId matching only** for reads (e.g. `request.auth.uid == userId` or `resource.data.user_id == request.auth.uid`), so no role lookup is needed.
+- **Writes stay strict:** All create/update/delete that require elevated access still use `isSuperadmin()` or `isBarberOrSuperadmin()` (and `barberBrandId()` where needed), so those rules perform a single `get()` only when a write is evaluated.
+- **Private data:** Users can only read/write their own `users` doc, their own appointments, their own `user_booking_locks` doc, and their own `reward_redemptions`. Barbers/superadmins need backend (e.g. Admin SDK) to read other users’ data; client rules do not allow role-based read escalation to avoid get() on every read.
+
 ## Code references
 
 - **Collection names:** `lib/core/firebase/collections.dart`
@@ -232,6 +273,7 @@ User spent points to "buy" a reward. Document ID is encoded in the QR code the c
   - Users → `features/auth/`  
   - Availability & Appointments → `features/booking/`  
   - Rewards & Redemptions → `features/rewards/`  
+  - Stats (daily_stats, monthly_stats) → `features/stats/`  
 - **Working hours value type:** `lib/core/value_objects/working_hours.dart`
 
 ---

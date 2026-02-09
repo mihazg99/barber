@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:barber/core/di.dart';
 import 'package:barber/core/firebase/default_brand_id.dart' as brand_id;
 import 'package:barber/core/state/base_state.dart';
+import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:barber/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:barber/features/auth/domain/entities/auth_step.dart';
@@ -35,14 +37,25 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     ref.watch(authRemoteDataSourceProvider),
     ref.watch(userRepositoryProvider),
     configBrandId.isNotEmpty ? configBrandId : brand_id.fallbackBrandId,
+    onUserLoaded: (user) {
+      ref.read(lastSignedInUserProvider.notifier).state = user;
+    },
   );
 });
 
 final authNotifierProvider =
-    StateNotifierProvider<AuthNotifier, BaseState<AuthFlowData>>((ref) {
+    StateNotifierProvider.autoDispose<AuthNotifier, BaseState<AuthFlowData>>((
+      ref,
+    ) {
       return AuthNotifier(
         ref.watch(authRepositoryProvider),
         ref.watch(userRepositoryProvider),
+        onSignInUser: (user) {
+          ref.read(lastSignedInUserProvider.notifier).state = user;
+        },
+        onPreSignIn: () async {
+          await ref.read(defaultBrandProvider.future);
+        },
       );
     });
 
@@ -60,33 +73,62 @@ final currentUserIdProvider = StreamProvider<String?>((ref) {
   return ref.watch(authRepositoryProvider).authStateChanges;
 });
 
-/// Current user when authenticated. Refetches when auth state changes.
-final currentUserProvider = FutureProvider<UserEntity?>((ref) async {
-  ref.watch(isAuthenticatedProvider);
-  final uid = ref.watch(authRepositoryProvider).currentUserId;
-  if (uid == null) return null;
-  final result = await ref.watch(userRepositoryProvider).getById(uid);
-  return result.fold((_) => null, (u) => u);
-});
+/// Cached user from the last sign-in (used by auth flow). Cleared on signOut.
+final lastSignedInUserProvider = StateProvider<UserEntity?>((ref) => null);
 
-/// Current user as a stream so loyalty points update in real time when barber awards points (e.g. on home screen).
-final currentUserStreamProvider = StreamProvider<UserEntity?>((ref) {
+/// Set to true before signOut() so auth-dependent streams return null without subscribing; avoids PERMISSION_DENIED.
+final isLoggingOutProvider = StateProvider<bool>((ref) => false);
+
+/// Current user when authenticated. Single source: one Firestore stream (watchById).
+/// Emits [lastSignedInUser] first when it matches uid so router sees profile complete immediately after sign-in (no redirect to profile setup).
+/// When [isLoggingOutProvider] is true, returns Stream.value(null) so listeners are cancelled before auth becomes null.
+final currentUserProvider = StreamProvider<UserEntity?>((ref) {
+  if (ref.watch(isLoggingOutProvider)) return Stream.value(null);
+
   final uidAsync = ref.watch(currentUserIdProvider);
+
+  // If auth is strictly loading (no value yet), keep this provider in loading state
+  // by returning a future that doesn't complete.
+  if (uidAsync.isLoading && !uidAsync.hasValue) {
+    return Stream.fromFuture(Completer<UserEntity?>().future);
+  }
+
   final uid = uidAsync.valueOrNull;
   if (uid == null || uid.isEmpty) return Stream.value(null);
-  return ref.watch(userRepositoryProvider).watchById(uid);
+  final last = ref.watch(lastSignedInUserProvider);
+  final repo = ref.watch(userRepositoryProvider);
+  if (last != null && last.userId == uid) {
+    // Emit cached user immediately so isProfileComplete is true and returning users go to home, then live updates.
+    return Stream.value(last).asyncExpand((_) => repo.watchById(uid));
+  }
+  return repo.watchById(uid);
 });
 
-/// True when authenticated and profile has fullName set. Used by router redirect.
+/// Alias for code that referred to the old stream-only provider.
+final currentUserStreamProvider = currentUserProvider;
+
+/// True when authenticated and profile has both fullName and phone set. Used by router redirect.
+/// Uses [lastSignedInUser] when it matches current uid so redirect is correct immediately after sign-in (no profile-setup flash).
 final isProfileCompleteProvider = Provider<bool>((ref) {
-  final userAsync = ref.watch(currentUserProvider);
-  final user = userAsync.valueOrNull;
-  return user != null && user.fullName.trim().isNotEmpty;
+  final uid = ref.watch(authRepositoryProvider).currentUserId;
+  final last = ref.watch(lastSignedInUserProvider);
+  if (uid != null && last != null && last.userId == uid) {
+    return last.fullName.trim().isNotEmpty && last.phone.trim().isNotEmpty;
+  }
+  final user = ref.watch(currentUserProvider).valueOrNull;
+  return user != null &&
+      user.fullName.trim().isNotEmpty &&
+      user.phone.trim().isNotEmpty;
 });
 
 /// True when user has barber or superadmin role. They navigate to dashboard, not main app.
+/// Uses [lastSignedInUser] when it matches current uid so redirect is correct immediately after sign-in.
 final isStaffProvider = Provider<bool>((ref) {
-  final userAsync = ref.watch(currentUserProvider);
-  final user = userAsync.valueOrNull;
+  final uid = ref.watch(authRepositoryProvider).currentUserId;
+  final last = ref.watch(lastSignedInUserProvider);
+  if (uid != null && last != null && last.userId == uid) {
+    return last.role.isStaff;
+  }
+  final user = ref.watch(currentUserProvider).valueOrNull;
   return user?.role.isStaff ?? false;
 });

@@ -48,6 +48,7 @@ class BarberFirestoreMapper {
     if (entity.userId != null) {
       map['user_id'] = entity.userId;
     }
+
     if (entity.workingHoursOverride != null &&
         entity.workingHoursOverride!.isNotEmpty) {
       final hours = <String, dynamic>{};
@@ -56,6 +57,7 @@ class BarberFirestoreMapper {
       }
       map['working_hours_override'] = hours;
     }
+
     return map;
   }
 }
