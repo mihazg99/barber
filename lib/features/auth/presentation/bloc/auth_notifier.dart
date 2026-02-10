@@ -120,17 +120,21 @@ class AuthNotifier extends BaseNotifier<AuthFlowData, AuthFailure> {
           errorMessage: failure.message,
         ),
       ),
-      (_) => setData(
-        (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
-          isLoading: false,
-          errorMessage: null,
-          step: AuthStep.landing,
-          user: user.copyWith(
-            fullName: trimmedName,
-            phone: trimmedPhone,
+      (_) {
+        final updatedUser = user.copyWith(
+          fullName: trimmedName,
+          phone: trimmedPhone,
+        );
+        _onSignInUser?.call(updatedUser);
+        setData(
+          (current ?? const AuthFlowData(step: AuthStep.profileInfo)).copyWith(
+            isLoading: false,
+            errorMessage: null,
+            step: AuthStep.landing,
+            user: updatedUser,
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

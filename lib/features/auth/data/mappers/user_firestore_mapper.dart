@@ -13,8 +13,6 @@ class UserFirestoreMapper {
       fullName: data['full_name'] as String? ?? '',
       phone: data['phone'] as String? ?? '',
       fcmToken: data['fcm_token'] as String? ?? '',
-      brandId: data['brand_id'] as String? ?? '',
-      loyaltyPoints: (data['loyalty_points'] as num?)?.toInt() ?? 0,
       role: UserRole.fromString(data[_fieldRole] as String?),
       lastBookingDate: (data['last_booking_date'] as Timestamp?)?.toDate(),
       nextVisitDue: (data['next_visit_due'] as Timestamp?)?.toDate(),
@@ -24,6 +22,7 @@ class UserFirestoreMapper {
       remindedThisCycle: data['reminded_this_cycle'] as bool? ?? false,
       preferredBarberId: data['preferred_barber_id'] as String? ?? '',
       barberId: data['barber_id'] as String? ?? '',
+      brandId: data['brand_id'] as String? ?? '',
     );
   }
 
@@ -34,9 +33,8 @@ class UserFirestoreMapper {
     'full_name': entity.fullName,
     'phone': entity.phone,
     'fcm_token': entity.fcmToken,
-    'brand_id': entity.brandId,
-    'loyalty_points': entity.loyaltyPoints,
     'barber_id': entity.barberId,
+    'brand_id': entity.brandId,
     _fieldRole: entity.role.value,
   };
 }

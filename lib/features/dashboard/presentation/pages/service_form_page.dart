@@ -36,7 +36,9 @@ class ServiceFormPage extends HookConsumerWidget {
     final descriptionController = useTextEditingController(
       text: service?.description ?? '',
     );
-    final availableAtAll = useState(service?.availableAtLocations.isEmpty ?? true);
+    final availableAtAll = useState(
+      service?.availableAtLocations.isEmpty ?? true,
+    );
     final selectedLocationIds = useState<Set<String>>(
       service != null && service!.availableAtLocations.isNotEmpty
           ? Set.from(service!.availableAtLocations)
@@ -45,9 +47,7 @@ class ServiceFormPage extends HookConsumerWidget {
     final locations = useState<List<LocationEntity>>([]);
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
-    final brandId =
-        ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-    final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
+    final effectiveBrandId = ref.watch(dashboardBrandIdProvider);
     final locationRepo = ref.watch(locationRepositoryProvider);
     final notifier = ref.read(dashboardServicesNotifierProvider.notifier);
 
@@ -97,13 +97,15 @@ class ServiceFormPage extends HookConsumerWidget {
         return;
       }
 
-      final availableAtLocations = availableAtAll.value
-          ? <String>[]
-          : selectedLocationIds.value.toList();
+      final availableAtLocations =
+          availableAtAll.value
+              ? <String>[]
+              : selectedLocationIds.value.toList();
 
-      final serviceId = isEdit
-          ? service!.serviceId
-          : _slugFromName(nameController.text.trim());
+      final serviceId =
+          isEdit
+              ? service!.serviceId
+              : _slugFromName(nameController.text.trim());
 
       final entity = ServiceEntity(
         serviceId: serviceId,
@@ -118,7 +120,9 @@ class ServiceFormPage extends HookConsumerWidget {
       await notifier.save(entity);
 
       if (!context.mounted) return;
-      final messenger = rootScaffoldMessengerKey.currentState ?? ScaffoldMessenger.maybeOf(context);
+      final messenger =
+          rootScaffoldMessengerKey.currentState ??
+          ScaffoldMessenger.maybeOf(context);
       if (notifier.hasError) {
         messenger?.showSnackBar(
           SnackBar(
@@ -130,7 +134,11 @@ class ServiceFormPage extends HookConsumerWidget {
         ref.invalidate(servicesForHomeProvider);
         messenger?.showSnackBar(
           SnackBar(
-            content: Text(isEdit ? context.l10n.dashboardServiceSaved : context.l10n.dashboardServiceCreated),
+            content: Text(
+              isEdit
+                  ? context.l10n.dashboardServiceSaved
+                  : context.l10n.dashboardServiceCreated,
+            ),
             backgroundColor: context.appColors.primaryColor,
           ),
         );
@@ -143,7 +151,9 @@ class ServiceFormPage extends HookConsumerWidget {
       appBar: AppBar(
         leading: CustomBackButton(onPressed: () => Navigator.of(context).pop()),
         title: Text(
-          isEdit ? context.l10n.dashboardServiceEdit : context.l10n.dashboardServiceAdd,
+          isEdit
+              ? context.l10n.dashboardServiceEdit
+              : context.l10n.dashboardServiceAdd,
           style: context.appTextStyles.h2.copyWith(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -164,17 +174,20 @@ class ServiceFormPage extends HookConsumerWidget {
                 title: context.l10n.dashboardServiceName,
                 hint: context.l10n.dashboardServiceNameHint,
                 controller: nameController,
-                validator: (v) =>
-                    (v?.trim().isEmpty ?? true)
-                        ? context.l10n.dashboardServiceNameRequired
-                        : null,
+                validator:
+                    (v) =>
+                        (v?.trim().isEmpty ?? true)
+                            ? context.l10n.dashboardServiceNameRequired
+                            : null,
               ),
               Gap(context.appSizes.paddingMedium),
               CustomTextField.withTitle(
                 title: context.l10n.dashboardServicePrice,
                 hint: context.l10n.dashboardServicePriceHint,
                 controller: priceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
               ),
               Gap(context.appSizes.paddingMedium),
               CustomTextField.withTitle(
@@ -235,24 +248,30 @@ class ServiceFormPage extends HookConsumerWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: locations.value.map((loc) {
-                    final isSelected = selectedLocationIds.value.contains(loc.locationId);
-                    return FilterChip(
-                      label: Text(loc.name),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        final next = Set<String>.from(selectedLocationIds.value);
-                        if (selected) {
-                          next.add(loc.locationId);
-                        } else {
-                          next.remove(loc.locationId);
-                        }
-                        selectedLocationIds.value = next;
-                      },
-                      selectedColor: context.appColors.primaryColor.withValues(alpha: 0.2),
-                      checkmarkColor: context.appColors.primaryColor,
-                    );
-                  }).toList(),
+                  children:
+                      locations.value.map((loc) {
+                        final isSelected = selectedLocationIds.value.contains(
+                          loc.locationId,
+                        );
+                        return FilterChip(
+                          label: Text(loc.name),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            final next = Set<String>.from(
+                              selectedLocationIds.value,
+                            );
+                            if (selected) {
+                              next.add(loc.locationId);
+                            } else {
+                              next.remove(loc.locationId);
+                            }
+                            selectedLocationIds.value = next;
+                          },
+                          selectedColor: context.appColors.primaryColor
+                              .withValues(alpha: 0.2),
+                          checkmarkColor: context.appColors.primaryColor,
+                        );
+                      }).toList(),
                 ),
               ],
               Gap(context.appSizes.paddingLarge),
@@ -275,6 +294,8 @@ class ServiceFormPage extends HookConsumerWidget {
         .replaceAll(RegExp(r'\s+'), '-')
         .replaceAll(RegExp(r'-+'), '-')
         .replaceAll(RegExp(r'^-|-$'), '');
-    return slug.isNotEmpty ? slug : 'service-${DateTime.now().millisecondsSinceEpoch}';
+    return slug.isNotEmpty
+        ? slug
+        : 'service-${DateTime.now().millisecondsSinceEpoch}';
   }
 }

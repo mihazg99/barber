@@ -51,11 +51,15 @@ class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
       _defaultBrandId,
     );
     _loadingBrandId = null;
+
+    if (!mounted) return;
+
     locationsResult.fold(
       (f) => setError(f.message, f),
       (locations) => setData(HomeData(brand: brand, locations: locations)),
     );
   }
 
-  Future<void> refresh({BrandEntity? cachedBrand}) => load(cachedBrand: cachedBrand);
+  Future<void> refresh({BrandEntity? cachedBrand}) =>
+      load(cachedBrand: cachedBrand);
 }

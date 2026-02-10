@@ -9,8 +9,6 @@ class UserEntity extends Equatable {
     required this.fullName,
     required this.phone,
     required this.fcmToken,
-    required this.brandId,
-    required this.loyaltyPoints,
     this.role = UserRole.user,
     this.lastBookingDate,
     this.nextVisitDue,
@@ -19,16 +17,13 @@ class UserEntity extends Equatable {
     this.remindedThisCycle = false,
     this.preferredBarberId = '',
     this.barberId = '',
+    this.brandId = '',
   });
 
   final String userId;
   final String fullName;
   final String phone;
   final String fcmToken;
-  final String brandId;
-
-  /// Single loyalty card: points for this user (brand).
-  final int loyaltyPoints;
 
   /// User role. Only [UserRole.user] can be self-assigned. barber/superadmin via Admin SDK.
   final UserRole role;
@@ -54,13 +49,14 @@ class UserEntity extends Equatable {
   /// Barber ID if this user record is linked to a barber.
   final String barberId;
 
+  /// Brand ID this user belongs to (required for superadmins).
+  final String brandId;
+
   UserEntity copyWith({
     String? userId,
     String? fullName,
     String? phone,
     String? fcmToken,
-    String? brandId,
-    int? loyaltyPoints,
     UserRole? role,
     DateTime? lastBookingDate,
     DateTime? nextVisitDue,
@@ -69,13 +65,12 @@ class UserEntity extends Equatable {
     bool? remindedThisCycle,
     String? preferredBarberId,
     String? barberId,
+    String? brandId,
   }) => UserEntity(
     userId: userId ?? this.userId,
     fullName: fullName ?? this.fullName,
     phone: phone ?? this.phone,
     fcmToken: fcmToken ?? this.fcmToken,
-    brandId: brandId ?? this.brandId,
-    loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
     role: role ?? this.role,
     lastBookingDate: lastBookingDate ?? this.lastBookingDate,
     nextVisitDue: nextVisitDue ?? this.nextVisitDue,
@@ -84,6 +79,7 @@ class UserEntity extends Equatable {
     remindedThisCycle: remindedThisCycle ?? this.remindedThisCycle,
     preferredBarberId: preferredBarberId ?? this.preferredBarberId,
     barberId: barberId ?? this.barberId,
+    brandId: brandId ?? this.brandId,
   );
 
   @override
@@ -92,8 +88,6 @@ class UserEntity extends Equatable {
     fullName,
     phone,
     fcmToken,
-    brandId,
-    loyaltyPoints,
     role,
     lastBookingDate,
     nextVisitDue,
@@ -102,5 +96,6 @@ class UserEntity extends Equatable {
     remindedThisCycle,
     preferredBarberId,
     barberId,
+    brandId,
   ];
 }

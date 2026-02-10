@@ -36,6 +36,21 @@ service cloud.firestore {
         && (request.auth.uid == userId && request.resource.data.role == userRole(resource.data)
             || isBarberOrSuperadmin() && request.resource.data.role == resource.data.role);
       allow delete: if false;
+
+      // -----------------------------------------------------------------------
+      // Subcollection: user_brands — user's joined brands with loyalty points
+      // -----------------------------------------------------------------------
+      match /user_brands/{brandId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null 
+          && request.auth.uid == userId
+          && request.resource.data.brand_id == brandId
+          && request.resource.data.loyalty_points is int;
+        allow update: if request.auth != null 
+          && request.auth.uid == userId
+          && request.resource.data.brand_id == resource.data.brand_id;
+        allow delete: if false;
+      }
     }
 
     // -------------------------------------------------------------------------
@@ -101,11 +116,18 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // Private: user_booking_locks — strict userId matching. No get() on read.
+    // Private: user_booking_locks — composite key {userId}_{brandId}. No get() on read.
     // -------------------------------------------------------------------------
-    match /user_booking_locks/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
-      allow create, update: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
+    match /user_booking_locks/{lockId} {
+      // lockId format: {userId}_{brandId}
+      function getUserIdFromLock() {
+        return lockId.split('_')[0];
+      }
+      
+      allow read: if request.auth != null 
+        && (getUserIdFromLock() == request.auth.uid || isBarberOrSuperadmin());
+      allow create, update: if request.auth != null 
+        && (getUserIdFromLock() == request.auth.uid || isBarberOrSuperadmin());
       allow delete: if false;
     }
 

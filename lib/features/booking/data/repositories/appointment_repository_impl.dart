@@ -54,11 +54,15 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   @override
   Future<Either<Failure, List<AppointmentEntity>>> getByUserId(
     String userId,
+    String brandId,
   ) async {
     try {
       final snapshot = await FirestoreLogger.logRead(
-        '${FirestoreCollections.appointments}?user_id=$userId',
-        () => _col.where('user_id', isEqualTo: userId).get(_serverOnly),
+        '${FirestoreCollections.appointments}?user_id=$userId&brand_id=$brandId',
+        () => _col
+            .where('user_id', isEqualTo: userId)
+            .where('brand_id', isEqualTo: brandId)
+            .get(const GetOptions(source: Source.server)),
       );
       final list =
           snapshot.docs
@@ -66,7 +70,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
               .toList();
       return Right(list);
     } catch (e) {
-      return Left(FirestoreFailure('Failed to get appointments by user: $e'));
+      return Left(FirestoreFailure('Failed to get appointments: $e'));
     }
   }
 
@@ -206,23 +210,41 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
-  Stream<List<AppointmentEntity>> watchUpcomingAppointmentsForUser(
+  Stream<Either<Failure, AppointmentEntity?>> watchUpcomingAppointmentsForUser(
     String userId,
+    String brandId,
   ) {
-    // Relaxed query to avoid requiring a custom composite index.
-    // We filter by user_id and status (equalities), which usually works without extra indexes.
-    // Time filtering and sorting is done client-side.
-    return FirestoreLogger.logStream<List<AppointmentEntity>>(
-      '${FirestoreCollections.appointments}?user_id=$userId',
+    return FirestoreLogger.logStream<Either<Failure, AppointmentEntity?>>(
+      '${FirestoreCollections.appointments}?user_id=$userId&brand_id=$brandId',
       _col
           .where('user_id', isEqualTo: userId)
+          .where('brand_id', isEqualTo: brandId)
           .where('status', isEqualTo: AppointmentStatus.scheduled)
+          .orderBy('start_time')
           .snapshots()
-          .map(
-            (snap) =>
-                snap.docs
-                    .map((d) => AppointmentFirestoreMapper.fromFirestore(d))
-                    .toList(),
+          .map<Either<Failure, AppointmentEntity?>>((snapshot) {
+            final now = DateTime.now();
+            // Filter to remove stale appointments (those that have already ended).
+            // We keep appointments that are ongoing (end time is in the future).
+            final validDocs =
+                snapshot.docs.where((doc) {
+                  final data = doc.data();
+                  // Ensure end_time exists and is valid
+                  if (data['end_time'] == null) return false;
+                  final end = (data['end_time'] as Timestamp).toDate();
+                  return end.isAfter(now);
+                }).toList();
+
+            if (validDocs.isEmpty) {
+              return const Right(null);
+            }
+            // Return the first valid appointment (earliest start time due to query order)
+            return Right(
+              AppointmentFirestoreMapper.fromFirestore(validDocs.first),
+            );
+          })
+          .handleError(
+            (e) => Left(FirestoreFailure('Failed to watch appointments: $e')),
           ),
     );
   }

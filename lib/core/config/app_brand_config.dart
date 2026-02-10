@@ -36,7 +36,8 @@ class AppBrandConfig {
       currency: json['currency'] as String? ?? 'EUR',
       fontFamily: json['font_family'] as String? ?? 'Poppins',
       colors: AppBrandColors.fromJson(colorsJson),
-      requireSmsVerification: json['require_sms_verification'] as bool? ?? false,
+      requireSmsVerification:
+          json['require_sms_verification'] as bool? ?? false,
     );
   }
 
@@ -145,6 +146,67 @@ class AppBrandColors {
     'error':
         '#${error.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
   };
+
+  AppBrandColors copyWith({
+    Color? primary,
+    Color? secondary,
+    Color? background,
+    Color? navigationBackground,
+    Color? primaryText,
+    Color? secondaryText,
+    Color? captionText,
+    Color? primaryWhite,
+    Color? hintText,
+    Color? menuBackground,
+    Color? border,
+    Color? error,
+  }) {
+    return AppBrandColors(
+      primary: primary ?? this.primary,
+      secondary: secondary ?? this.secondary,
+      background: background ?? this.background,
+      navigationBackground: navigationBackground ?? this.navigationBackground,
+      primaryText: primaryText ?? this.primaryText,
+      secondaryText: secondaryText ?? this.secondaryText,
+      captionText: captionText ?? this.captionText,
+      primaryWhite: primaryWhite ?? this.primaryWhite,
+      hintText: hintText ?? this.hintText,
+      menuBackground: menuBackground ?? this.menuBackground,
+      border: border ?? this.border,
+      error: error ?? this.error,
+    );
+  }
+
+  /// Merges these colors with values from a JSON map (e.g. from Firestore overrides).
+  /// Only keys present in the map will be overridden.
+  AppBrandColors mergeWithMap(Map<String, dynamic> json) {
+    return copyWith(
+      primary: _parseOverride(json['primary']),
+      secondary: _parseOverride(json['secondary']),
+      background: _parseOverride(json['background']),
+      navigationBackground: _parseOverride(json['navigation_background']),
+      primaryText: _parseOverride(json['primary_text']),
+      secondaryText: _parseOverride(json['secondary_text']),
+      captionText: _parseOverride(json['caption_text']),
+      primaryWhite: _parseOverride(json['primary_white']),
+      hintText: _parseOverride(json['hint_text']),
+      menuBackground: _parseOverride(json['menu_background']),
+      border: _parseOverride(json['border']),
+      error: _parseOverride(json['error']),
+    );
+  }
+
+  Color? _parseOverride(dynamic value) {
+    if (value == null) return null;
+    final s = value.toString().trim();
+    if (s.isEmpty) return null;
+    var hex = s.startsWith('#') ? s.substring(1) : s;
+    if (hex.length == 6) hex = 'FF$hex';
+    if (hex.length == 8) {
+      return Color(int.parse(hex, radix: 16));
+    }
+    return null;
+  }
 }
 
 class _Defaults {

@@ -149,6 +149,7 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
 
     final result = await _bookingTransaction.cancelAppointment(
       d.appointment,
+      brandId: d.appointment.brandId,
       cancelHoursMinimum: cancelHours,
     );
     return result.fold(

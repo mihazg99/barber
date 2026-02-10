@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:barber/core/di.dart';
-import 'package:barber/core/firebase/default_brand_id.dart' as brand_id;
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/auth/data/datasources/auth_remote_data_source.dart';
@@ -31,12 +30,9 @@ final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final configBrandId =
-      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
   return AuthRepositoryImpl(
     ref.watch(authRemoteDataSourceProvider),
     ref.watch(userRepositoryProvider),
-    configBrandId.isNotEmpty ? configBrandId : brand_id.fallbackBrandId,
     onUserLoaded: (user) {
       ref.read(lastSignedInUserProvider.notifier).state = user;
     },

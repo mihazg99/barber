@@ -10,6 +10,7 @@ class AppColors {
   const AppColors._(this._colors);
 
   final AppBrandColors _colors;
+  AppBrandColors get colors => _colors;
 
   Color get primaryColor => _colors.primary;
   Color get secondaryColor => _colors.secondary;
@@ -32,10 +33,23 @@ class AppColors {
       AppColors._(config.colors);
 }
 
-/// Provider for theme colors (from flavor brand config).
+/// Override provider for dynamic theming (e.g. from selected brand).
+final themeOverrideProvider = StateProvider<Map<String, dynamic>?>(
+  (ref) => null,
+);
+
+/// Provider for theme colors (from flavor brand config + optional override).
 final appColorsProvider = Provider<AppColors>((ref) {
   final flavor = ref.watch(flavorConfigProvider);
-  return AppColors.fromBrandConfig(flavor.values.brandConfig);
+  final overrides = ref.watch(themeOverrideProvider);
+
+  var brandColors = flavor.values.brandConfig.colors;
+
+  if (overrides != null && overrides.isNotEmpty) {
+    brandColors = brandColors.mergeWithMap(overrides);
+  }
+
+  return AppColors._(brandColors);
 });
 
 extension AppColorsExtension on BuildContext {

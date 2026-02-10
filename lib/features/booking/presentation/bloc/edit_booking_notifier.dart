@@ -188,6 +188,7 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
 
     final cancelResult = await _bookingTransaction.cancelAppointment(
       s.appointment,
+      brandId: s.appointment.brandId,
       cancelHoursMinimum: cancelHoursMinimum,
     );
     if (cancelResult.isLeft()) return false;
@@ -234,6 +235,7 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
       appointment: newAppointment,
       barberId: s.selectedTimeSlotBarberId ?? s.appointment.barberId,
       locationId: s.appointment.locationId,
+      brandId: s.appointment.brandId,
       dateStr: dateStr,
       startTime: s.selectedTimeSlot!,
       endTime: endTimeStr,

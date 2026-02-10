@@ -101,6 +101,8 @@ class _AuthStepContent extends ConsumerWidget {
         onSubmit: (fullName, phone) async {
           await notifier.submitProfile(user, fullName, phone);
 
+          if (!context.mounted) return;
+
           // Check for errors before proceeding
           final state = ref.read(authNotifierProvider);
           if (state is BaseError ||

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:barber/core/di.dart';
 import 'package:barber/features/booking/data/repositories/availability_repository_impl.dart';
 import 'package:barber/features/booking/data/repositories/appointment_repository_impl.dart';
@@ -123,12 +124,11 @@ final availableTimeSlotsForEditProvider =
 /// Next time booking is opened, a fresh state is created.
 final bookingNotifierProvider =
     StateNotifierProvider.autoDispose<BookingNotifier, BookingState>((ref) {
-      final flavor = ref.watch(flavorConfigProvider);
-      final brandId = flavor.values.brandConfig.defaultBrandId;
+      final brandId = ref.watch(selectedBrandIdProvider);
       return BookingNotifier(
         ref.watch(barbers_di.barberRepositoryProvider),
         ref.watch(locationRepositoryProvider),
-        brandId,
+        brandId ?? '',
       );
     });
 
@@ -149,14 +149,18 @@ final availableTimeSlotsProvider = FutureProvider.autoDispose<List<TimeSlot>>((
     bookingNotifierProvider.select((s) => s.selectedBarber),
   );
 
-  if (locationId == null || selectedDate == null || serviceDuration == null) {
+  if (locationId == null ||
+      locationId.isEmpty ||
+      selectedDate == null ||
+      serviceDuration == null) {
     return [];
   }
 
   final calculateFreeSlots = ref.watch(calculateFreeSlotsProvider);
 
-  final flavor = ref.watch(flavorConfigProvider);
-  final brandId = flavor.values.brandConfig.defaultBrandId;
+  final brandId = ref.watch(selectedBrandIdProvider);
+  if (brandId == null) return [];
+
   final brandResult = await ref.watch(brandRepositoryProvider).getById(brandId);
   final brand = brandResult.fold((_) => null, (b) => b);
   if (brand == null) return [];
@@ -186,10 +190,44 @@ final availableTimeSlotsProvider = FutureProvider.autoDispose<List<TimeSlot>>((
         .watch(barbers_di.barberRepositoryProvider)
         .getByLocationId(locationId);
     final barbers = barbersResult.fold(
-      (_) => <BarberEntity>[],
-      (list) => list.where((b) => b.active).toList(),
+      (failure) {
+        if (kDebugMode) {
+          print('❌ [TimeSlot] Failed to load barbers: ${failure.message}');
+        }
+        return <BarberEntity>[];
+      },
+      (list) {
+        final active = list.where((b) => b.active).toList();
+        if (kDebugMode) {
+          print(
+            '🔍 [TimeSlot] Found ${active.length} active barbers (from ${list.length} total)',
+          );
+        }
+        return active;
+      },
     );
-    if (barbers.isEmpty) return [];
+    if (barbers.isEmpty) {
+      if (kDebugMode) {
+        print(
+          '⚠️ [TimeSlot] No active barbers found for location $locationId. Checking brand query for $brandId...',
+        );
+        final allBarbersResult = await ref
+            .read(barbers_di.barberRepositoryProvider)
+            .getByBrandId(brandId);
+        allBarbersResult.fold(
+          (f) => print('  ❌ Brand query failed: ${f.message}'),
+          (list) {
+            print('  🔍 Brand query found ${list.length} barbers:');
+            for (final b in list) {
+              print(
+                '    - ${b.name} (id: ${b.barberId}) location=${b.locationId} active=${b.active}',
+              );
+            }
+          },
+        );
+      }
+      return [];
+    }
 
     return calculateFreeSlots.getFreeSlotsForAnyBarber(
       barbers: barbers,

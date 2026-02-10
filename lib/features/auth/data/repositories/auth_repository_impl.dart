@@ -13,14 +13,12 @@ import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(
     this._authDataSource,
-    this._userRepository,
-    this._brandId, {
+    this._userRepository, {
     void Function(UserEntity)? onUserLoaded,
   }) : _onUserLoaded = onUserLoaded;
 
   final AuthRemoteDataSource _authDataSource;
   final UserRepository _userRepository;
-  final String _brandId;
   final void Function(UserEntity)? _onUserLoaded;
 
   @override
@@ -62,8 +60,6 @@ class AuthRepositoryImpl implements AuthRepository {
         fullName: '',
         phone: user.phoneNumber ?? '',
         fcmToken: '',
-        brandId: _brandId,
-        loyaltyPoints: 0,
         role: UserRole.user,
       );
 
@@ -106,8 +102,6 @@ class AuthRepositoryImpl implements AuthRepository {
         fullName: displayName,
         phone: phone,
         fcmToken: '',
-        brandId: _brandId,
-        loyaltyPoints: 0,
         role: UserRole.user,
       );
 
@@ -154,8 +148,6 @@ class AuthRepositoryImpl implements AuthRepository {
         fullName: displayName,
         phone: phone,
         fcmToken: '',
-        brandId: _brandId,
-        loyaltyPoints: 0,
         role: UserRole.user,
       );
 

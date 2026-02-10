@@ -5,8 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import 'package:barber/core/di.dart';
-import 'package:barber/core/firebase/default_brand_id.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
@@ -18,6 +16,7 @@ import 'package:barber/core/widgets/custom_app_bar.dart';
 import 'package:barber/core/widgets/primary_button.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
+import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/loyalty/di.dart';
 import 'package:barber/features/rewards/di.dart';
 import 'package:barber/features/rewards/domain/entities/reward_entity.dart';
@@ -29,15 +28,30 @@ class LoyaltyPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final configBrandId =
-        ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-    final brandId =
-        configBrandId.isNotEmpty ? configBrandId : fallbackBrandId;
+    final brandId = ref.watch(selectedBrandIdProvider);
+    if (brandId == null) {
+      return Scaffold(
+        backgroundColor: context.appColors.backgroundColor,
+        appBar: CustomAppBar.withTitleAndBackButton(
+          context.l10n.loyaltyPageTitle,
+          onBack: () => context.go(AppRoute.home.path),
+        ),
+        body: Center(
+          child: Text(
+            'Please select a barbershop first.',
+            style: context.appTextStyles.body.copyWith(
+              color: context.appColors.secondaryTextColor,
+            ),
+          ),
+        ),
+      );
+    }
     final rewardsAsync = ref.watch(rewardsForBrandProvider(brandId));
     final currentUser = ref.watch(currentUserStreamProvider).valueOrNull;
-    final redemptionsAsync = currentUser != null
-        ? ref.watch(redemptionsForUserProvider(currentUser.userId))
-        : const AsyncValue<List<RedemptionEntity>>.data([]);
+    final redemptionsAsync =
+        currentUser != null
+            ? ref.watch(redemptionsForUserProvider(currentUser.userId))
+            : const AsyncValue<List<RedemptionEntity>>.data([]);
 
     ref.listen(loyaltyNotifierProvider, (prev, next) {
       if (next is BaseData<String?>) {
@@ -86,7 +100,9 @@ class LoyaltyPage extends HookConsumerWidget {
                   user: currentUser,
                   brandId: brandId,
                   onRedeemed: () {
-                    ref.invalidate(redemptionsForUserProvider(currentUser!.userId));
+                    ref.invalidate(
+                      redemptionsForUserProvider(currentUser!.userId),
+                    );
                   },
                 ),
               ),
@@ -263,13 +279,18 @@ class _RewardCard extends HookConsumerWidget {
       }
     });
 
-    final canRedeem = user != null &&
-        user!.loyaltyPoints >= reward.pointsCost &&
+    // Watch loyalty points from provider
+    final loyaltyPointsAsync = ref.watch(currentUserLoyaltyPointsProvider);
+    final loyaltyPoints = loyaltyPointsAsync.valueOrNull ?? 0;
+
+    final canRedeem =
+        user != null &&
+        loyaltyPoints >= reward.pointsCost &&
         !isRedeeming.value;
 
     void redeem() {
       if (user == null || isRedeeming.value) return;
-      if (user!.loyaltyPoints < reward.pointsCost) {
+      if (loyaltyPoints < reward.pointsCost) {
         showErrorSnackBar(
           context,
           message: context.l10n.loyaltyInsufficientPoints,

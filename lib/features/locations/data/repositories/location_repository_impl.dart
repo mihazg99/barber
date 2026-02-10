@@ -17,15 +17,18 @@ class LocationRepositoryImpl implements LocationRepository {
       _firestore.collection(FirestoreCollections.locations);
 
   @override
-  Future<Either<Failure, List<LocationEntity>>> getByBrandId(String brandId) async {
+  Future<Either<Failure, List<LocationEntity>>> getByBrandId(
+    String brandId,
+  ) async {
     try {
       final snapshot = await FirestoreLogger.logRead(
         '${FirestoreCollections.locations}?brand_id=$brandId',
         () => _col.where('brand_id', isEqualTo: brandId).get(),
       );
-      final list = snapshot.docs
-          .map((d) => LocationFirestoreMapper.fromFirestore(d))
-          .toList();
+      final list =
+          snapshot.docs
+              .map((d) => LocationFirestoreMapper.fromFirestore(d))
+              .toList();
       return Right(list);
     } catch (e) {
       return Left(FirestoreFailure('Failed to get locations: $e'));
@@ -34,6 +37,7 @@ class LocationRepositoryImpl implements LocationRepository {
 
   @override
   Future<Either<Failure, LocationEntity?>> getById(String locationId) async {
+    if (locationId.isEmpty) return const Right(null);
     try {
       final doc = await FirestoreLogger.logRead(
         '${FirestoreCollections.locations}/$locationId',
@@ -52,7 +56,9 @@ class LocationRepositoryImpl implements LocationRepository {
       await FirestoreLogger.logWrite(
         '${FirestoreCollections.locations}/${entity.locationId}',
         'set',
-        () => _col.doc(entity.locationId).set(
+        () => _col
+            .doc(entity.locationId)
+            .set(
               LocationFirestoreMapper.toFirestore(entity),
             ),
       );

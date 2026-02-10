@@ -45,9 +45,7 @@ class BarberFormPage extends HookConsumerWidget {
 
     final locations = useState<List<LocationEntity>>([]);
     final currentLocation = useState<LocationEntity?>(null);
-    final brandId =
-        ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-    final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
+    final effectiveBrandId = ref.watch(dashboardBrandIdProvider);
     final locationRepo = ref.watch(locationRepositoryProvider);
     final notifier = ref.read(dashboardBarbersNotifierProvider.notifier);
 

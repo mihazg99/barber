@@ -30,19 +30,23 @@ class LocationFormPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isEdit = location != null;
     final nameController = useTextEditingController(text: location?.name ?? '');
-    final addressController =
-        useTextEditingController(text: location?.address ?? '');
-    final phoneController =
-        useTextEditingController(text: location?.phone ?? '');
+    final addressController = useTextEditingController(
+      text: location?.address ?? '',
+    );
+    final phoneController = useTextEditingController(
+      text: location?.phone ?? '',
+    );
     final latController = useTextEditingController(
-      text: location != null && location!.latitude != 0
-          ? location!.latitude.toString()
-          : '',
+      text:
+          location != null && location!.latitude != 0
+              ? location!.latitude.toString()
+              : '',
     );
     final lngController = useTextEditingController(
-      text: location != null && location!.longitude != 0
-          ? location!.longitude.toString()
-          : '',
+      text:
+          location != null && location!.longitude != 0
+              ? location!.longitude.toString()
+              : '',
     );
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
@@ -78,9 +82,7 @@ class LocationFormPage extends HookConsumerWidget {
     );
 
     final notifier = ref.read(dashboardLocationsNotifierProvider.notifier);
-    final brandId =
-        ref.read(flavorConfigProvider).values.brandConfig.defaultBrandId;
-    final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
+    final effectiveBrandId = ref.watch(dashboardBrandIdProvider);
 
     Future<void> submit() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
@@ -113,7 +115,9 @@ class LocationFormPage extends HookConsumerWidget {
       final lat = double.tryParse(latController.text.trim()) ?? 0.0;
       final lng = double.tryParse(lngController.text.trim()) ?? 0.0;
       final locationId =
-          isEdit ? location!.locationId : _slugFromName(nameController.text.trim());
+          isEdit
+              ? location!.locationId
+              : _slugFromName(nameController.text.trim());
 
       final entity = LocationEntity(
         locationId: locationId,
@@ -180,10 +184,11 @@ class LocationFormPage extends HookConsumerWidget {
                   title: context.l10n.dashboardLocationName,
                   hint: context.l10n.dashboardLocationNameHint,
                   controller: nameController,
-                  validator: (v) =>
-                      (v?.trim().isEmpty ?? true)
-                          ? context.l10n.dashboardLocationNameRequired
-                          : null,
+                  validator:
+                      (v) =>
+                          (v?.trim().isEmpty ?? true)
+                              ? context.l10n.dashboardLocationNameRequired
+                              : null,
                 ),
                 Gap(context.appSizes.paddingMedium),
                 CustomTextField.withTitle(
@@ -248,7 +253,8 @@ class LocationFormPage extends HookConsumerWidget {
                     openController: openControllers[i],
                     closeController: closeControllers[i],
                     timeFormatError: context.l10n.dashboardLocationTimeFormat,
-                    startBeforeEndError: context.l10n.dashboardLocationStartBeforeEnd,
+                    startBeforeEndError:
+                        context.l10n.dashboardLocationStartBeforeEnd,
                   ),
                 ),
                 Gap(context.appSizes.paddingLarge),
@@ -337,8 +343,9 @@ class _WorkingHoursRow extends StatelessWidget {
                   horizontal: context.appSizes.paddingMedium,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(context.appSizes.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    context.appSizes.borderRadius,
+                  ),
                 ),
               ),
               inputFormatters: [
@@ -375,8 +382,9 @@ class _WorkingHoursRow extends StatelessWidget {
                   horizontal: context.appSizes.paddingMedium,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(context.appSizes.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    context.appSizes.borderRadius,
+                  ),
                 ),
               ),
               inputFormatters: [
@@ -385,8 +393,10 @@ class _WorkingHoursRow extends StatelessWidget {
               ],
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return null;
-                final formatErr =
-                    validateTimeFormat(v, formatError: timeFormatError);
+                final formatErr = validateTimeFormat(
+                  v,
+                  formatError: timeFormatError,
+                );
                 if (formatErr != null) return formatErr;
                 final open = openController.text.trim();
                 if (open.isEmpty) return null;

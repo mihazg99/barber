@@ -33,17 +33,17 @@ Future<void> _handleRewardRedemption(
 ) async {
   final confirm = await showDialog<bool>(
     context: context,
-    builder: (ctx) => _RedeemConfirmDialog(
-      rewardName: redemption.rewardName,
-      pointsSpent: redemption.pointsSpent,
-    ),
+    builder:
+        (ctx) => _RedeemConfirmDialog(
+          rewardName: redemption.rewardName,
+          pointsSpent: redemption.pointsSpent,
+        ),
   );
   if (confirm != true || !context.mounted) return;
   final userId = ref.read(currentUserProvider).valueOrNull?.userId ?? '';
   final configBrandId =
       ref.read(flavorConfigProvider).values.brandConfig.defaultBrandId;
-  final brandId =
-      configBrandId.isNotEmpty ? configBrandId : fallbackBrandId;
+  final brandId = configBrandId.isNotEmpty ? configBrandId : fallbackBrandId;
   final redeemResult = await redemptionRepo.markRedeemed(
     redemptionId: id,
     redeemedByUserId: userId,
@@ -59,16 +59,17 @@ Future<void> _handleRewardRedemption(
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          title: Text(context.l10n.dashboardRedeemReward),
-          content: Text(context.l10n.redeemSuccess),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('OK'),
+        builder:
+            (ctx) => AlertDialog(
+              title: Text(context.l10n.dashboardRedeemReward),
+              content: Text(context.l10n.redeemSuccess),
+              actions: [
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
             ),
-          ],
-        ),
       );
     },
   );
@@ -107,12 +108,15 @@ Future<void> _handleLoyaltyPoints(
     return;
   }
 
-  final activeApptResult =
-      await appointmentRepo.getActiveScheduledAppointmentForUser(userId);
+  final activeApptResult = await appointmentRepo
+      .getActiveScheduledAppointmentForUser(userId);
   AppointmentEntity? appointment;
   activeApptResult.fold(
     (f) {
-      _log.w('Loyalty: getActiveScheduledAppointmentForUser failed', error: f.message);
+      _log.w(
+        'Loyalty: getActiveScheduledAppointmentForUser failed',
+        error: f.message,
+      );
     },
     (a) => appointment = a,
   );
@@ -131,8 +135,7 @@ Future<void> _handleLoyaltyPoints(
 
   final configBrandId =
       ref.read(flavorConfigProvider).values.brandConfig.defaultBrandId;
-  final brandId =
-      configBrandId.isNotEmpty ? configBrandId : fallbackBrandId;
+  final brandId = configBrandId.isNotEmpty ? configBrandId : fallbackBrandId;
   int pointsMultiplier = 10;
   final brandRepo = ref.read(brandRepositoryProvider);
   final brandResult = await brandRepo.getById(brandId);
@@ -140,11 +143,13 @@ Future<void> _handleLoyaltyPoints(
     if (brand != null) pointsMultiplier = brand.loyaltyPointsMultiplier;
   });
 
-  final pointsToAdd =
-      (appointment!.totalPrice * pointsMultiplier).round().clamp(0, 0x7fffffff);
+  final pointsToAdd = (appointment!.totalPrice * pointsMultiplier)
+      .round()
+      .clamp(0, 0x7fffffff);
 
   final result = await bookingTransaction.completeVisitAndAwardLoyaltyPoints(
     userId: userId,
+    brandId: brandId,
     appointmentId: appointment!.appointmentId,
     pointsToAdd: pointsToAdd,
   );
@@ -161,10 +166,11 @@ Future<void> _handleLoyaltyPoints(
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => _ScanSuccessDialog(
-          customerName: user!.fullName,
-          pointsAwarded: pointsToAdd,
-        ),
+        builder:
+            (ctx) => _ScanSuccessDialog(
+              customerName: user!.fullName,
+              pointsAwarded: pointsToAdd,
+            ),
       );
     },
   );
@@ -255,7 +261,8 @@ class RedeemRewardScanPage extends HookConsumerWidget {
             );
           },
           (redemption) async {
-            if (redemption != null && redemption.status == RedemptionStatus.pending) {
+            if (redemption != null &&
+                redemption.status == RedemptionStatus.pending) {
               await _handleRewardRedemption(
                 context,
                 ref,

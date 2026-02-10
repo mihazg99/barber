@@ -19,6 +19,14 @@ class BrandFirestoreMapper {
           (data['loyalty_points_multiplier'] as num?)?.toInt() ?? 10,
       requireSmsVerification:
           (data['require_sms_verification'] as bool?) ?? false,
+      currency: data['currency'] as String? ?? 'EUR',
+      fontFamily: data['font_family'] as String? ?? 'Inter',
+      locale: data['locale'] as String? ?? 'hr',
+      themeColors:
+          (data['colors'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(key, value.toString()),
+          ) ??
+          const {},
     );
   }
 
@@ -33,5 +41,9 @@ class BrandFirestoreMapper {
     'cancel_hours_minimum': entity.cancelHoursMinimum,
     'loyalty_points_multiplier': entity.loyaltyPointsMultiplier,
     'require_sms_verification': entity.requireSmsVerification,
+    'currency': entity.currency,
+    'font_family': entity.fontFamily,
+    'locale': entity.locale,
+    'colors': entity.themeColors,
   };
 }

@@ -41,8 +41,8 @@ class BarberRepositoryImpl implements BarberRepository {
   ) async {
     try {
       final snapshot = await FirestoreLogger.logRead(
-        '${FirestoreCollections.barbers}?location_id=$locationId',
-        () => _col.where('location_id', isEqualTo: locationId).get(),
+        '${FirestoreCollections.barbers}?location_ids contains $locationId',
+        () => _col.where('location_ids', arrayContains: locationId).get(),
       );
       final list =
           snapshot.docs

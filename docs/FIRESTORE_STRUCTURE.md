@@ -20,6 +20,11 @@ Root configuration for each client (brand).
 | `buffer_time` | Number | Minutes between appointments (e.g. 5) |
 | `cancel_hours_minimum` | Number | Min hours before appointment that cancellation is allowed (e.g. 48 = must cancel ≥48h ahead; 0 = anytime) |
 | `loyalty_points_multiplier` | Number | Points per 1€ when barber scans loyalty QR (e.g. 10 = 30€ → 300 points; default 10) |
+| `require_sms_verification` | Boolean | Whether SMS verification is required after social login (default false) |
+| `currency` | String | Currency code (e.g. "EUR") |
+| `font_family` | String | Font family name (e.g. "Inter") |
+| `locale` | String | Default locale (e.g. "hr", "en") |
+| `colors` | Map | Theme color overrides. Key: color role (e.g. `primary`, `background`), Value: hex string (`#RRGGBB` or `#AARRGGBB`) |
 
 ---
 

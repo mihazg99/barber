@@ -11,6 +11,7 @@ import 'package:barber/core/state/base_state.dart';
 import 'package:barber/features/stats/di.dart' as stats_di;
 import 'package:barber/features/stats/domain/entities/dashboard_stats_entity.dart';
 import 'package:barber/features/auth/di.dart';
+import 'package:barber/features/auth/domain/entities/user_role.dart';
 import 'package:barber/features/booking/di.dart' as booking_di;
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
 import 'package:barber/features/brand/di.dart';
@@ -246,58 +247,81 @@ void expandCalendarWindowIfNeeded(WidgetRef ref, DateTime targetDate) {
   }
 }
 
-final dashboardBrandNotifierProvider =
-    StateNotifierProvider<DashboardBrandNotifier, BaseState<BrandEntity?>>((
-      ref,
-    ) {
-      final brandRepo = ref.watch(brandRepositoryProvider);
-      final brandId =
-          ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-      final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
-      return DashboardBrandNotifier(brandRepo, effectiveBrandId);
-    });
+final dashboardBrandIdProvider = Provider.autoDispose<String>((ref) {
+  final userAsync = ref.watch(currentUserProvider);
+  final user = userAsync.valueOrNull;
+  final flavorBrandId =
+      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
 
-final dashboardLocationsNotifierProvider = StateNotifierProvider<
+  debugPrint(
+    'DashboardBrandIdProvider: user=${user?.userId}, role=${user?.role}, brandId=${user?.brandId}, flavor=$flavorBrandId',
+  );
+
+  // For staff (superadmin/barber), force their assigned brand ID if available
+  if (user != null &&
+      (user.role == UserRole.superadmin || user.role == UserRole.barber) &&
+      user.brandId.isNotEmpty) {
+    debugPrint('DashboardBrandIdProvider: Using user brandId: ${user.brandId}');
+    return user.brandId;
+  }
+
+  debugPrint(
+    'DashboardBrandIdProvider: Using default/flavor: ${flavorBrandId.isNotEmpty ? flavorBrandId : 'default'}',
+  );
+  return flavorBrandId.isNotEmpty ? flavorBrandId : 'default';
+});
+
+final dashboardBrandNotifierProvider = StateNotifierProvider.autoDispose<
+  DashboardBrandNotifier,
+  BaseState<BrandEntity?>
+>((ref) {
+  final brandRepo = ref.watch(brandRepositoryProvider);
+  final brandId = ref.watch(dashboardBrandIdProvider);
+  return DashboardBrandNotifier(brandRepo, brandId);
+});
+
+final dashboardLocationsNotifierProvider = StateNotifierProvider.autoDispose<
   DashboardLocationsNotifier,
   BaseState<List<LocationEntity>>
 >((ref) {
   final locationRepo = ref.watch(locationRepositoryProvider);
-  final brandId =
-      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-  final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
-  return DashboardLocationsNotifier(locationRepo, effectiveBrandId);
+  final brandId = ref.watch(dashboardBrandIdProvider);
+  return DashboardLocationsNotifier(locationRepo, brandId);
 });
 
 /// Locations state for the dashboard locations tab. Reuses home data when on default brand
 /// so we avoid a duplicate Firestore read when the tab mounts (home already loaded locations).
-final dashboardLocationsViewProvider =
-    Provider<BaseState<List<LocationEntity>>>((ref) {
-      final dashboardState = ref.watch(dashboardLocationsNotifierProvider);
-      final homeState = ref.watch(home_di.homeNotifierProvider);
-      final brandId =
-          ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-      final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
+final dashboardLocationsViewProvider = Provider<
+  BaseState<List<LocationEntity>>
+>((ref) {
+  final dashboardState = ref.watch(dashboardLocationsNotifierProvider);
+  final homeState = ref.watch(home_di.homeNotifierProvider);
+  final brandId = ref.watch(dashboardBrandIdProvider);
+  final flavorBrandId =
+      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
+  final effectiveFlavorBrandId =
+      flavorBrandId.isNotEmpty ? flavorBrandId : 'default';
 
-      if (dashboardState is BaseData<List<LocationEntity>> ||
-          dashboardState is BaseError<List<LocationEntity>>) {
-        return dashboardState;
-      }
-      if (homeState is BaseData<HomeData> &&
-          homeState.data.brand?.brandId == effectiveBrandId) {
-        return BaseData(homeState.data.locations);
-      }
-      return dashboardState;
-    });
+  if (dashboardState is BaseData<List<LocationEntity>> ||
+      dashboardState is BaseError<List<LocationEntity>>) {
+    return dashboardState;
+  }
+  // optimization: if dashboard brand == flavor brand, re-use home's loaded data
+  if (brandId == effectiveFlavorBrandId &&
+      homeState is BaseData<HomeData> &&
+      homeState.data.brand?.brandId == brandId) {
+    return BaseData(homeState.data.locations);
+  }
+  return dashboardState;
+});
 
-final dashboardServicesNotifierProvider = StateNotifierProvider<
+final dashboardServicesNotifierProvider = StateNotifierProvider.autoDispose<
   DashboardServicesNotifier,
   BaseState<List<ServiceEntity>>
 >((ref) {
   final serviceRepo = ref.watch(services_di.serviceRepositoryProvider);
-  final brandId =
-      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-  final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
-  return DashboardServicesNotifier(serviceRepo, effectiveBrandId);
+  final brandId = ref.watch(dashboardBrandIdProvider);
+  return DashboardServicesNotifier(serviceRepo, brandId);
 });
 
 final dashboardRewardsNotifierProvider = StateNotifierProvider.autoDispose<
@@ -305,21 +329,17 @@ final dashboardRewardsNotifierProvider = StateNotifierProvider.autoDispose<
   BaseState<List<RewardEntity>>
 >((ref) {
   final rewardRepo = ref.watch(rewards_di.rewardRepositoryProvider);
-  final brandId =
-      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-  final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
-  return DashboardRewardsNotifier(rewardRepo, effectiveBrandId);
+  final brandId = ref.watch(dashboardBrandIdProvider);
+  return DashboardRewardsNotifier(rewardRepo, brandId);
 });
 
-final dashboardBarbersNotifierProvider = StateNotifierProvider<
+final dashboardBarbersNotifierProvider = StateNotifierProvider.autoDispose<
   DashboardBarbersNotifier,
   BaseState<List<BarberEntity>>
 >((ref) {
   final barberRepo = ref.watch(barbers_di.barberRepositoryProvider);
-  final brandId =
-      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-  final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
-  return DashboardBarbersNotifier(barberRepo, effectiveBrandId);
+  final brandId = ref.watch(dashboardBrandIdProvider);
+  return DashboardBarbersNotifier(barberRepo, brandId);
 });
 
 /// Provider for current barber's effective working hours.

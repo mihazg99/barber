@@ -25,10 +25,20 @@ class BarberFirestoreMapper {
         );
       }
     }
+    final locationIds =
+        (data['location_ids'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList();
+    final legacyLocationId = data['location_id'] as String?;
+    final primaryLocationId =
+        (locationIds != null && locationIds.isNotEmpty)
+            ? locationIds.first
+            : (legacyLocationId ?? '');
+
     return BarberEntity(
       barberId: doc.id,
       brandId: data['brand_id'] as String? ?? '',
-      locationId: data['location_id'] as String? ?? '',
+      locationId: primaryLocationId,
       name: data['name'] as String? ?? '',
       photoUrl: data['photo_url'] as String? ?? '',
       active: data['active'] as bool? ?? true,

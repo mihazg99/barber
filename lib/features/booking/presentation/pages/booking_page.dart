@@ -129,18 +129,22 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     try {
       final bookingState = ref.read(bookingNotifierProvider);
       final userId = ref.read(authRepositoryProvider).currentUserId;
-      final flavor = ref.read(flavorConfigProvider);
-      final brandId = flavor.values.brandConfig.defaultBrandId;
+      final brandId = ref.read(selectedBrandIdProvider);
+
+      if (brandId == null) {
+        _showError('No brand selected');
+        return;
+      }
 
       if (userId == null) {
         _showError(context.l10n.bookingUserNotAuthenticated);
         return;
       }
 
-      // Block more than one upcoming appointment per user
+      // Block more than one upcoming appointment per user per brand
       final existingResult = await ref
           .read(appointmentRepositoryProvider)
-          .getByUserId(userId);
+          .getByUserId(userId, brandId);
       final alreadyHasUpcoming = existingResult.fold(
         (_) => false,
         (list) {
@@ -241,6 +245,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
         appointment: appointment,
         barberId: bookingState.effectiveBarberId,
         locationId: bookingState.locationId!,
+        brandId: brandId,
         dateStr: dateStr,
         startTime: timeSlot,
         endTime: _formatTime(endTime),
@@ -376,9 +381,8 @@ class _BookingPageState extends ConsumerState<BookingPage> {
             : locations;
     final locationsToShow =
         locationsForStep.isEmpty ? locations : locationsForStep;
-    final showLocationStep = locations.length > 1;
-    final locationSelected =
-        !showLocationStep || bookingState.locationId != null;
+    final showLocationStep = locations.isNotEmpty;
+    final locationSelected = bookingState.locationId != null;
 
     // Show only services available at the selected location (empty list = all locations)
     final services =
@@ -390,7 +394,11 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     final barbersFiltered =
         bookingState.locationId != null
             ? allBarbers
-                .where((b) => b.locationId == bookingState.locationId)
+                .where(
+                  (b) =>
+                      b.locationId == bookingState.locationId ||
+                      b.locationId.isEmpty,
+                )
                 .toList()
             : allBarbers;
     // Sort so preselected barber (from quick book) is first after "Any Barber" for visibility
@@ -467,11 +475,14 @@ class _BookingPageState extends ConsumerState<BookingPage> {
                   ],
 
                   // Barber selection
-                  if (bookingState.selectedService != null) ...[
+                  if (bookingState.selectedService != null ||
+                      bookingState.barberChoiceMade) ...[
                     BookingBarberSection(
                       barbers: barbers,
                       selectedBarberId: bookingState.selectedBarber?.barberId,
-                      isAnyBarber: bookingState.isAnyBarber,
+                      isAnyBarber:
+                          bookingState.isAnyBarber &&
+                          bookingState.barberChoiceMade,
                       onBarberSelected: (barber) {
                         ref
                             .read(bookingNotifierProvider.notifier)
@@ -488,8 +499,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
 
                   // Date selection
                   if (bookingState.selectedService != null &&
-                      (bookingState.selectedBarber != null ||
-                          bookingState.isAnyBarber)) ...[
+                      bookingState.barberChoiceMade) ...[
                     Container(
                       key: _dateSectionKey,
                       child: BookingDateSection(

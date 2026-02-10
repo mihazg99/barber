@@ -18,6 +18,7 @@ import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
 import 'package:barber/features/brand/di.dart' as brand_di;
 import 'package:barber/features/home/di.dart';
+import 'package:barber/features/loyalty/di.dart';
 import 'package:barber/core/di.dart';
 
 const _sectionSpacing = 28.0;
@@ -103,6 +104,10 @@ class _LoyaltyCardContent extends HookConsumerWidget {
     final cardState = ref.watch(loyaltyCardNotifierProvider);
     final notifier = ref.read(loyaltyCardNotifierProvider.notifier);
 
+    // Watch loyalty points from provider
+    final loyaltyPointsAsync = ref.watch(currentUserLoyaltyPointsProvider);
+    final loyaltyPoints = loyaltyPointsAsync.valueOrNull ?? 0;
+
     final flipController = useAnimationController(duration: _flipDuration);
     final flipCurve = useMemoized(
       () => CurvedAnimation(
@@ -113,7 +118,7 @@ class _LoyaltyCardContent extends HookConsumerWidget {
     );
     useAnimation(flipCurve);
 
-    final previousPoints = useRef<int>(user.loyaltyPoints);
+    final previousPoints = useRef<int>(loyaltyPoints);
     final pointsController = useAnimationController(
       duration: _pointsRollDuration,
     );
@@ -124,8 +129,8 @@ class _LoyaltyCardContent extends HookConsumerWidget {
       [pointsController],
     );
     useAnimation(pointsCurve);
-    final rollStart = useRef<int>(user.loyaltyPoints);
-    final rollEnd = useRef<int>(user.loyaltyPoints);
+    final rollStart = useRef<int>(loyaltyPoints);
+    final rollEnd = useRef<int>(loyaltyPoints);
 
     // Scale animation for points display during counting
     final scaleController = useAnimationController(
@@ -143,13 +148,13 @@ class _LoyaltyCardContent extends HookConsumerWidget {
     useAnimation(scaleCurve);
 
     useEffect(() {
-      if (user.loyaltyPoints > previousPoints.value) {
-        final pointsAdded = user.loyaltyPoints - previousPoints.value;
+      if (loyaltyPoints > previousPoints.value) {
+        final pointsAdded = loyaltyPoints - previousPoints.value;
         _log.d(
-          'LoyaltyCard: Points increased from ${previousPoints.value} to ${user.loyaltyPoints} (+$pointsAdded)',
+          'LoyaltyCard: Points increased from ${previousPoints.value} to $loyaltyPoints (+$pointsAdded)',
         );
         rollStart.value = previousPoints.value;
-        rollEnd.value = user.loyaltyPoints;
+        rollEnd.value = loyaltyPoints;
 
         // Multi-stage animation sequence
         Future(() async {
@@ -173,15 +178,15 @@ class _LoyaltyCardContent extends HookConsumerWidget {
           scaleController.forward().then((_) => scaleController.reverse());
           await pointsController.forward();
 
-          previousPoints.value = user.loyaltyPoints;
+          previousPoints.value = loyaltyPoints;
           pointsController.reset();
           _log.d('LoyaltyCard: Animation complete');
         });
       } else if (!pointsController.isAnimating) {
-        previousPoints.value = user.loyaltyPoints;
+        previousPoints.value = loyaltyPoints;
       }
       return null;
-    }, [user.loyaltyPoints]);
+    }, [loyaltyPoints]);
 
     useEffect(() {
       if (cardState.isFlipped &&
@@ -199,7 +204,7 @@ class _LoyaltyCardContent extends HookConsumerWidget {
             ? (rollStart.value +
                     (rollEnd.value - rollStart.value) * pointsCurve.value)
                 .round()
-            : user.loyaltyPoints;
+            : loyaltyPoints;
 
     final brandName =
         ref.watch(brand_di.headerBrandNameProvider).valueOrNull ??

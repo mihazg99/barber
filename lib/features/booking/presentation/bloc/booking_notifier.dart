@@ -45,7 +45,7 @@ class BookingNotifier extends StateNotifier<BookingState> {
     // If location is preselected (e.g. from quick action), use it
     if (preSelectedLocationId != null && preSelectedLocationId.isNotEmpty) {
       locationId = preSelectedLocationId;
-    } else if (barber != null) {
+    } else if (barber != null && barber.locationId.isNotEmpty) {
       locationId = barber.locationId;
     } else if (locations != null && locations.isNotEmpty) {
       if (locations.length == 1) {
@@ -82,14 +82,22 @@ class BookingNotifier extends StateNotifier<BookingState> {
     final currentService = state.selectedService;
     final serviceStillAvailable =
         currentService == null || currentService.isAvailableAt(locationId);
+
+    final currentBarber = state.selectedBarber;
+    final barberStillAvailable =
+        currentBarber != null &&
+        (currentBarber.locationId.isEmpty ||
+            currentBarber.locationId == locationId);
+
     state = state.copyWith(
       locationId: locationId,
-      clearBarber: true,
+      clearBarber: !barberStillAvailable,
+      selectedBarber: barberStillAvailable ? currentBarber : null,
       selectedService: serviceStillAvailable ? currentService : null,
       selectedDate: null,
       selectedTimeSlot: null,
       selectedTimeSlotBarberId: null,
-      barberChoiceMade: false,
+      barberChoiceMade: barberStillAvailable,
       clearTimeSlot: true,
       clearTimeSlotBarberId: true,
     );
@@ -108,9 +116,16 @@ class BookingNotifier extends StateNotifier<BookingState> {
     final serviceStillAvailable =
         currentService == null ||
         currentService.isAvailableAt(barber.locationId);
+
+    // Only update location if barber differs from current or is specific
+    String? newLocationId = state.locationId;
+    if (barber.locationId.isNotEmpty) {
+      newLocationId = barber.locationId;
+    }
+
     state = state.copyWith(
       selectedBarber: barber,
-      locationId: barber.locationId,
+      locationId: newLocationId,
       selectedService: serviceStillAvailable ? currentService : null,
       barberChoiceMade: true,
       clearTimeSlot: true, // Clear time when barber changes

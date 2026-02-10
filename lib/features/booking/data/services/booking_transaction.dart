@@ -29,6 +29,7 @@ class BookingTransaction {
     required AppointmentEntity appointment,
     required String barberId,
     required String locationId,
+    required String brandId,
     required String dateStr,
     required String startTime,
     required String endTime,
@@ -46,89 +47,91 @@ class BookingTransaction {
       await FirestoreLogger.logTransaction(
         'booking createBookingWithSlot',
         (Transaction transaction) async {
-        // 0. Enforce one active appointment per user (atomic with slot booking)
-        // Uses user_booking_locks/{userId} - transaction can only read docs by ref, not query.
-        final lockRef = _firestore
-            .collection(FirestoreCollections.userBookingLocks)
-            .doc(appointment.userId);
-        final lockSnap = await transaction.get(lockRef);
-        final existingAppointmentId =
-            lockSnap.exists && lockSnap.data() != null
-                ? lockSnap.data()!['active_appointment_id'] as String?
-                : null;
-        if (existingAppointmentId != null && existingAppointmentId.isNotEmpty) {
-          final apptRef = _firestore
-              .collection(FirestoreCollections.appointments)
-              .doc(existingAppointmentId);
-          final apptSnap = await transaction.get(apptRef);
-          if (apptSnap.exists && apptSnap.data() != null) {
-            final data = apptSnap.data()!;
-            final status = data['status'] as String? ?? '';
-            final start = data['start_time'] as Timestamp?;
-            final startTime = start?.toDate();
-            if (status == AppointmentStatus.scheduled &&
-                startTime != null &&
-                startTime.isAfter(DateTime.now())) {
-              throw FirebaseException(
-                plugin: 'booking',
-                code: _kUserHasActiveAppointment,
-                message:
-                    'You already have an upcoming appointment. Cancel or complete it before booking another.',
-              );
+          // 0. Enforce one active appointment per user per brand (atomic with slot booking)
+          // Uses user_booking_locks/{userId}_{brandId} - transaction can only read docs by ref, not query.
+          final lockRef = _firestore
+              .collection(FirestoreCollections.userBookingLocks)
+              .doc('${appointment.userId}_$brandId');
+          final lockSnap = await transaction.get(lockRef);
+          final existingAppointmentId =
+              lockSnap.exists && lockSnap.data() != null
+                  ? lockSnap.data()!['active_appointment_id'] as String?
+                  : null;
+          if (existingAppointmentId != null &&
+              existingAppointmentId.isNotEmpty) {
+            final apptRef = _firestore
+                .collection(FirestoreCollections.appointments)
+                .doc(existingAppointmentId);
+            final apptSnap = await transaction.get(apptRef);
+            if (apptSnap.exists && apptSnap.data() != null) {
+              final data = apptSnap.data()!;
+              final status = data['status'] as String? ?? '';
+              final start = data['start_time'] as Timestamp?;
+              final startTime = start?.toDate();
+              if (status == AppointmentStatus.scheduled &&
+                  startTime != null &&
+                  startTime.isAfter(DateTime.now())) {
+                throw FirebaseException(
+                  plugin: 'booking',
+                  code: _kUserHasActiveAppointment,
+                  message:
+                      'You already have an upcoming appointment. Cancel or complete it before booking another.',
+                );
+              }
             }
           }
-        }
 
-        // 1. Read current availability
-        final availabilitySnap = await transaction.get(availabilityRef);
-        final existingSlots = _parseBookedSlots(availabilitySnap);
+          // 1. Read current availability
+          final availabilitySnap = await transaction.get(availabilityRef);
+          final existingSlots = _parseBookedSlots(availabilitySnap);
 
-        // 2. Check slot still free (same logic as CalculateFreeSlots)
-        if (_overlapsExisting(
-          startTime,
-          endTime,
-          bufferTimeMinutes,
-          existingSlots,
-        )) {
-          throw FirebaseException(
-            plugin: 'booking',
-            code: 'slot-taken',
-            message:
-                'This time slot was just booked by someone else. Please choose another.',
+          // 2. Check slot still free (same logic as CalculateFreeSlots)
+          if (_overlapsExisting(
+            startTime,
+            endTime,
+            bufferTimeMinutes,
+            existingSlots,
+          )) {
+            throw FirebaseException(
+              plugin: 'booking',
+              code: 'slot-taken',
+              message:
+                  'This time slot was just booked by someone else. Please choose another.',
+            );
+          }
+
+          // 3. Write appointment
+          final appointmentData = AppointmentFirestoreMapper.toFirestore(
+            appointment,
           );
-        }
+          appointmentData['created_at'] = FieldValue.serverTimestamp();
+          transaction.set(appointmentRef, appointmentData);
 
-        // 3. Write appointment
-        final appointmentData = AppointmentFirestoreMapper.toFirestore(
-          appointment,
-        );
-        appointmentData['created_at'] = FieldValue.serverTimestamp();
-        transaction.set(appointmentRef, appointmentData);
+          // 4. Write availability (append new slot)
+          final newSlot = BookedSlot(
+            start: startTime,
+            end: endTime,
+            appointmentId: appointment.appointmentId,
+          );
+          final updatedSlots = [...existingSlots, newSlot];
+          final availabilityData =
+              availabilitySnap.exists
+                  ? Map<String, dynamic>.from(availabilitySnap.data()!)
+                  : <String, dynamic>{
+                    'barber_id': barberId,
+                    'location_id': locationId,
+                    'date': dateStr,
+                  };
+          availabilityData['booked_slots'] =
+              updatedSlots.map((s) => s.toMap()).toList();
+          transaction.set(availabilityRef, availabilityData);
 
-        // 4. Write availability (append new slot)
-        final newSlot = BookedSlot(
-          start: startTime,
-          end: endTime,
-          appointmentId: appointment.appointmentId,
-        );
-        final updatedSlots = [...existingSlots, newSlot];
-        final availabilityData =
-            availabilitySnap.exists
-                ? Map<String, dynamic>.from(availabilitySnap.data()!)
-                : <String, dynamic>{
-                  'barber_id': barberId,
-                  'location_id': locationId,
-                  'date': dateStr,
-                };
-        availabilityData['booked_slots'] =
-            updatedSlots.map((s) => s.toMap()).toList();
-        transaction.set(availabilityRef, availabilityData);
-
-        // 5. Update user booking lock (one active appointment per user)
-        transaction.set(lockRef, {
-          'user_id': appointment.userId,
-          'active_appointment_id': appointment.appointmentId,
-        }, SetOptions(merge: true));
+          // 5. Update user booking lock (one active appointment per user per brand)
+          transaction.set(lockRef, {
+            'user_id': appointment.userId,
+            'brand_id': brandId,
+            'active_appointment_id': appointment.appointmentId,
+          }, SetOptions(merge: true));
         },
         _firestore,
       );
@@ -199,6 +202,7 @@ class BookingTransaction {
   /// before the appointment. Enforced server-side as well.
   Future<Either<Failure, void>> cancelAppointment(
     AppointmentEntity appointment, {
+    required String brandId,
     int cancelHoursMinimum = 0,
   }) async {
     if (appointment.status != AppointmentStatus.scheduled) {
@@ -230,46 +234,46 @@ class BookingTransaction {
         .doc(docId);
     final lockRef = _firestore
         .collection(FirestoreCollections.userBookingLocks)
-        .doc(appointment.userId);
+        .doc('${appointment.userId}_$brandId');
 
     try {
       await FirestoreLogger.logTransaction(
         'booking cancelBooking',
         (Transaction transaction) async {
-        // Firestore requires all reads before any writes.
-        final availabilitySnap = await transaction.get(availabilityRef);
-        final lockSnap = await transaction.get(lockRef);
+          // Firestore requires all reads before any writes.
+          final availabilitySnap = await transaction.get(availabilityRef);
+          final lockSnap = await transaction.get(lockRef);
 
-        final existingSlots = _parseBookedSlots(availabilitySnap);
-        final updatedSlots =
-            existingSlots
-                .where((s) => s.appointmentId != appointment.appointmentId)
-                .toList();
+          final existingSlots = _parseBookedSlots(availabilitySnap);
+          final updatedSlots =
+              existingSlots
+                  .where((s) => s.appointmentId != appointment.appointmentId)
+                  .toList();
 
-        final availabilityData =
-            availabilitySnap.exists && availabilitySnap.data() != null
-                ? Map<String, dynamic>.from(availabilitySnap.data()!)
-                : <String, dynamic>{
-                  'barber_id': appointment.barberId,
-                  'location_id': appointment.locationId,
-                  'date': dateStr,
-                };
-        availabilityData['booked_slots'] =
-            updatedSlots.map((s) => s.toMap()).toList();
+          final availabilityData =
+              availabilitySnap.exists && availabilitySnap.data() != null
+                  ? Map<String, dynamic>.from(availabilitySnap.data()!)
+                  : <String, dynamic>{
+                    'barber_id': appointment.barberId,
+                    'location_id': appointment.locationId,
+                    'date': dateStr,
+                  };
+          availabilityData['booked_slots'] =
+              updatedSlots.map((s) => s.toMap()).toList();
 
-        // All writes after reads.
-        transaction.update(appointmentRef, {
-          'status': AppointmentStatus.cancelled,
-        });
-        transaction.set(availabilityRef, availabilityData);
-        if (lockSnap.exists &&
-            lockSnap.data() != null &&
-            lockSnap.data()!['active_appointment_id'] ==
-                appointment.appointmentId) {
-          transaction.update(lockRef, {
-            'active_appointment_id': FieldValue.delete(),
+          // All writes after reads.
+          transaction.update(appointmentRef, {
+            'status': AppointmentStatus.cancelled,
           });
-        }
+          transaction.set(availabilityRef, availabilityData);
+          if (lockSnap.exists &&
+              lockSnap.data() != null &&
+              lockSnap.data()!['active_appointment_id'] ==
+                  appointment.appointmentId) {
+            transaction.update(lockRef, {
+              'active_appointment_id': FieldValue.delete(),
+            });
+          }
         },
         _firestore,
       );
@@ -279,58 +283,63 @@ class BookingTransaction {
     }
   }
 
-  /// Completes the visit atomically: adds [pointsToAdd] to user's loyalty points,
+  /// Completes the visit atomically: adds [pointsToAdd] to user's loyalty points in user_brands,
   /// marks the appointment as completed, and clears user_booking_locks for this appointment.
   Future<Either<Failure, void>> completeVisitAndAwardLoyaltyPoints({
     required String userId,
+    required String brandId,
     required String appointmentId,
     required int pointsToAdd,
   }) async {
-    final userRef = _firestore.collection(FirestoreCollections.users).doc(userId);
+    final userBrandRef = _firestore
+        .collection(FirestoreCollections.users)
+        .doc(userId)
+        .collection('user_brands')
+        .doc(brandId);
     final appointmentRef = _firestore
         .collection(FirestoreCollections.appointments)
         .doc(appointmentId);
     final lockRef = _firestore
         .collection(FirestoreCollections.userBookingLocks)
-        .doc(userId);
+        .doc('${userId}_$brandId');
 
     try {
       await FirestoreLogger.logTransaction(
         'booking completeVisitAndAwardLoyaltyPoints',
         (Transaction transaction) async {
-        final apptSnap = await transaction.get(appointmentRef);
-        if (!apptSnap.exists || apptSnap.data() == null) {
-          throw FirebaseException(
-            plugin: 'booking',
-            code: 'not-found',
-            message: 'Appointment not found',
-          );
-        }
-        final status = apptSnap.data()!['status'] as String? ?? '';
-        if (status != AppointmentStatus.scheduled) {
-          throw FirebaseException(
-            plugin: 'booking',
-            code: 'invalid-status',
-            message: 'Appointment is not scheduled',
-          );
-        }
+          final apptSnap = await transaction.get(appointmentRef);
+          if (!apptSnap.exists || apptSnap.data() == null) {
+            throw FirebaseException(
+              plugin: 'booking',
+              code: 'not-found',
+              message: 'Appointment not found',
+            );
+          }
+          final status = apptSnap.data()!['status'] as String? ?? '';
+          if (status != AppointmentStatus.scheduled) {
+            throw FirebaseException(
+              plugin: 'booking',
+              code: 'invalid-status',
+              message: 'Appointment is not scheduled',
+            );
+          }
 
-        final lockSnap = await transaction.get(lockRef);
+          final lockSnap = await transaction.get(lockRef);
 
-        // All writes after reads.
-        transaction.update(appointmentRef, {
-          'status': AppointmentStatus.completed,
-        });
-        transaction.update(userRef, {
-          'loyalty_points': FieldValue.increment(pointsToAdd),
-        });
-        if (lockSnap.exists &&
-            lockSnap.data() != null &&
-            lockSnap.data()!['active_appointment_id'] == appointmentId) {
-          transaction.update(lockRef, {
-            'active_appointment_id': FieldValue.delete(),
+          // All writes after reads.
+          transaction.update(appointmentRef, {
+            'status': AppointmentStatus.completed,
           });
-        }
+          transaction.update(userBrandRef, {
+            'loyalty_points': FieldValue.increment(pointsToAdd),
+          });
+          if (lockSnap.exists &&
+              lockSnap.data() != null &&
+              lockSnap.data()!['active_appointment_id'] == appointmentId) {
+            transaction.update(lockRef, {
+              'active_appointment_id': FieldValue.delete(),
+            });
+          }
         },
         _firestore,
       );

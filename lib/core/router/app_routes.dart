@@ -2,6 +2,8 @@ enum AppRoute {
   splash(name: 'Splash', path: '/splash'),
   onboarding(name: 'Onboarding', path: '/onboarding'),
   auth(name: 'Auth', path: '/auth'),
+  brandOnboarding(name: 'Brand Onboarding', path: '/brand_onboarding'),
+  brandSwitcher(name: 'Brand Switcher', path: '/brand_switcher'),
   home(name: 'Home', path: '/'),
   dashboard(name: 'Dashboard', path: '/dashboard'),
   booking(name: 'Booking', path: '/booking'),

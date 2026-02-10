@@ -37,9 +37,7 @@ class RewardFormPage extends HookConsumerWidget {
     final isActive = useState(reward?.isActive ?? true);
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
-    final brandId =
-        ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-    final effectiveBrandId = brandId.isNotEmpty ? brandId : 'default';
+    final effectiveBrandId = ref.watch(dashboardBrandIdProvider);
     final notifier = ref.read(dashboardRewardsNotifierProvider.notifier);
 
     Future<void> submit() async {

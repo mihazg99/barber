@@ -13,7 +13,6 @@ class LoyaltyNotifier extends BaseNotifier<String?, Failure> {
 
   /// Runs spend-points transaction. Caller should ref.listen for BaseData/BaseError.
   Future<void> redeem(RewardEntity reward, UserEntity user) async {
-    if (user.loyaltyPoints < reward.pointsCost) return;
     setLoading();
     final result = await _transaction.run(
       userId: user.userId,

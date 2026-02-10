@@ -24,6 +24,10 @@ import 'package:barber/features/inventory/presentation/pages/inventory_page.dart
 import 'package:barber/features/loyalty/presentation/pages/loyalty_page.dart';
 import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:barber/features/brand_selection/di.dart';
+import 'package:barber/features/brand/di.dart';
+import 'package:barber/features/brand_selection/presentation/pages/brand_onboarding_page.dart';
+import 'package:barber/features/brand_selection/presentation/pages/brand_switcher_page.dart';
 
 import 'package:barber/core/di.dart';
 import 'package:barber/features/auth/presentation/pages/auth_page.dart';
@@ -35,6 +39,9 @@ import 'app_routes.dart';
 bool _isFirstRun = true;
 
 final goRouterProvider = Provider<GoRouter>((ref) {
+  // Initialize persistence listener for selected brand override
+  initSelectedBrandPersistence(ref);
+
   final refreshNotifier = ref.watch(routerRefreshNotifierProvider);
 
   ref.listen(isAuthenticatedProvider, (prev, next) {
@@ -68,6 +75,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       Future.microtask(() => refreshNotifier.notify());
     }
   });
+
+  // Listen for brand state changes to trigger redirects (onboarding/switcher)
+  ref.listen(userBrandsProvider, (_, next) {
+    if (!next.isLoading) {
+      refreshNotifier.notify();
+    }
+  });
+
+  ref.listen(selectedBrandIdProvider, (_, __) => refreshNotifier.notify());
 
   return GoRouter(
     initialLocation: AppRoute.auth.path,
@@ -152,8 +168,37 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         if (isInProfileStep || !isProfileComplete) return null;
         return isStaff ? AppRoute.dashboard.path : AppRoute.home.path;
       }
-      // Staff must use dashboard; regular users must use home.
+
+      // Brand selection flow: check after authentication + profile complete
       if (isAuthenticated && isProfileComplete) {
+        final userBrandsAsync = container.read(userBrandsProvider);
+
+        // Wait for brands to load
+        if (userBrandsAsync.isLoading) return null;
+
+        final userBrands = userBrandsAsync.valueOrNull ?? [];
+        final selectedBrandId = container.read(selectedBrandIdProvider);
+
+        // No brands → redirect to brand onboarding
+        if (userBrands.isEmpty && path != AppRoute.brandOnboarding.path) {
+          return AppRoute.brandOnboarding.path;
+        }
+
+        // Has brands but no selection → redirect to brand switcher
+        if (userBrands.isNotEmpty &&
+            selectedBrandId == null &&
+            path != AppRoute.brandSwitcher.path &&
+            path != AppRoute.brandOnboarding.path) {
+          return AppRoute.brandSwitcher.path;
+        }
+
+        // Allow brand onboarding/switcher pages
+        if (path == AppRoute.brandOnboarding.path ||
+            path == AppRoute.brandSwitcher.path) {
+          return null;
+        }
+
+        // Staff must use dashboard; regular users must use home
         if (isStaff && path == AppRoute.home.path)
           return AppRoute.dashboard.path;
         if (!isStaff && path == AppRoute.dashboard.path)
@@ -179,6 +224,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.auth.path,
         pageBuilder:
             (context, state) => NoTransitionPage(child: const AuthPage()),
+      ),
+      GoRoute(
+        name: AppRoute.brandOnboarding.name,
+        path: AppRoute.brandOnboarding.path,
+        pageBuilder:
+            (context, state) =>
+                NoTransitionPage(child: const BrandOnboardingPage()),
+      ),
+      GoRoute(
+        name: AppRoute.brandSwitcher.name,
+        path: AppRoute.brandSwitcher.path,
+        pageBuilder:
+            (context, state) =>
+                NoTransitionPage(child: const BrandSwitcherPage()),
       ),
       GoRoute(
         name: AppRoute.home.name,

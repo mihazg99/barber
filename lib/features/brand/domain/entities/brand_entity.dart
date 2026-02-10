@@ -15,6 +15,10 @@ class BrandEntity extends Equatable {
     this.cancelHoursMinimum = 0,
     this.loyaltyPointsMultiplier = 10,
     this.requireSmsVerification = false,
+    this.currency = 'EUR',
+    this.fontFamily = 'Inter',
+    this.locale = 'hr',
+    this.themeColors = const {},
   });
 
   final String brandId;
@@ -35,6 +39,12 @@ class BrandEntity extends Equatable {
   /// Whether SMS verification is required after social login. Defaults to false when not set.
   final bool requireSmsVerification;
 
+  // Theme & Locale Configuration
+  final String currency;
+  final String fontFamily;
+  final String locale;
+  final Map<String, String> themeColors;
+
   BrandEntity copyWith({
     String? brandId,
     String? name,
@@ -47,6 +57,10 @@ class BrandEntity extends Equatable {
     int? cancelHoursMinimum,
     int? loyaltyPointsMultiplier,
     bool? requireSmsVerification,
+    String? currency,
+    String? fontFamily,
+    String? locale,
+    Map<String, String>? themeColors,
   }) => BrandEntity(
     brandId: brandId ?? this.brandId,
     name: name ?? this.name,
@@ -61,6 +75,10 @@ class BrandEntity extends Equatable {
         loyaltyPointsMultiplier ?? this.loyaltyPointsMultiplier,
     requireSmsVerification:
         requireSmsVerification ?? this.requireSmsVerification,
+    currency: currency ?? this.currency,
+    fontFamily: fontFamily ?? this.fontFamily,
+    locale: locale ?? this.locale,
+    themeColors: themeColors ?? this.themeColors,
   );
 
   @override
@@ -76,5 +94,9 @@ class BrandEntity extends Equatable {
     cancelHoursMinimum,
     loyaltyPointsMultiplier,
     requireSmsVerification,
+    currency,
+    fontFamily,
+    locale,
+    themeColors,
   ];
 }

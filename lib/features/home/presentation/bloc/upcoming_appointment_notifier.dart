@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
+import 'package:barber/core/errors/failure.dart';
 import 'package:barber/core/state/base_notifier.dart';
 
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
@@ -10,44 +12,32 @@ class UpcomingAppointmentNotifier
   UpcomingAppointmentNotifier(
     this._repository,
     this._userId,
+    this._brandId,
   ) {
     _startListening();
   }
 
   final AppointmentRepository _repository;
   final String _userId;
+  final String _brandId;
 
-  StreamSubscription<List<AppointmentEntity>>? _appointmentsSubscription;
+  StreamSubscription<Either<Failure, AppointmentEntity?>>?
+  _appointmentsSubscription;
 
   void _startListening() {
-    if (_userId.isEmpty) {
+    if (_userId.isEmpty || _brandId.isEmpty) {
       setData(null);
       return;
     }
     setLoading();
     _appointmentsSubscription = _repository
-        .watchUpcomingAppointmentsForUser(_userId)
+        .watchUpcomingAppointmentsForUser(_userId, _brandId)
         .listen(
-          (appointments) {
-            if (appointments.isEmpty) {
-              setData(null);
-              return;
-            }
-            // The query filters for scheduled status.
-            // We must filter for start_time >= now and order by start_time client-side.
-            final now = DateTime.now();
-            final upcoming =
-                appointments.where((a) {
-                  return a.status == AppointmentStatus.scheduled &&
-                      a.endTime.isAfter(now);
-                }).toList();
-
-            if (upcoming.isEmpty) {
-              setData(null);
-            } else {
-              upcoming.sort((a, b) => a.startTime.compareTo(b.startTime));
-              setData(upcoming.first);
-            }
+          (result) {
+            result.fold(
+              (failure) => setError(failure.message, failure),
+              (appointment) => setData(appointment),
+            );
           },
           onError: (e) {
             setError(e.toString(), e);

@@ -7,7 +7,6 @@ import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/auth/domain/entities/user_role.dart';
-import 'package:barber/features/brand/di.dart' as brand_di;
 import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/brand/presentation/widgets/app_header.dart';
 import 'package:barber/features/home/di.dart' as home_di;
@@ -38,16 +37,20 @@ class DashboardPage extends HookConsumerWidget {
 
     final superadminTabIndex = useState(0);
 
-    // Centralized data load: fetch once when dashboard mounts. Reduces 11+ reads to 5.
+    // Centralized data load: fetch once when dashboard mounts or brand changes.
     useEffect(() {
+      // Use a mount check to avoid "ref disposed" errors
+      bool mounted = true;
+
       Future.microtask(() async {
+        if (!mounted) return;
+
         if (role == UserRole.superadmin) {
-          final cachedBrand = await ref.read(
-            brand_di.defaultBrandProvider.future,
-          );
-          await ref
-              .read(dashboardBrandNotifierProvider.notifier)
-              .load(cachedBrand: cachedBrand);
+          // Dashboard providers now auto-watch the correct brandId (from user profile)
+          // Just trigger the load.
+          await ref.read(dashboardBrandNotifierProvider.notifier).load();
+
+          if (!mounted) return;
           await Future.wait([
             ref.read(dashboardLocationsNotifierProvider.notifier).load(),
             ref.read(dashboardServicesNotifierProvider.notifier).load(),
@@ -55,19 +58,19 @@ class DashboardPage extends HookConsumerWidget {
             ref.read(dashboardBarbersNotifierProvider.notifier).load(),
           ]);
         } else if (role == UserRole.barber) {
-          final cachedBrand = await ref.read(
-            brand_di.defaultBrandProvider.future,
-          );
           // Force refresh of appointments to ensure we have the latest user/barber ID
           ref.invalidate(barberUpcomingAppointmentsProvider);
 
-          ref
-              .read(home_di.homeNotifierProvider.notifier)
-              .load(cachedBrand: cachedBrand);
+          // HomeNotifier layout now auto-detects barber's brandId from user profile.
+          // Due to provider caching, if we switched users/brands, we want to ensure we load correct data.
+          // Check if we have a brandId to load (avoid loading default if we expect a specific one)
+          await ref.read(home_di.homeNotifierProvider.notifier).load();
         }
       });
-      return null;
-    }, [role]);
+      return () {
+        mounted = false;
+      };
+    }, [role, user?.brandId]);
 
     final barberTabIndex = ref.watch(dashboardBarberTabIndexProvider);
     final barberTabNotifier = ref.read(

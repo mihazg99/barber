@@ -9,8 +9,11 @@ abstract class AppointmentRepository {
   /// Fetches an appointment by id.
   Future<Either<Failure, AppointmentEntity?>> getById(String appointmentId);
 
-  /// Fetches all appointments for a user.
-  Future<Either<Failure, List<AppointmentEntity>>> getByUserId(String userId);
+  /// Fetches all appointments for a user within a specific brand.
+  Future<Either<Failure, List<AppointmentEntity>>> getByUserId(
+    String userId,
+    String brandId,
+  );
 
   /// Fetches the user's active scheduled appointment (from user_booking_locks). Used when barber scans loyalty QR.
   Future<Either<Failure, AppointmentEntity?>>
@@ -36,10 +39,11 @@ abstract class AppointmentRepository {
     String barberId,
   );
 
-  /// Stream of upcoming scheduled appointments for a user (start_time >= now).
-  /// Sorted by start_time ascending.
-  Stream<List<AppointmentEntity>> watchUpcomingAppointmentsForUser(
+  /// Stream of the user's next upcoming scheduled appointment within a specific brand.
+  /// Returns null if no upcoming appointment exists.
+  Stream<Either<Failure, AppointmentEntity?>> watchUpcomingAppointmentsForUser(
     String userId,
+    String brandId,
   );
 
   /// Stream of appointments for a barber within a specific date range.
