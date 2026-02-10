@@ -8,6 +8,7 @@ class BrandFirestoreMapper {
     return BrandEntity(
       brandId: doc.id,
       name: data['name'] as String? ?? '',
+      tag: data['tag'] as String?,
       isMultiLocation: data['is_multi_location'] as bool? ?? false,
       primaryColor: data['primary_color'] as String? ?? '#000000',
       logoUrl: data['logo_url'] as String? ?? '',
@@ -32,6 +33,7 @@ class BrandFirestoreMapper {
 
   static Map<String, dynamic> toFirestore(BrandEntity entity) => {
     'name': entity.name,
+    'tag': entity.tag,
     'is_multi_location': entity.isMultiLocation,
     'primary_color': entity.primaryColor,
     'logo_url': entity.logoUrl,

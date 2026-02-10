@@ -36,11 +36,40 @@ class BrandRepositoryImpl implements BrandRepository {
       await FirestoreLogger.logWrite(
         '${FirestoreCollections.brands}/${entity.brandId}',
         'set',
-        () => _col.doc(entity.brandId).set(BrandFirestoreMapper.toFirestore(entity)),
+        () => _col
+            .doc(entity.brandId)
+            .set(BrandFirestoreMapper.toFirestore(entity)),
       );
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to set brand: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTagAvailable(String tag) async {
+    try {
+      final snapshot = await FirestoreLogger.logRead(
+        '${FirestoreCollections.brands}?tag=$tag',
+        () => _col.where('tag', isEqualTo: tag).limit(1).get(),
+      );
+      return Right(snapshot.docs.isEmpty);
+    } catch (e) {
+      return Left(FirestoreFailure('Failed to check tag availability: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BrandEntity?>> getByTag(String tag) async {
+    try {
+      final snapshot = await FirestoreLogger.logRead(
+        '${FirestoreCollections.brands}?tag=$tag',
+        () => _col.where('tag', isEqualTo: tag).limit(1).get(),
+      );
+      if (snapshot.docs.isEmpty) return const Right(null);
+      return Right(BrandFirestoreMapper.fromFirestore(snapshot.docs.first));
+    } catch (e) {
+      return Left(FirestoreFailure('Failed to get brand by tag: $e'));
     }
   }
 }

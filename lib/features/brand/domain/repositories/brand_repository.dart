@@ -8,4 +8,10 @@ abstract class BrandRepository {
 
   /// Creates or overwrites a brand. doc_id = [entity.brandId].
   Future<Either<Failure, void>> set(BrandEntity entity);
+
+  /// Checks if a tag is available (not taken). Returns true if available.
+  Future<Either<Failure, bool>> isTagAvailable(String tag);
+
+  /// Fetches a brand by tag. Returns [null] if not found in Right.
+  Future<Either<Failure, BrandEntity?>> getByTag(String tag);
 }

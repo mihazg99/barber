@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -49,6 +46,15 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyABoP-ZMAPSB-gGSsHGNBMFLJBUEkrsPIE',
+    appId: '1:257675957691:web:3d27589443bf2418fba09e',
+    messagingSenderId: '257675957691',
+    projectId: 'barber-shop-whitelabel',
+    authDomain: 'barber-shop-whitelabel.firebaseapp.com',
+    storageBucket: 'barber-shop-whitelabel.firebasestorage.app',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAWSuX46JQEq3VDfSyAFciDMhjpn7YQMUI',
     appId: '1:257675957691:android:b51729fb7de657cdfba09e',
@@ -63,6 +69,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '257675957691',
     projectId: 'barber-shop-whitelabel',
     storageBucket: 'barber-shop-whitelabel.firebasestorage.app',
+    androidClientId: '257675957691-djn6uflp6hupd7dqjitoaj4pj3fgcavm.apps.googleusercontent.com',
+    iosClientId: '257675957691-8fu40rb5b5mqm9qgghrvl97pm9r20cqm.apps.googleusercontent.com',
     iosBundleId: 'com.barber.app',
   );
 }

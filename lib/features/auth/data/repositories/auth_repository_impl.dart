@@ -88,6 +88,20 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  UserRole _determineRole(String? email) {
+    const adminEmails = [
+      'mihael@styly.app',
+      'admin@barber.app',
+      'test@barber.app',
+      'miha1mike123@gmail.com',
+      'hero.stars1999@gmail.com',
+    ];
+    if (email != null && adminEmails.contains(email.toLowerCase())) {
+      return UserRole.superadmin;
+    }
+    return UserRole.user;
+  }
+
   @override
   Future<Either<Failure, UserEntity>> signInWithGoogle() async {
     try {
@@ -102,22 +116,29 @@ class AuthRepositoryImpl implements AuthRepository {
         fullName: displayName,
         phone: phone,
         fcmToken: '',
-        role: UserRole.user,
+        role: _determineRole(email),
       );
 
       final existingResult = await _userRepository.getById(user.uid);
       final toSave = existingResult.fold(
         (_) => entity,
-        (existing) =>
-            existing != null
-                ? existing.copyWith(
-                  fullName:
-                      existing.fullName.isNotEmpty
-                          ? existing.fullName
-                          : displayName,
-                  phone: existing.phone.isNotEmpty ? existing.phone : phone,
-                )
-                : entity,
+        (existing) {
+          final determinedRole = _determineRole(email);
+          return existing != null
+              ? existing.copyWith(
+                fullName:
+                    existing.fullName.isNotEmpty
+                        ? existing.fullName
+                        : displayName,
+                phone: existing.phone.isNotEmpty ? existing.phone : phone,
+                // Upgrade to superadmin if email matches, otherwise keep existing role
+                role:
+                    determinedRole == UserRole.superadmin
+                        ? UserRole.superadmin
+                        : existing.role,
+              )
+              : entity;
+        },
       );
 
       _onUserLoaded?.call(toSave);
@@ -148,26 +169,33 @@ class AuthRepositoryImpl implements AuthRepository {
         fullName: displayName,
         phone: phone,
         fcmToken: '',
-        role: UserRole.user,
+        role: _determineRole(email),
       );
 
       final existingResult = await _userRepository.getById(user.uid);
       final toSave = existingResult.fold(
         (_) => entity,
-        (existing) =>
-            existing != null
-                ? existing.copyWith(
-                  fullName:
-                      existing.fullName.isNotEmpty
-                          ? existing.fullName
-                          : displayName,
-                  phone: existing.phone.isNotEmpty ? existing.phone : phone,
-                )
-                : entity,
+        (existing) {
+          final determinedRole = _determineRole(email);
+          return existing != null
+              ? existing.copyWith(
+                fullName:
+                    existing.fullName.isNotEmpty
+                        ? existing.fullName
+                        : displayName,
+                phone: existing.phone.isNotEmpty ? existing.phone : phone,
+                // Upgrade to superadmin if email matches, otherwise keep existing role
+                role:
+                    determinedRole == UserRole.superadmin
+                        ? UserRole.superadmin
+                        : existing.role,
+              )
+              : entity;
+        },
       );
 
-      _onUserLoaded?.call(toSave);
       final setResult = await _userRepository.set(toSave);
+      _onUserLoaded?.call(toSave);
       // Always return user so profile step can show; if set failed, user can retry on submit.
       return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
     } on FirebaseAuthException catch (e) {

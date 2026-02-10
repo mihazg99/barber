@@ -19,6 +19,7 @@ abstract class AppointmentRepository {
   Future<Either<Failure, AppointmentEntity?>>
   getActiveScheduledAppointmentForUser(
     String userId,
+    String brandId,
   );
 
   /// Clears user_booking_locks active_appointment_id when barber marks visit complete. Idempotent if lock doesn't match.

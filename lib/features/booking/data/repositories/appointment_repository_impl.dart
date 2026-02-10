@@ -95,17 +95,19 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   Future<Either<Failure, AppointmentEntity?>>
   getActiveScheduledAppointmentForUser(
     String userId,
+    String brandId,
   ) async {
     try {
       final lockRef = _firestore
           .collection(FirestoreCollections.userBookingLocks)
-          .doc(userId);
+          .doc('${userId}_${brandId}');
       final lockSnap = await FirestoreLogger.logRead(
-        '${FirestoreCollections.userBookingLocks}/$userId',
+        '${FirestoreCollections.userBookingLocks}/${userId}_$brandId',
         () => lockRef.get(_serverOnly),
       );
       final activeId = lockSnap.data()?['active_appointment_id'] as String?;
       if (activeId == null || activeId.isEmpty) return const Right(null);
+
       final apptResult = await getById(activeId);
       return apptResult.fold(
         Left.new,
@@ -130,19 +132,23 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     String appointmentId,
   ) async {
     try {
-      final lockRef = _firestore
-          .collection(FirestoreCollections.userBookingLocks)
-          .doc(userId);
+      // Find the lock document that holds this appointment
       final lockSnap = await FirestoreLogger.logRead(
-        '${FirestoreCollections.userBookingLocks}/$userId',
-        () => lockRef.get(_serverOnly),
+        '${FirestoreCollections.userBookingLocks}?user_id=$userId&appointment_id=$appointmentId',
+        () => _firestore
+            .collection(FirestoreCollections.userBookingLocks)
+            .where('user_id', isEqualTo: userId)
+            .where('active_appointment_id', isEqualTo: appointmentId)
+            .get(_serverOnly),
       );
-      final currentId = lockSnap.data()?['active_appointment_id'] as String?;
-      if (currentId == appointmentId) {
+
+      for (final doc in lockSnap.docs) {
         await FirestoreLogger.logWrite(
-          '${FirestoreCollections.userBookingLocks}/$userId',
+          '${FirestoreCollections.userBookingLocks}/${doc.id}',
           'update',
-          () => lockRef.update({'active_appointment_id': FieldValue.delete()}),
+          () => doc.reference.update({
+            'active_appointment_id': FieldValue.delete(),
+          }),
         );
       }
       return const Right(null);
@@ -157,17 +163,19 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
 
   @override
   Stream<String?> watchActiveAppointmentId(String userId) {
-    final lockRef = _firestore
-        .collection(FirestoreCollections.userBookingLocks)
-        .doc(userId);
     return FirestoreLogger.logStream<String?>(
-      '${FirestoreCollections.userBookingLocks}/$userId',
-      lockRef.snapshots().map((snap) {
-        final data = snap.data();
-        if (data == null) return null;
-        final id = data['active_appointment_id'] as String?;
-        return (id != null && id.isNotEmpty) ? id : null;
-      }),
+      '${FirestoreCollections.userBookingLocks}?user_id=$userId',
+      _firestore
+          .collection(FirestoreCollections.userBookingLocks)
+          .where('user_id', isEqualTo: userId)
+          .snapshots()
+          .map((snap) {
+            for (final doc in snap.docs) {
+              final id = doc.data()['active_appointment_id'] as String?;
+              if (id != null && id.isNotEmpty) return id;
+            }
+            return null;
+          }),
     );
   }
 

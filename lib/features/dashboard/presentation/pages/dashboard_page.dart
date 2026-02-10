@@ -35,6 +35,18 @@ class DashboardPage extends HookConsumerWidget {
     // Use fallback for role so useEffect/useState dependencies are stable
     final role = user?.role ?? UserRole.user;
 
+    // Effective role logic:
+    // If superadmin is viewing a brand that is NOT their own, treat them as a regular user.
+    // This allows them to "view" other brands without admin privileges.
+    final dashboardBrandId = ref.watch(dashboardBrandIdProvider);
+    final isOwnerOfCurrentBrand = user?.brandId == dashboardBrandId;
+
+    // If role is superadmin, but brand mismatch -> downgrade to user
+    final effectiveRole =
+        (role == UserRole.superadmin && !isOwnerOfCurrentBrand)
+            ? UserRole.user
+            : role;
+
     final superadminTabIndex = useState(0);
 
     // Centralized data load: fetch once when dashboard mounts or brand changes.
@@ -45,7 +57,7 @@ class DashboardPage extends HookConsumerWidget {
       Future.microtask(() async {
         if (!mounted) return;
 
-        if (role == UserRole.superadmin) {
+        if (effectiveRole == UserRole.superadmin) {
           // Dashboard providers now auto-watch the correct brandId (from user profile)
           // Just trigger the load.
           await ref.read(dashboardBrandNotifierProvider.notifier).load();
@@ -57,7 +69,7 @@ class DashboardPage extends HookConsumerWidget {
             ref.read(dashboardRewardsNotifierProvider.notifier).load(),
             ref.read(dashboardBarbersNotifierProvider.notifier).load(),
           ]);
-        } else if (role == UserRole.barber) {
+        } else if (effectiveRole == UserRole.barber) {
           // Force refresh of appointments to ensure we have the latest user/barber ID
           ref.invalidate(barberUpcomingAppointmentsProvider);
 
@@ -70,7 +82,7 @@ class DashboardPage extends HookConsumerWidget {
       return () {
         mounted = false;
       };
-    }, [role, user?.brandId]);
+    }, [effectiveRole, user?.brandId, dashboardBrandId]);
 
     final barberTabIndex = ref.watch(dashboardBarberTabIndexProvider);
     final barberTabNotifier = ref.read(
@@ -81,9 +93,9 @@ class DashboardPage extends HookConsumerWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final navItems = DashboardNavConfig.forRole(role, context.l10n);
+    final navItems = DashboardNavConfig.forRole(effectiveRole, context.l10n);
 
-    final isBarber = role == UserRole.barber;
+    final isBarber = effectiveRole == UserRole.barber;
     final selectedIndex = isBarber ? barberTabIndex : superadminTabIndex.value;
     void onTabTap(int index) {
       if (isBarber) {

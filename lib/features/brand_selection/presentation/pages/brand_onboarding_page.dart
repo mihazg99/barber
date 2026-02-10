@@ -14,6 +14,7 @@ import 'package:barber/core/utils/snackbar_helper.dart';
 import 'package:barber/core/utils/debug_seeder.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/brand/di.dart';
+import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 import 'package:barber/features/brand_selection/di.dart';
 import 'package:barber/features/brand_selection/presentation/bloc/brand_onboarding_notifier.dart';
 
@@ -32,6 +33,7 @@ class BrandOnboardingPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final showScanner = useState(false);
+    final showSearch = useState(false);
 
     // Listen for state changes (Success/Error)
     ref.listen<BaseState<BrandOnboardingState>>(
@@ -51,20 +53,24 @@ class BrandOnboardingPage extends HookConsumerWidget {
       },
     );
 
-    // Handle Back Button to close scanner if open
+    // Handle Back Button to close scanner/search if open
     // PopScope replaces WillPopScope
     return PopScope(
-      canPop: !showScanner.value,
+      canPop: !showScanner.value && !showSearch.value,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         if (showScanner.value) {
           showScanner.value = false;
+        } else if (showSearch.value) {
+          showSearch.value = false;
+          // Clean up search state
+          ref.read(_brandOnboardingNotifierProvider.notifier).clearSearch();
         }
       },
       child: Scaffold(
         backgroundColor: context.appColors.backgroundColor,
         appBar:
-            showScanner.value
+            (showScanner.value || showSearch.value)
                 ? null
                 : AppBar(
                   backgroundColor: Colors.transparent,
@@ -78,10 +84,6 @@ class BrandOnboardingPage extends HookConsumerWidget {
                       if (context.canPop()) {
                         context.pop();
                       } else {
-                        // If can't pop (e.g. initial route), go home or stay?
-                        // Usually implies user wants to leave onboarding.
-                        // If they have brands, home is fine. If not, maybe logout?
-                        // We'll stick to pop or home.
                         context.go(AppRoute.home.path);
                       }
                     },
@@ -95,15 +97,18 @@ class BrandOnboardingPage extends HookConsumerWidget {
                     ? _ScannerView(
                       onClose: () => showScanner.value = false,
                     )
+                    : showSearch.value
+                    ? _SearchView(
+                      onClose: () {
+                        showSearch.value = false;
+                        ref
+                            .read(_brandOnboardingNotifierProvider.notifier)
+                            .clearSearch();
+                      },
+                    )
                     : _SelectionMenu(
                       onScanTap: () => showScanner.value = true,
-                      onSearchTap: () {
-                        // Placeholder for Search UI
-                        showInfoSnackBar(
-                          context,
-                          message: 'Search feature coming soon',
-                        );
-                      },
+                      onSearchTap: () => showSearch.value = true,
                     ),
           ),
         ),
@@ -186,7 +191,7 @@ class _SelectionMenu extends HookConsumerWidget {
           Gap(context.appSizes.paddingMedium),
           _ActionButton(
             icon: Icons.search_rounded,
-            label: 'Search by Name',
+            label: 'Search by Tag',
             onTap: onSearchTap,
             isPrimary: false,
           ),
@@ -374,6 +379,203 @@ class _LoadingOverlay extends HookConsumerWidget {
       child: const Center(
         child: CircularProgressIndicator(color: Colors.white),
       ),
+    );
+  }
+}
+
+class _SearchView extends HookConsumerWidget {
+  const _SearchView({required this.onClose});
+
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchController = useTextEditingController();
+    final state = ref.watch(_brandOnboardingNotifierProvider);
+    final data = state is BaseData<BrandOnboardingState> ? state.data : null;
+    final isLoading = data?.isLoading ?? false;
+    final searchResult = data?.searchResult;
+
+    return Column(
+      children: [
+        // App Bar with search input
+        Padding(
+          padding: EdgeInsets.all(context.appSizes.paddingMedium),
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: context.appColors.primaryTextColor,
+                ),
+                onPressed: onClose,
+              ),
+              Expanded(
+                child: TextField(
+                  controller: searchController,
+                  autofocus: true,
+                  style: context.appTextStyles.body,
+                  decoration: InputDecoration(
+                    hintText: 'brand-tag',
+                    hintStyle: context.appTextStyles.body.copyWith(
+                      color: context.appColors.secondaryTextColor,
+                    ),
+                    border: InputBorder.none,
+                    filled: true,
+                    fillColor: Colors.grey.withValues(alpha: 0.1),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: context.appColors.secondaryTextColor,
+                    ),
+                    prefixText: '@',
+                    prefixStyle: context.appTextStyles.body.copyWith(
+                      color: context.appColors.primaryTextColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: context.appColors.primaryColor,
+                      ),
+                    ),
+                  ),
+                  onSubmitted: (value) {
+                    if (value.isNotEmpty) {
+                      ref
+                          .read(_brandOnboardingNotifierProvider.notifier)
+                          .searchByTag(value);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        if (isLoading) const LinearProgressIndicator(),
+
+        // Content
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.all(context.appSizes.paddingLarge),
+            child:
+                searchResult != null
+                    ? _BrandResultCard(brand: searchResult)
+                    : data?.errorMessage != null
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: context.appColors.errorColor,
+                          ),
+                          Gap(context.appSizes.paddingMedium),
+                          Text(
+                            data!.errorMessage!,
+                            style: context.appTextStyles.body.copyWith(
+                              color: context.appColors.errorColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                    : Center(
+                      child: Text(
+                        'Search for your barbershop by their unique tag.',
+                        style: context.appTextStyles.body.copyWith(
+                          color: context.appColors.secondaryTextColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BrandResultCard extends ConsumerWidget {
+  const _BrandResultCard({required this.brand});
+
+  final BrandEntity brand;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(24),
+            image:
+                brand.logoUrl.isNotEmpty
+                    ? DecorationImage(
+                      image: NetworkImage(brand.logoUrl),
+                      fit: BoxFit.cover,
+                    )
+                    : null,
+          ),
+          child:
+              brand.logoUrl.isEmpty
+                  ? Icon(Icons.store, size: 60, color: Colors.grey[400])
+                  : null,
+        ),
+        Gap(context.appSizes.paddingLarge),
+        Text(
+          brand.name,
+          style: context.appTextStyles.h2,
+          textAlign: TextAlign.center,
+        ),
+        if (brand.tag != null) ...[
+          Gap(context.appSizes.paddingSmall),
+          Text(
+            '@${brand.tag}',
+            style: context.appTextStyles.body.copyWith(
+              color: context.appColors.primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+        Gap(context.appSizes.paddingXxl),
+
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              final currentUserId =
+                  ref.read(currentUserIdProvider).valueOrNull!;
+              ref
+                  .read(_brandOnboardingNotifierProvider.notifier)
+                  .joinBrand(brand.brandId, currentUserId);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.appColors.primaryColor,
+              padding: EdgeInsets.symmetric(
+                vertical: context.appSizes.paddingMedium,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Join ${brand.name}',
+              style: context.appTextStyles.button.copyWith(color: Colors.white),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

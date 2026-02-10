@@ -10,21 +10,29 @@ class BrandOnboardingState {
     this.isLoading = false,
     this.errorMessage,
     this.selectedBrand,
+    this.searchResult,
   });
 
   final bool isLoading;
   final String? errorMessage;
   final BrandEntity? selectedBrand;
+  final BrandEntity? searchResult;
 
   BrandOnboardingState copyWith({
     bool? isLoading,
     String? errorMessage,
     BrandEntity? selectedBrand,
-  }) => BrandOnboardingState(
-    isLoading: isLoading ?? this.isLoading,
-    errorMessage: errorMessage,
-    selectedBrand: selectedBrand ?? this.selectedBrand,
-  );
+    BrandEntity? searchResult,
+    bool clearSearchResult = false,
+  }) {
+    return BrandOnboardingState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+      selectedBrand: selectedBrand ?? this.selectedBrand,
+      searchResult:
+          clearSearchResult ? null : (searchResult ?? this.searchResult),
+    );
+  }
 }
 
 class BrandOnboardingNotifier
@@ -128,6 +136,67 @@ class BrandOnboardingNotifier
         );
       },
     );
+  }
+
+  /// Search for a brand by tag. Updates [searchResult].
+  Future<void> searchByTag(String tag) async {
+    final current = data ?? const BrandOnboardingState();
+
+    // Clear previous search result & errors before starting
+    setData(
+      current.copyWith(
+        isLoading: true,
+        errorMessage: null,
+        clearSearchResult: true,
+      ),
+    );
+
+    final normalizedTag = tag
+        .trim()
+        .toLowerCase()
+        .replaceAll(' ', '-')
+        .replaceAll('@', '');
+    if (normalizedTag.isEmpty) {
+      setData(current.copyWith(isLoading: false));
+      return;
+    }
+
+    final result = await _brandRepository.getByTag(normalizedTag);
+
+    result.fold(
+      (failure) {
+        setData(
+          current.copyWith(
+            isLoading: false,
+            errorMessage: failure.message,
+          ),
+        );
+      },
+      (brand) {
+        if (brand == null) {
+          setData(
+            current.copyWith(
+              isLoading: false,
+              errorMessage:
+                  const BrandNotFoundFailure()
+                      .message, // Or custom 'Tag not found'
+            ),
+          );
+        } else {
+          setData(
+            current.copyWith(
+              isLoading: false,
+              searchResult: brand,
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  void clearSearch() {
+    final current = data ?? const BrandOnboardingState();
+    setData(current.copyWith(clearSearchResult: true, errorMessage: null));
   }
 
   void reset() {

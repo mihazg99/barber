@@ -120,11 +120,33 @@ final isProfileCompleteProvider = Provider<bool>((ref) {
 /// True when user has barber or superadmin role. They navigate to dashboard, not main app.
 /// Uses [lastSignedInUser] when it matches current uid so redirect is correct immediately after sign-in.
 final isStaffProvider = Provider<bool>((ref) {
+  // 1. Get User
+  UserEntity? user;
   final uid = ref.watch(authRepositoryProvider).currentUserId;
   final last = ref.watch(lastSignedInUserProvider);
   if (uid != null && last != null && last.userId == uid) {
-    return last.role.isStaff;
+    user = last;
+  } else {
+    user = ref.watch(currentUserProvider).valueOrNull;
   }
-  final user = ref.watch(currentUserProvider).valueOrNull;
-  return user?.role.isStaff ?? false;
+
+  if (user == null) return false;
+
+  // 2. Check Role
+  if (!user.role.isStaff) return false;
+
+  // 3. Check Brand Context (The "Perfection" Fix)
+  // If Superadmin/Barber is viewing a different brand (via selection),
+  // they should NOT land on Dashboard. They should be treated as a User (Home).
+  final selectedBrandId = ref.watch(selectedBrandIdProvider);
+
+  // If a brand is explicitly selected and it DOES NOT match their assigned brand,
+  // revoke staff privileges for this session context.
+  if (selectedBrandId != null &&
+      selectedBrandId.isNotEmpty &&
+      selectedBrandId != user.brandId) {
+    return false;
+  }
+
+  return true;
 });

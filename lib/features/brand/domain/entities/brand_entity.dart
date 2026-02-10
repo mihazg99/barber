@@ -6,6 +6,7 @@ class BrandEntity extends Equatable {
   const BrandEntity({
     required this.brandId,
     required this.name,
+    this.tag,
     required this.isMultiLocation,
     required this.primaryColor,
     required this.logoUrl,
@@ -23,6 +24,7 @@ class BrandEntity extends Equatable {
 
   final String brandId;
   final String name;
+  final String? tag;
   final bool isMultiLocation;
   final String primaryColor; // Hex, e.g. "#0A0A0A"
   final String logoUrl;
@@ -48,6 +50,7 @@ class BrandEntity extends Equatable {
   BrandEntity copyWith({
     String? brandId,
     String? name,
+    String? tag,
     bool? isMultiLocation,
     String? primaryColor,
     String? logoUrl,
@@ -64,6 +67,7 @@ class BrandEntity extends Equatable {
   }) => BrandEntity(
     brandId: brandId ?? this.brandId,
     name: name ?? this.name,
+    tag: tag ?? this.tag,
     isMultiLocation: isMultiLocation ?? this.isMultiLocation,
     primaryColor: primaryColor ?? this.primaryColor,
     logoUrl: logoUrl ?? this.logoUrl,
@@ -85,6 +89,7 @@ class BrandEntity extends Equatable {
   List<Object?> get props => [
     brandId,
     name,
+    tag,
     isMultiLocation,
     primaryColor,
     logoUrl,

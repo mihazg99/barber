@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:flutter/foundation.dart';
 
 /// Firebase Auth wrapper for phone OTP and social login operations.
 class AuthRemoteDataSource {
@@ -70,6 +71,19 @@ class AuthRemoteDataSource {
 
   /// Signs in with Google.
   Future<User> signInWithGoogle() async {
+    if (kIsWeb) {
+      final provider = GoogleAuthProvider();
+      final result = await _auth.signInWithPopup(provider);
+      final user = result.user;
+      if (user == null) {
+        throw FirebaseAuthException(
+          code: 'no-user',
+          message: 'Sign in produced no user',
+        );
+      }
+      return user;
+    }
+
     final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) {
       throw FirebaseAuthException(
@@ -102,7 +116,8 @@ class AuthRemoteDataSource {
     if (!isAvailable) {
       throw FirebaseAuthException(
         code: 'apple-sign-in-not-available',
-        message: 'Apple Sign-In is not available. Please ensure you have an Apple Developer Program membership and have configured Sign In with Apple.',
+        message:
+            'Apple Sign-In is not available. Please ensure you have an Apple Developer Program membership and have configured Sign In with Apple.',
       );
     }
 

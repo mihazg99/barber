@@ -39,6 +39,7 @@ class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
     BrandEntity? brand = cachedBrand;
     if (brand == null) {
       final brandResult = await _brandRepository.getById(_defaultBrandId);
+      if (!mounted) return;
       brand = brandResult.fold((_) => null, (b) => b);
       if (brand == null) {
         _loadingBrandId = null;

@@ -252,12 +252,22 @@ final dashboardBrandIdProvider = Provider.autoDispose<String>((ref) {
   final user = userAsync.valueOrNull;
   final flavorBrandId =
       ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
+  final selectedBrandId = ref.watch(selectedBrandIdProvider);
 
   debugPrint(
-    'DashboardBrandIdProvider: user=${user?.userId}, role=${user?.role}, brandId=${user?.brandId}, flavor=$flavorBrandId',
+    'DashboardBrandIdProvider: user=${user?.userId}, role=${user?.role}, brandId=${user?.brandId}, flavor=$flavorBrandId, selected=$selectedBrandId',
   );
 
-  // For staff (superadmin/barber), force their assigned brand ID if available
+  // PRIORITY 1: Explicitly selected brand (e.g. from search/join flow)
+  // This allows Superadmins to "visit" other brands.
+  if (selectedBrandId != null && selectedBrandId.isNotEmpty) {
+    debugPrint(
+      'DashboardBrandIdProvider: Using selected brandId: $selectedBrandId',
+    );
+    return selectedBrandId;
+  }
+
+  // PRIORITY 2: For staff (superadmin/barber), fallback to their assigned brand ID
   if (user != null &&
       (user.role == UserRole.superadmin || user.role == UserRole.barber) &&
       user.brandId.isNotEmpty) {
@@ -265,6 +275,7 @@ final dashboardBrandIdProvider = Provider.autoDispose<String>((ref) {
     return user.brandId;
   }
 
+  // PRIORITY 3: Default/Flavor
   debugPrint(
     'DashboardBrandIdProvider: Using default/flavor: ${flavorBrandId.isNotEmpty ? flavorBrandId : 'default'}',
   );

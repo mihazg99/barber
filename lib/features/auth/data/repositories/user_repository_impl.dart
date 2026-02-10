@@ -35,9 +35,9 @@ class UserRepositoryImpl implements UserRepository {
     return FirestoreLogger.logStream<UserEntity?>(
       '${FirestoreCollections.users}/$userId',
       _col.doc(userId).snapshots().map((doc) {
-      if (doc.data() == null) return null;
-      return UserFirestoreMapper.fromFirestore(doc);
-    }),
+        if (doc.data() == null) return null;
+        return UserFirestoreMapper.fromFirestore(doc);
+      }),
     );
   }
 
@@ -47,7 +47,12 @@ class UserRepositoryImpl implements UserRepository {
       await FirestoreLogger.logWrite(
         '${FirestoreCollections.users}/${entity.userId}',
         'set',
-        () => _col.doc(entity.userId).set(UserFirestoreMapper.toFirestore(entity)),
+        () => _col
+            .doc(entity.userId)
+            .set(
+              UserFirestoreMapper.toFirestore(entity),
+              SetOptions(merge: true),
+            ),
       );
       return const Right(null);
     } catch (e) {
@@ -56,20 +61,22 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, void>> addLoyaltyPoints(String userId, int pointsToAdd) async {
+  Future<Either<Failure, void>> addLoyaltyPoints(
+    String userId,
+    int pointsToAdd,
+  ) async {
     if (pointsToAdd <= 0) return const Right(null);
     try {
-      await FirestoreLogger.logTransaction(
-        'users/$userId addLoyaltyPoints',
-        (transaction) async {
-          final ref = _col.doc(userId);
-          final snap = await transaction.get(ref);
+      await FirestoreLogger.logTransaction('users/$userId addLoyaltyPoints', (
+        transaction,
+      ) async {
+        final ref = _col.doc(userId);
+        final snap = await transaction.get(ref);
         final data = snap.data();
         if (data == null) throw Exception('User not found');
         final current = (data['loyalty_points'] as num?)?.toInt() ?? 0;
         transaction.update(ref, {'loyalty_points': current + pointsToAdd});
-        },
-      _firestore);
+      }, _firestore);
       return const Right(null);
     } catch (e) {
       return Left(FirestoreFailure('Failed to add loyalty points: $e'));

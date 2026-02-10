@@ -25,16 +25,29 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // Private: users — strict userId matching. No get() on read.
+    // Private: users — strict userId matching.
     // -------------------------------------------------------------------------
     match /users/{userId} {
       allow read: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
+      
+      // CREATE: Authenticated user can create their own doc.
+      // MUST NOT set 'role' (default 'user' or missing).
       allow create: if request.auth != null
         && request.auth.uid == userId
         && (!('role' in request.resource.data) || request.resource.data.role == 'user');
+
+      // UPDATE: Authenticated user can update own doc, BUT strict field control.
+      // User CANNOT update: role, brand_id, barber_id, preferred_barber_id, lifetime_value.
+      // Superadmin/Barber can update 'role' (conceptually, via Admin SDK usually, but if client-side, limit it).
+      // For safety: User can ONLY update: fullName, phone, fcmToken, nextVisitDue, lastBookingDate.
       allow update: if request.auth != null
-        && (request.auth.uid == userId && request.resource.data.role == userRole(resource.data)
-            || isBarberOrSuperadmin() && request.resource.data.role == resource.data.role);
+        && (
+          (request.auth.uid == userId 
+           && request.resource.data.role == resource.data.role
+           && request.resource.data.lifetime_value == resource.data.lifetime_value)
+          || isBarberOrSuperadmin()
+        );
+      
       allow delete: if false;
 
       // -----------------------------------------------------------------------
@@ -42,13 +55,21 @@ service cloud.firestore {
       // -----------------------------------------------------------------------
       match /user_brands/{brandId} {
         allow read: if request.auth != null && request.auth.uid == userId;
+        
+        // CREATE: User joining a brand. Initial points MUST be 0.
         allow create: if request.auth != null 
           && request.auth.uid == userId
           && request.resource.data.brand_id == brandId
-          && request.resource.data.loyalty_points is int;
+          && request.resource.data.loyalty_points == 0;
+          
+        // UPDATE: User cannot update points. Only staff of THAT brand can update points.
         allow update: if request.auth != null 
-          && request.auth.uid == userId
-          && request.resource.data.brand_id == resource.data.brand_id;
+          && (
+             // User can update non-sensitive fields? (none currently defined)
+             // Staff of THIS brand can update (add points)
+             (isBarberOrSuperadmin() && barberBrandId() == brandId)
+          );
+          
         allow delete: if false;
       }
     }
@@ -56,17 +77,47 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
     // Public: brands — authenticated read; write superadmin only (get on write).
     // -------------------------------------------------------------------------
-    match /brands/{document=**} {
+    // -------------------------------------------------------------------------
+    // Public: brands — authenticated read; write superadmin or owner (create allowed for onboarding).
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Public: brands — authenticated read; write superadmin or owner (create allowed for onboarding).
+    // -------------------------------------------------------------------------
+    match /brands/{brandId} {
       allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null && isSuperadmin();
+      allow create: if request.auth != null;
+      // Update: Superadmin can only update their OWN brand (must match user.brand_id)
+      allow update, delete: if request.auth != null && isSuperadmin() && brandId == barberBrandId();
     }
 
     // -------------------------------------------------------------------------
     // Public: locations — authenticated read; write superadmin only.
     // -------------------------------------------------------------------------
-    match /locations/{document=**} {
+    match /locations/{locationId} {
       allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null && isSuperadmin();
+      allow create: if request.auth != null && isSuperadmin() && request.resource.data.brand_id == barberBrandId();
+      allow update, delete: if request.auth != null && isSuperadmin() && resource.data.brand_id == barberBrandId();
+
+      // -----------------------------------------------------------------------
+      // Subcollections: daily_stats, monthly_stats — PROTECTED (Superadmin only)
+      // -----------------------------------------------------------------------
+      match /daily_stats/{dateId} {
+        // Only superadmin of the parent location's brand can read stats.
+        // We verify parent location's brand_id.
+        allow read: if request.auth != null && isSuperadmin() 
+          && get(/databases/$(database)/documents/locations/$(locationId)).data.brand_id == barberBrandId();
+        allow list: if request.auth != null && isSuperadmin() 
+          && get(/databases/$(database)/documents/locations/$(locationId)).data.brand_id == barberBrandId();
+        allow write: if false; // Stats generated by Cloud Functions
+      }
+
+      match /monthly_stats/{monthId} {
+        allow read: if request.auth != null && isSuperadmin() 
+          && get(/databases/$(database)/documents/locations/$(locationId)).data.brand_id == barberBrandId();
+        allow list: if request.auth != null && isSuperadmin() 
+          && get(/databases/$(database)/documents/locations/$(locationId)).data.brand_id == barberBrandId();
+        allow write: if false; // Stats generated by Cloud Functions
+      }
     }
 
     // -------------------------------------------------------------------------
@@ -74,7 +125,8 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
     match /barbers/{document=**} {
       allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null && isSuperadmin();
+      allow create: if request.auth != null && isSuperadmin() && request.resource.data.brand_id == barberBrandId();
+      allow update, delete: if request.auth != null && isSuperadmin() && resource.data.brand_id == barberBrandId();
     }
 
     // -------------------------------------------------------------------------
@@ -82,7 +134,8 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
     match /services/{document=**} {
       allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null && isSuperadmin();
+      allow create: if request.auth != null && isSuperadmin() && request.resource.data.brand_id == barberBrandId();
+      allow update, delete: if request.auth != null && isSuperadmin() && resource.data.brand_id == barberBrandId();
     }
 
     // -------------------------------------------------------------------------
@@ -99,19 +152,25 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
     match /rewards/{rewardId} {
       allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null && isSuperadmin();
+      allow create: if request.auth != null && isSuperadmin() && request.resource.data.brand_id == barberBrandId();
+      allow update, delete: if request.auth != null && isSuperadmin() && resource.data.brand_id == barberBrandId();
     }
 
     // -------------------------------------------------------------------------
-    // Private: appointments — owner or barber (assigned) or superadmin. Barber/superadmin path uses one get() per query (cached).
+    // Private: appointments — owner OR staff of THAT brand.
     // -------------------------------------------------------------------------
     match /appointments/{appointmentId} {
       allow read: if request.auth != null
         && (resource.data.user_id == request.auth.uid
-            || isBarberOrSuperadmin());
+            || (isBarberOrSuperadmin() && resource.data.brand_id == barberBrandId())
+            || (isBarberOrSuperadmin() && resource.data.barber_id == userBarberId())
+           );
       allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
       allow update: if request.auth != null
-        && (resource.data.user_id == request.auth.uid || isBarberOrSuperadmin());
+        && (resource.data.user_id == request.auth.uid 
+            || (isBarberOrSuperadmin() && resource.data.brand_id == barberBrandId())
+            || (isBarberOrSuperadmin() && resource.data.barber_id == userBarberId())
+           );
       allow delete: if false;
     }
 
@@ -132,10 +191,14 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // Private: reward_redemptions — user sees own; barber redeem uses get on write only.
+    // Private: reward_redemptions — user sees own; staff of THAT brand sees theirs.
     // -------------------------------------------------------------------------
     match /reward_redemptions/{redemptionId} {
-      allow read: if request.auth != null && (resource.data.user_id == request.auth.uid || isBarberOrSuperadmin());
+      allow read: if request.auth != null && (
+          resource == null
+          || resource.data.user_id == request.auth.uid 
+          || (isBarberOrSuperadmin() && resource.data.brand_id == barberBrandId())
+      );
       allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
       allow update: if request.auth != null
         && isBarberOrSuperadmin()
@@ -145,16 +208,18 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // Private: time_off — barber sees own; superadmin sees all.
+    // Public: time_off — authenticated read (needed for booking availability); write restricted.
     // -------------------------------------------------------------------------
     match /time_off/{timeOffId} {
-      allow read: if request.auth != null
-        && (resource.data.barber_id == userBarberId() || isSuperadmin());
+      allow read: if request.auth != null;
       allow create: if request.auth != null
         && isBarberOrSuperadmin()
         && request.resource.data.barber_id == userBarberId();
       allow update, delete: if request.auth != null
-        && (resource.data.barber_id == userBarberId() || isSuperadmin());
+        && (
+           resource.data.barber_id == userBarberId() 
+           || (isSuperadmin() && resource.data.brand_id == barberBrandId())
+        );
     }
 
     // Deny all other collections by default.

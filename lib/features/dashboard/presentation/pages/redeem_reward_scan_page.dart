@@ -20,6 +20,7 @@ import 'package:barber/features/rewards/di.dart';
 import 'package:barber/features/rewards/domain/entities/redemption_entity.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/rewards/domain/repositories/redemption_repository.dart';
+import 'package:barber/features/dashboard/di.dart' as dashboard_di;
 
 final _log = Logger(printer: PrettyPrinter(methodCount: 0));
 
@@ -108,8 +109,16 @@ Future<void> _handleLoyaltyPoints(
     return;
   }
 
+  final dashboardBrandId = ref.read(dashboard_di.dashboardBrandIdProvider);
+  final configBrandId =
+      ref.read(flavorConfigProvider).values.brandConfig.defaultBrandId;
+  final brandId =
+      dashboardBrandId.isNotEmpty
+          ? dashboardBrandId
+          : (configBrandId.isNotEmpty ? configBrandId : fallbackBrandId);
+
   final activeApptResult = await appointmentRepo
-      .getActiveScheduledAppointmentForUser(userId);
+      .getActiveScheduledAppointmentForUser(userId, brandId);
   AppointmentEntity? appointment;
   activeApptResult.fold(
     (f) {
@@ -133,9 +142,6 @@ Future<void> _handleLoyaltyPoints(
     return;
   }
 
-  final configBrandId =
-      ref.read(flavorConfigProvider).values.brandConfig.defaultBrandId;
-  final brandId = configBrandId.isNotEmpty ? configBrandId : fallbackBrandId;
   int pointsMultiplier = 10;
   final brandRepo = ref.read(brandRepositoryProvider);
   final brandResult = await brandRepo.getById(brandId);

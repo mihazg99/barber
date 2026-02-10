@@ -8,6 +8,7 @@ import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/home/di.dart';
+import 'package:barber/features/brand/di.dart' as brand_di;
 
 class HomeDrawer extends ConsumerWidget {
   const HomeDrawer({super.key});
@@ -44,6 +45,10 @@ class HomeDrawer extends ConsumerWidget {
                 container.invalidate(currentUserProvider);
                 container.read(upcomingAppointmentProvider);
                 container.read(currentUserProvider);
+                // Clear any selected brand override so next login starts fresh
+                container
+                    .read(brand_di.selectedBrandIdProvider.notifier)
+                    .state = null;
                 await container.read(authNotifierProvider.notifier).signOut();
                 container.read(isLoggingOutProvider.notifier).state = false;
                 container.invalidate(lastSignedInUserProvider);

@@ -32,9 +32,11 @@ final selectedBrandIdProvider = StateProvider<String?>((ref) {
 final _selectedBrandPersistenceProvider = Provider<void>((ref) {
   // Persistence
   ref.listen(selectedBrandIdProvider, (prev, next) {
+    final prefs = ref.read(sharedPreferencesProvider);
     if (next != null && next != prev) {
-      final prefs = ref.read(sharedPreferencesProvider);
       prefs.setString('selected_brand_id', next);
+    } else if (next == null) {
+      prefs.remove('selected_brand_id');
     }
   });
 
