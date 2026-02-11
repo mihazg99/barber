@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:barber/core/config/flavor_config.dart';
 import 'package:barber/core/data/database/app_database.dart';
+import 'package:barber/core/guest/guest_storage.dart';
 
 /// Root ScaffoldMessenger key for showing snackbars from anywhere (e.g. dashboard tabs).
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -28,6 +29,17 @@ final flavorConfigProvider = Provider<FlavorConfig>((ref) {
 /// Override in main with [SharedPreferences.getInstance()].
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw StateError('SharedPreferences must be overridden in main');
+});
+
+/// Guest ID and booking draft persistence. Uses [sharedPreferencesProvider].
+final guestStorageProvider = Provider<GuestStorage>((ref) {
+  return GuestStorage(ref.watch(sharedPreferencesProvider));
+});
+
+/// True when a guest saved a booking draft and should be sent to booking after sign-in.
+final hasPendingBookingDraftProvider = Provider<bool>((ref) {
+  final json = ref.watch(guestStorageProvider).getBookingDraftJson();
+  return json != null && json.isNotEmpty;
 });
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {

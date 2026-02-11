@@ -10,7 +10,7 @@ import 'package:barber/features/rewards/di.dart';
 /// Provider for current user's loyalty points for the selected brand.
 /// Returns 0 if no brand is selected or user hasn't joined the brand.
 final currentUserLoyaltyPointsProvider = StreamProvider.autoDispose<int>((ref) {
-  final selectedBrandId = ref.watch(selectedBrandIdProvider);
+  final selectedBrandId = ref.watch(lockedBrandIdProvider);
   if (selectedBrandId == null) return Stream.value(0);
 
   final userIdAsync = ref.watch(currentUserIdProvider);

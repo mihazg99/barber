@@ -7,18 +7,22 @@ import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 import 'package:barber/features/brand_selection/di.dart';
+import 'package:barber/features/home/di.dart';
 
 /// Brand switcher page - allows users with multiple brands to switch between them.
+/// For guests: shows previously saved brands from local storage.
+/// For authenticated users: shows brands from Firestore user_brands.
 class BrandSwitcherPage extends HookConsumerWidget {
   const BrandSwitcherPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userBrandsAsync = ref.watch(userBrandsProvider);
-    final selectedBrandId = ref.watch(selectedBrandIdProvider);
+    final isGuest = ref.watch(isGuestProvider);
+    final selectedBrandId = ref.watch(lockedBrandIdProvider);
 
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
@@ -44,48 +48,87 @@ class BrandSwitcherPage extends HookConsumerWidget {
               Icons.qr_code_scanner_rounded,
               color: context.appColors.primaryTextColor,
             ),
-            tooltip: 'Add Barbershop',
+            tooltip: 'Discover Barbershop',
           ),
         ],
       ),
-      body: userBrandsAsync.when(
-        data: (userBrands) {
-          if (userBrands.isEmpty) {
-            return const _EmptyState();
-          }
+      body: isGuest ? _GuestBrandList(selectedBrandId: selectedBrandId) : _AuthenticatedUserBrandList(selectedBrandId: selectedBrandId),
+    );
+  }
+}
 
-          return _BrandList(
-            userBrands: userBrands,
-            selectedBrandId: selectedBrandId,
-          );
-        },
-        loading: () => const _LoadingState(),
-        error: (error, _) => _ErrorState(message: error.toString()),
-      ),
+/// Brand list for authenticated users (from Firestore user_brands).
+class _AuthenticatedUserBrandList extends HookConsumerWidget {
+  const _AuthenticatedUserBrandList({
+    required this.selectedBrandId,
+  });
+
+  final String? selectedBrandId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userBrandsAsync = ref.watch(userBrandsProvider);
+
+    return userBrandsAsync.when(
+      data: (userBrands) {
+        if (userBrands.isEmpty) {
+          return const _EmptyState();
+        }
+
+        return _BrandList(
+          brandIds: userBrands.map((ub) => ub.brandId).toList(),
+          selectedBrandId: selectedBrandId,
+        );
+      },
+      loading: () => const _LoadingState(),
+      error: (error, _) => _ErrorState(message: error.toString()),
+    );
+  }
+}
+
+/// Brand list for guests (from local storage).
+class _GuestBrandList extends HookConsumerWidget {
+  const _GuestBrandList({
+    required this.selectedBrandId,
+  });
+
+  final String? selectedBrandId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final guestBrandIds = ref.watch(guestBrandIdsProvider);
+
+    if (guestBrandIds.isEmpty) {
+      return const _EmptyState();
+    }
+
+    return _BrandList(
+      brandIds: guestBrandIds,
+      selectedBrandId: selectedBrandId,
     );
   }
 }
 
 class _BrandList extends HookConsumerWidget {
   const _BrandList({
-    required this.userBrands,
+    required this.brandIds,
     required this.selectedBrandId,
   });
 
-  final List userBrands;
+  final List<String> brandIds;
   final String? selectedBrandId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView.separated(
       padding: EdgeInsets.all(context.appSizes.paddingMedium),
-      itemCount: userBrands.length,
+      itemCount: brandIds.length,
       separatorBuilder: (_, __) => Gap(context.appSizes.paddingSmall),
       itemBuilder: (context, index) {
-        final userBrand = userBrands[index];
+        final brandId = brandIds[index];
         return _BrandCard(
-          brandId: userBrand.brandId,
-          isSelected: userBrand.brandId == selectedBrandId,
+          brandId: brandId,
+          isSelected: brandId == selectedBrandId,
         );
       },
     );
@@ -142,10 +185,13 @@ class _BrandCard extends HookConsumerWidget {
     if (confirm != true || !context.mounted) return;
 
     // Switch brand
-    ref.read(selectedBrandIdProvider.notifier).state = brand.brandId;
+    ref.read(lockedBrandIdProvider.notifier).state = brand.brandId;
 
-    // Invalidate all providers to refresh UI
+    // Invalidate all providers to refresh UI with new brand
     ref.invalidate(userBrandsProvider);
+    ref.invalidate(defaultBrandProvider);
+    ref.invalidate(homeNotifierProvider);
+    ref.invalidate(upcomingAppointmentProvider);
 
     if (context.mounted) {
       context.pop();
@@ -320,11 +366,30 @@ class _EmptyState extends StatelessWidget {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(context.appSizes.paddingLarge),
-        child: Text(
-          'No barbershops found',
-          style: context.appTextStyles.body.copyWith(
-            color: context.appColors.secondaryTextColor,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.store_mall_directory_outlined,
+              size: 64,
+              color: context.appColors.secondaryTextColor,
+            ),
+            Gap(context.appSizes.paddingMedium),
+            Text(
+              'No barbershops found',
+              style: context.appTextStyles.body.copyWith(
+                color: context.appColors.secondaryTextColor,
+              ),
+            ),
+            Gap(context.appSizes.paddingSmall),
+            Text(
+              'Tap the scan icon above to discover barbershops',
+              style: context.appTextStyles.caption.copyWith(
+                color: context.appColors.secondaryTextColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );

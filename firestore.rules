@@ -6,9 +6,6 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
     // Helpers (used only for WRITE rules to avoid get() on read paths)
     // -------------------------------------------------------------------------
-    function userRole(data) {
-      return data.get('role', 'user');
-    }
     function isSuperadmin() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'superadmin';
     }
@@ -31,20 +28,38 @@ service cloud.firestore {
       allow read: if request.auth != null && (request.auth.uid == userId || isBarberOrSuperadmin());
       
       // CREATE: Authenticated user can create their own doc.
-      // MUST NOT set 'role' (default 'user' or missing).
+      // Can set role to 'user' or 'superadmin' (superadmin determined by email whitelist in code).
+      // Other roles (barber) must be set server-side.
       allow create: if request.auth != null
         && request.auth.uid == userId
-        && (!('role' in request.resource.data) || request.resource.data.role == 'user');
+        && (!('role' in request.resource.data) 
+            || request.resource.data.role == 'user' 
+            || request.resource.data.role == 'superadmin');
 
       // UPDATE: Authenticated user can update own doc, BUT strict field control.
-      // User CANNOT update: role, brand_id, barber_id, preferred_barber_id, lifetime_value.
-      // Superadmin/Barber can update 'role' (conceptually, via Admin SDK usually, but if client-side, limit it).
-      // For safety: User can ONLY update: fullName, phone, fcmToken, nextVisitDue, lastBookingDate.
+      // Server-managed fields (Cloud Functions only): lifetime_value, last_booking_date, 
+      //   next_visit_due, average_visit_interval, reminded_this_cycle
+      // Staff-managed fields: brand_id, barber_id, preferred_barber_id
+      // User CAN: Update fullName, phone, fcmToken
+      // User CAN: Upgrade role from 'user' to 'superadmin' (email whitelist in code)
+      // Superadmin/Barber: Can update any field
       allow update: if request.auth != null
         && (
           (request.auth.uid == userId 
-           && request.resource.data.role == resource.data.role
-           && request.resource.data.lifetime_value == resource.data.lifetime_value)
+           // Role: Allow same role, or upgrade user->superadmin
+           && (!('role' in request.resource.data) 
+               || request.resource.data.role == resource.data.get('role', 'user')
+               || (resource.data.get('role', 'user') == 'user' && request.resource.data.role == 'superadmin'))
+           // Server-managed fields: Client must NEVER write these
+           && !('lifetime_value' in request.resource.data)
+           && !('last_booking_date' in request.resource.data)
+           && !('next_visit_due' in request.resource.data)
+           && !('average_visit_interval' in request.resource.data)
+           && !('reminded_this_cycle' in request.resource.data)
+           // Staff-managed fields: Client can write empty string (for new users), but not change existing
+           && (!('brand_id' in request.resource.data) || request.resource.data.brand_id == resource.data.get('brand_id', ''))
+           && (!('barber_id' in request.resource.data) || request.resource.data.barber_id == resource.data.get('barber_id', ''))
+           && (!('preferred_barber_id' in request.resource.data) || request.resource.data.preferred_barber_id == resource.data.get('preferred_barber_id', '')))
           || isBarberOrSuperadmin()
         );
       
@@ -91,10 +106,10 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // Public: locations — authenticated read; write superadmin only.
+    // Public: locations — read for everyone (guest booking flow); write superadmin only.
     // -------------------------------------------------------------------------
     match /locations/{locationId} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow create: if request.auth != null && isSuperadmin() && request.resource.data.brand_id == barberBrandId();
       allow update, delete: if request.auth != null && isSuperadmin() && resource.data.brand_id == barberBrandId();
 
@@ -121,28 +136,28 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // Public: barbers — authenticated read; write superadmin only.
+    // Public: barbers — read for everyone (guest booking flow); write superadmin only.
     // -------------------------------------------------------------------------
     match /barbers/{document=**} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow create: if request.auth != null && isSuperadmin() && request.resource.data.brand_id == barberBrandId();
       allow update, delete: if request.auth != null && isSuperadmin() && resource.data.brand_id == barberBrandId();
     }
 
     // -------------------------------------------------------------------------
-    // Public: services — authenticated read; write superadmin only.
+    // Public: services — read for everyone (guest booking flow); write superadmin only.
     // -------------------------------------------------------------------------
     match /services/{document=**} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow create: if request.auth != null && isSuperadmin() && request.resource.data.brand_id == barberBrandId();
       allow update, delete: if request.auth != null && isSuperadmin() && resource.data.brand_id == barberBrandId();
     }
 
     // -------------------------------------------------------------------------
-    // Public: availability — authenticated read; write for booking (no role get on read).
+    // Public: availability — read for everyone (guest booking flow); write for booking.
     // -------------------------------------------------------------------------
     match /availability/{document=**} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow create, update: if request.auth != null;
       allow delete: if false;
     }
@@ -208,10 +223,10 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // Public: time_off — authenticated read (needed for booking availability); write restricted.
+    // Public: time_off — read for everyone (guest booking availability); write restricted.
     // -------------------------------------------------------------------------
     match /time_off/{timeOffId} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow create: if request.auth != null
         && isBarberOrSuperadmin()
         && request.resource.data.barber_id == userBarberId();

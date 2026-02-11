@@ -26,9 +26,18 @@ class UserFirestoreMapper {
     );
   }
 
-  /// Client-writable fields only. Marketing fields (last_booking_date,
-  /// next_visit_due, lifetime_value, etc.) are server-managed by Cloud Functions
-  /// and must not be overwritten by the client.
+  /// Client-writable fields only. 
+  /// 
+  /// CRITICAL: Server-managed fields are EXCLUDED from this mapper and are
+  /// BLOCKED by Firestore security rules. These fields can ONLY be written
+  /// by Cloud Functions or Admin SDK:
+  /// - lifetime_value (calculated from completed bookings)
+  /// - last_booking_date (set when appointment completes)
+  /// - next_visit_due (calculated based on average_visit_interval)
+  /// - average_visit_interval (calculated from booking history)
+  /// - reminded_this_cycle (marketing automation flag)
+  /// 
+  /// If you add new server-managed fields, update firestore.rules to block them.
   static Map<String, dynamic> toFirestore(UserEntity entity) => {
     'full_name': entity.fullName,
     'phone': entity.phone,

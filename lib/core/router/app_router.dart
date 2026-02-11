@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -45,7 +46,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = ref.watch(routerRefreshNotifierProvider);
 
   ref.listen(isAuthenticatedProvider, (prev, next) {
+    debugPrint('[Router Listener] isAuthenticatedProvider changed: ${next.valueOrNull}');
     if (next.valueOrNull == true) {
+      // Clear guest login intent flag on successful authentication
+      ref.read(isGuestLoginIntentProvider.notifier).state = false;
       ref.invalidate(currentUserProvider);
       ref.invalidate(upcomingAppointmentProvider);
       // Delay so verifyOtp's setData(profile step) runs first for new users; then redirect
@@ -61,6 +65,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   // When currentUser loads after sign-in, redirect again so isProfileComplete is up to date
   // (returning users with profile complete can then navigate to home).
   ref.listen(currentUserProvider, (prev, next) {
+    debugPrint('[Router Listener] currentUserProvider changed: ${next.valueOrNull?.userId}');
     if (ref.read(isAuthenticatedProvider).valueOrNull == true &&
         next.valueOrNull != null) {
       ref.invalidate(upcomingAppointmentProvider);
@@ -70,6 +75,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   // When repo sets lastSignedInUser (Google/Apple/OTP sign-in), invalidate currentUser so stream emits cache and router can redirect to home (not profile setup).
   ref.listen(lastSignedInUserProvider, (prev, next) {
+    debugPrint('[Router Listener] lastSignedInUserProvider changed: ${next?.userId}');
     if (next != null && ref.read(isAuthenticatedProvider).valueOrNull == true) {
       ref.invalidate(currentUserProvider);
       Future.microtask(() => refreshNotifier.notify());
@@ -77,18 +83,36 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   });
 
   // Listen for brand state changes to trigger redirects (onboarding/switcher)
-  ref.listen(userBrandsProvider, (_, next) {
+  ref.listen(userBrandsProvider, (prev, next) {
+    debugPrint('[Router Listener] userBrandsProvider changed: ${next.valueOrNull?.length} brands, isLoading=${next.isLoading}');
     if (!next.isLoading) {
+      debugPrint('[Router Listener] userBrandsProvider triggering refresh');
       refreshNotifier.notify();
     }
-  });
+  }, fireImmediately: false);
 
-  ref.listen(selectedBrandIdProvider, (_, __) => refreshNotifier.notify());
+  ref.listen(lockedBrandIdProvider, (prev, next) {
+    debugPrint('[Router Listener] lockedBrandIdProvider changed: $prev -> $next');
+    refreshNotifier.notify();
+  });
+  
+  // Clear guest login intent when guest gets a brand (they selected one instead of logging in)
+  ref.listen(lockedBrandIdProvider, (prev, next) {
+    if (next != null && next.isNotEmpty) {
+      final isGuest = ref.read(isGuestProvider);
+      if (isGuest) {
+        ref.read(isGuestLoginIntentProvider.notifier).state = false;
+      }
+    }
+  });
 
   return GoRouter(
     initialLocation: AppRoute.auth.path,
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
+      // Debug logging
+      final timestamp = DateTime.now().millisecondsSinceEpoch % 100000;
+      debugPrint('[Router $timestamp] redirect: path=${state.uri.path}');
       // Force splash screen on first run (app startup) when landing on default route,
       // but allow Auth as fallback for future refreshes to avoid splash flash.
       if (_isFirstRun && state.uri.path == AppRoute.auth.path) {
@@ -103,8 +127,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final onboardingCompleted = container.read(
         onboardingHasCompletedProvider,
       );
-      final isAuthenticated =
-          container.read(isAuthenticatedProvider).valueOrNull ?? false;
+      final isAuthAsync = container.read(isAuthenticatedProvider);
+      final isAuthenticated = isAuthAsync.valueOrNull ?? false;
       final isProfileComplete = container.read(isProfileCompleteProvider);
       final authState = container.read(authNotifierProvider);
       final authData =
@@ -112,25 +136,64 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isInProfileStep =
           authData is AuthFlowData && authData.isProfileInfo;
 
-      final isStaff = container.read(isStaffProvider);
+      final effectiveRole = container.read(effectiveUserRoleProvider);
+      final isStaff = effectiveRole == EffectiveUserRole.barber ||
+          effectiveRole == EffectiveUserRole.superadmin;
+      final lockedBrandId = container.read(lockedBrandIdProvider);
       final path = state.uri.path;
       final location = state.uri.toString();
+      
+      debugPrint('[Router $timestamp] isAuth=$isAuthenticated, role=$effectiveRole, brand=$lockedBrandId, profileComplete=$isProfileComplete, onboardingDone=$onboardingCompleted');
 
       // Splash: stay until we know destination, then redirect
       if (path == AppRoute.splash.path) {
-        if (!onboardingCompleted) return AppRoute.onboarding.path;
-        final isAuthAsync = container.read(isAuthenticatedProvider);
+        debugPrint('[Router] At splash');
+        if (!onboardingCompleted) {
+          debugPrint('[Router] Splash -> onboarding');
+          return AppRoute.onboarding.path;
+        }
+
+        // Wait for auth state to resolve.
         if (isAuthAsync.isLoading) return null;
-        if (isAuthAsync.valueOrNull != true) return AppRoute.auth.path;
-        final userAsync = container.read(currentUserProvider);
-        if (userAsync.isLoading) return null;
-        if (!isProfileComplete) return AppRoute.auth.path;
-        return isStaff ? AppRoute.dashboard.path : AppRoute.home.path;
+
+        // Brand + auth resolution:
+        final hasLockedBrand =
+            lockedBrandId != null && lockedBrandId.isNotEmpty;
+
+        if (hasLockedBrand) {
+          // Wait for brand config when a brand is locked.
+          final brandAsync = container.read(defaultBrandProvider);
+          if (brandAsync.isLoading) return null;
+        }
+
+        // Decision tree from Splash once everything is resolved.
+        if (!hasLockedBrand) {
+          debugPrint('[Router] Splash -> brandOnboarding (no brand)');
+          return AppRoute.brandOnboarding.path;
+        }
+
+        if (effectiveRole == EffectiveUserRole.guest) {
+          debugPrint('[Router] Splash -> home (guest with brand)');
+          return AppRoute.home.path;
+        }
+
+        // Brand locked + authenticated → role-based dispatch.
+        switch (effectiveRole) {
+          case EffectiveUserRole.superadmin:
+          case EffectiveUserRole.barber:
+            debugPrint('[Router] Splash -> dashboard (staff)');
+            return AppRoute.dashboard.path;
+          case EffectiveUserRole.user:
+          case EffectiveUserRole.guest:
+            debugPrint('[Router] Splash -> home (user)');
+            return AppRoute.home.path;
+        }
       }
 
       // Firebase auth callback deep link (e.g. after login/verify) – not an app route; send to correct screen.
       if (location.contains('firebaseauth') ||
           location.contains('auth/callback')) {
+        debugPrint('[Router] Firebase callback detected');
         if (!onboardingCompleted) return AppRoute.onboarding.path;
         if (isAuthenticated && isProfileComplete) {
           return isStaff ? AppRoute.dashboard.path : AppRoute.home.path;
@@ -138,9 +201,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return AppRoute.auth.path;
       }
       if (!onboardingCompleted && path != AppRoute.onboarding.path) {
+        debugPrint('[Router] Not onboarded -> onboarding');
         return AppRoute.onboarding.path;
       }
       if (onboardingCompleted && path == AppRoute.onboarding.path) {
+        debugPrint('[Router] Onboarding complete but at onboarding page -> ${isAuthenticated ? "auth or home" : "auth"}');
         if (isAuthenticated) {
           return isProfileComplete
               ? (isStaff ? AppRoute.dashboard.path : AppRoute.home.path)
@@ -149,61 +214,116 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return AppRoute.auth.path;
       }
       if (onboardingCompleted &&
-          !isAuthenticated &&
-          path != AppRoute.auth.path) {
-        return AppRoute.auth.path;
+          effectiveRole == EffectiveUserRole.guest &&
+          path != AppRoute.auth.path &&
+          path != AppRoute.brandOnboarding.path &&
+          path != AppRoute.brandSwitcher.path) {
+        // When onboarding is done but user is a guest (no profile/not fully signed in):
+        // - If a brand is locked, send them to client home for that brand.
+        // - If no brand is locked, send them to the brand onboarding portal.
+        final hasLockedBrand =
+            lockedBrandId != null && lockedBrandId.isNotEmpty;
+        
+        // If at home but no brand, redirect to brand onboarding
+        if (path == AppRoute.home.path && !hasLockedBrand) {
+          debugPrint('[Router $timestamp] Guest at home but no brand -> brandOnboarding');
+          return AppRoute.brandOnboarding.path;
+        }
+        
+        // If not at home/booking/loyalty and has brand, allow home
+        if (hasLockedBrand && 
+            path != AppRoute.home.path && 
+            path != AppRoute.booking.path &&
+            path != AppRoute.loyalty.path) {
+          debugPrint('[Router $timestamp] Guest with brand, redirecting to home');
+          return AppRoute.home.path;
+        }
+        
+        // If no brand and not at brandOnboarding, redirect there
+        if (!hasLockedBrand) {
+          debugPrint('[Router $timestamp] Guest without brand -> brandOnboarding');
+          return AppRoute.brandOnboarding.path;
+        }
       }
-      // Authenticated but profile incomplete: send to auth (setup profile).
-      // Skip redirect while currentUser is still loading so we don't block navigation to booking etc.
-      if (onboardingCompleted &&
-          isAuthenticated &&
-          !isProfileComplete &&
-          path != AppRoute.auth.path) {
-        final userAsync = container.read(currentUserProvider);
-        if (userAsync.isLoading) return AppRoute.auth.path;
-        return AppRoute.auth.path;
+      
+      // Redirect guests with brands away from auth UNLESS they explicitly want to login
+      // (prevents getting stuck on auth after brand onboarding)
+      if (effectiveRole == EffectiveUserRole.guest &&
+          path == AppRoute.auth.path) {
+        final hasLockedBrand =
+            lockedBrandId != null && lockedBrandId.isNotEmpty;
+        final wantsToLogin = container.read(isGuestLoginIntentProvider);
+        if (hasLockedBrand && !wantsToLogin) {
+          debugPrint('[Router $timestamp] Guest with brand at auth (no intent) -> home');
+          return AppRoute.home.path;
+        }
       }
+      
       if (isAuthenticated && path == AppRoute.auth.path) {
         // Stay on auth when profile incomplete or when showing profile step (avoid redirect race).
         if (isInProfileStep || !isProfileComplete) return null;
-        return isStaff ? AppRoute.dashboard.path : AppRoute.home.path;
+        // After login from /auth, use effective role + brand context.
+        final hasLockedBrand =
+            lockedBrandId != null && lockedBrandId.isNotEmpty;
+        if (!hasLockedBrand) {
+          return AppRoute.brandOnboarding.path;
+        }
+        switch (effectiveRole) {
+          case EffectiveUserRole.superadmin:
+          case EffectiveUserRole.barber:
+            return AppRoute.dashboard.path;
+          case EffectiveUserRole.user:
+          case EffectiveUserRole.guest:
+            if (container.read(hasPendingBookingDraftProvider)) {
+              return AppRoute.booking.path;
+            }
+            return AppRoute.home.path;
+        }
       }
 
-      // Brand selection flow: check after authentication + profile complete
-      if (isAuthenticated && isProfileComplete) {
-        final userBrandsAsync = container.read(userBrandsProvider);
+      // Brand container + role-based navigation after onboarding.
+      // Only applies when the user is authenticated; guests are handled above.
+      if (onboardingCompleted && isAuthenticated) {
+        debugPrint('[Router] Authenticated block: effectiveRole=$effectiveRole');
+        final hasLockedBrand =
+            lockedBrandId != null && lockedBrandId.isNotEmpty;
 
-        // Wait for brands to load
-        if (userBrandsAsync.isLoading) return null;
-
-        final userBrands = userBrandsAsync.valueOrNull ?? [];
-        final selectedBrandId = container.read(selectedBrandIdProvider);
-
-        // No brands → redirect to brand onboarding
-        if (userBrands.isEmpty && path != AppRoute.brandOnboarding.path) {
+        // No brand locked → always go to brand onboarding portal, except when already there.
+        if (!hasLockedBrand &&
+            path != AppRoute.brandOnboarding.path &&
+            path != AppRoute.onboarding.path) {
+          debugPrint('[Router] No brand locked, redirecting to brandOnboarding');
           return AppRoute.brandOnboarding.path;
         }
 
-        // Has brands but no selection → redirect to brand switcher
-        if (userBrands.isNotEmpty &&
-            selectedBrandId == null &&
-            path != AppRoute.brandSwitcher.path &&
-            path != AppRoute.brandOnboarding.path) {
-          return AppRoute.brandSwitcher.path;
-        }
-
-        // Allow brand onboarding/switcher pages
+        // Allow explicit access to brand onboarding / switcher screens.
         if (path == AppRoute.brandOnboarding.path ||
             path == AppRoute.brandSwitcher.path) {
+          debugPrint('[Router] Allowing brandOnboarding/switcher access');
           return null;
         }
 
-        // Staff must use dashboard; regular users must use home
-        if (isStaff && path == AppRoute.home.path)
-          return AppRoute.dashboard.path;
-        if (!isStaff && path == AppRoute.dashboard.path)
-          return AppRoute.home.path;
+        if (hasLockedBrand) {
+          debugPrint('[Router] Brand locked in authenticated block');
+          // Brand locked:
+          if (effectiveRole == EffectiveUserRole.guest) {
+            // Guest user → client home for that brand (unless already on auth/home).
+            debugPrint('[Router] Auth block guest: path=$path, staying if auth/home');
+            if (path != AppRoute.auth.path && path != AppRoute.home.path) {
+              return AppRoute.home.path;
+            }
+          } else if (isProfileComplete) {
+            // Authenticated + profile complete → enforce dashboard vs home.
+            if (isStaff && path == AppRoute.home.path) {
+              return AppRoute.dashboard.path;
+            }
+            if (!isStaff && path == AppRoute.dashboard.path) {
+              return AppRoute.home.path;
+            }
+          }
+        }
       }
+      debugPrint('[Router $timestamp] End of redirect logic, returning null (allow navigation)');
       return null;
     },
     routes: [

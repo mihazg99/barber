@@ -28,7 +28,7 @@ class LoyaltyPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final brandId = ref.watch(selectedBrandIdProvider);
+    final brandId = ref.watch(lockedBrandIdProvider);
     if (brandId == null) {
       return Scaffold(
         backgroundColor: context.appColors.backgroundColor,
@@ -69,6 +69,21 @@ class LoyaltyPage extends HookConsumerWidget {
       }
     });
 
+    if (currentUser == null) {
+      return Scaffold(
+        backgroundColor: context.appColors.backgroundColor,
+        appBar: CustomAppBar.withTitleAndBackButton(
+          context.l10n.loyaltyPageTitle,
+          onBack: () => context.go(AppRoute.home.path),
+        ),
+        body: rewardsAsync.when(
+          data: (rewards) => _GuestLoyaltyContent(rewards: rewards),
+          loading: () => const _LoyaltyLoadingBody(),
+          error: (_, __) => const _ComingSoonContent(),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
       appBar: CustomAppBar.withTitleAndBackButton(
@@ -83,10 +98,8 @@ class LoyaltyPage extends HookConsumerWidget {
           return ListView(
             padding: EdgeInsets.all(context.appSizes.paddingMedium),
             children: [
-              if (currentUser != null) ...[
-                _MyRewardsSection(redemptionsAsync: redemptionsAsync),
-                Gap(context.appSizes.paddingLarge),
-              ],
+              _MyRewardsSection(redemptionsAsync: redemptionsAsync),
+              Gap(context.appSizes.paddingLarge),
               Text(
                 context.l10n.loyaltyViewRewards,
                 style: context.appTextStyles.h3.copyWith(
@@ -101,7 +114,7 @@ class LoyaltyPage extends HookConsumerWidget {
                   brandId: brandId,
                   onRedeemed: () {
                     ref.invalidate(
-                      redemptionsForUserProvider(currentUser!.userId),
+                      redemptionsForUserProvider(currentUser.userId),
                     );
                   },
                 ),
@@ -160,6 +173,144 @@ class _LoyaltyLoadingBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(child: CircularProgressIndicator());
+  }
+}
+
+class _GuestLoyaltyContent extends StatelessWidget {
+  const _GuestLoyaltyContent({required this.rewards});
+
+  final List<RewardEntity> rewards;
+
+  @override
+  Widget build(BuildContext context) {
+    final sizes = context.appSizes;
+    final colors = context.appColors;
+    final textStyles = context.appTextStyles;
+
+    if (rewards.isEmpty) {
+      return const _ComingSoonContent();
+    }
+
+    return ListView(
+      padding: EdgeInsets.all(sizes.paddingMedium),
+      children: [
+        Container(
+          padding: EdgeInsets.all(sizes.paddingMedium),
+          decoration: BoxDecoration(
+            color: colors.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: colors.primaryColor.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                color: colors.primaryColor,
+                size: 24,
+              ),
+              Gap(sizes.paddingMedium),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sign in to earn points',
+                      style: textStyles.body.copyWith(
+                        color: colors.primaryTextColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Gap(sizes.paddingSmall),
+                    Text(
+                      'Create an account to collect loyalty points and redeem rewards.',
+                      style: textStyles.caption.copyWith(
+                        color: colors.secondaryTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Gap(sizes.paddingLarge),
+        Text(
+          context.l10n.loyaltyViewRewards,
+          style: textStyles.h3.copyWith(
+            color: colors.primaryTextColor,
+          ),
+        ),
+        Gap(sizes.paddingSmall),
+        ...rewards.map(
+          (r) => Opacity(
+            opacity: 0.6,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: sizes.paddingSmall),
+              child: Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: EdgeInsets.all(sizes.paddingMedium),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.card_giftcard,
+                        color: colors.captionTextColor,
+                        size: 28,
+                      ),
+                      Gap(sizes.paddingSmall),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              r.name,
+                              style: textStyles.h3.copyWith(
+                                color: colors.secondaryTextColor,
+                              ),
+                            ),
+                            if (r.description.isNotEmpty) ...[
+                              Gap(sizes.paddingSmall),
+                              Text(
+                                r.description,
+                                style: textStyles.caption.copyWith(
+                                  color: colors.captionTextColor,
+                                ),
+                              ),
+                            ],
+                            Gap(sizes.paddingSmall),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.lock_outline,
+                                  size: 14,
+                                  color: colors.captionTextColor,
+                                ),
+                                Gap(sizes.paddingSmall),
+                                Text(
+                                  '${r.pointsCost} points',
+                                  style: textStyles.caption.copyWith(
+                                    color: colors.captionTextColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 

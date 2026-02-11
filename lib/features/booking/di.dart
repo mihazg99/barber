@@ -124,7 +124,7 @@ final availableTimeSlotsForEditProvider =
 /// Next time booking is opened, a fresh state is created.
 final bookingNotifierProvider =
     StateNotifierProvider.autoDispose<BookingNotifier, BookingState>((ref) {
-      final brandId = ref.watch(selectedBrandIdProvider);
+      final brandId = ref.watch(lockedBrandIdProvider);
       return BookingNotifier(
         ref.watch(barbers_di.barberRepositoryProvider),
         ref.watch(locationRepositoryProvider),
@@ -158,7 +158,7 @@ final availableTimeSlotsProvider = FutureProvider.autoDispose<List<TimeSlot>>((
 
   final calculateFreeSlots = ref.watch(calculateFreeSlotsProvider);
 
-  final brandId = ref.watch(selectedBrandIdProvider);
+  final brandId = ref.watch(lockedBrandIdProvider);
   if (brandId == null) return [];
 
   final brandResult = await ref.watch(brandRepositoryProvider).getById(brandId);

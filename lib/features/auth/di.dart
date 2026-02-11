@@ -9,10 +9,20 @@ import 'package:barber/features/auth/data/datasources/auth_remote_data_source.da
 import 'package:barber/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:barber/features/auth/domain/entities/auth_step.dart';
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
+import 'package:barber/features/auth/domain/entities/user_role.dart';
 import 'package:barber/features/auth/domain/repositories/auth_repository.dart';
 import 'package:barber/features/auth/data/repositories/user_repository_impl.dart';
 import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 import 'package:barber/features/auth/presentation/bloc/auth_notifier.dart';
+
+/// Effective role for navigation and client-side access control.
+/// This is derived from the raw [UserRole] and the locked brand context.
+enum EffectiveUserRole {
+  guest,
+  user,
+  barber,
+  superadmin,
+}
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepositoryImpl(ref.watch(firebaseFirestoreProvider));
@@ -69,6 +79,24 @@ final currentUserIdProvider = StreamProvider<String?>((ref) {
   return ref.watch(authRepositoryProvider).authStateChanges;
 });
 
+/// Effective user ID: Firebase UID when signed in, otherwise a persistent guest ID from local storage.
+/// Use this for any flow that should work for both guests and signed-in users (e.g. local state, drafts).
+final effectiveUserIdProvider = Provider<String>((ref) {
+  final uid = ref.watch(currentUserIdProvider).valueOrNull;
+  if (uid != null && uid.isNotEmpty) return uid;
+  return ref.watch(guestStorageProvider).getOrCreateGuestId();
+});
+
+/// True when the current user is a guest (no Firebase auth).
+final isGuestProvider = Provider<bool>((ref) {
+  final uid = ref.watch(currentUserIdProvider).valueOrNull;
+  return uid == null || uid.isEmpty;
+});
+
+/// Flag to indicate guest is intentionally trying to login (clicked Login button).
+/// Prevents router from redirecting away from auth page.
+final isGuestLoginIntentProvider = StateProvider<bool>((ref) => false);
+
 /// Cached user from the last sign-in (used by auth flow). Cleared on signOut.
 final lastSignedInUserProvider = StateProvider<UserEntity?>((ref) => null);
 
@@ -117,9 +145,11 @@ final isProfileCompleteProvider = Provider<bool>((ref) {
       user.phone.trim().isNotEmpty;
 });
 
-/// True when user has barber or superadmin role. They navigate to dashboard, not main app.
-/// Uses [lastSignedInUser] when it matches current uid so redirect is correct immediately after sign-in.
-final isStaffProvider = Provider<bool>((ref) {
+/// Effective role taking into account the locked brand context.
+/// - guest: no authenticated user or no locked brand
+/// - user: regular client, or staff user whose brand does not match the locked brand
+/// - barber / superadmin: staff whose [user.brandId] matches the locked brand
+final effectiveUserRoleProvider = Provider<EffectiveUserRole>((ref) {
   // 1. Get User
   UserEntity? user;
   final uid = ref.watch(authRepositoryProvider).currentUserId;
@@ -130,23 +160,35 @@ final isStaffProvider = Provider<bool>((ref) {
     user = ref.watch(currentUserProvider).valueOrNull;
   }
 
-  if (user == null) return false;
+  if (user == null) return EffectiveUserRole.guest;
 
-  // 2. Check Role
-  if (!user.role.isStaff) return false;
-
-  // 3. Check Brand Context (The "Perfection" Fix)
-  // If Superadmin/Barber is viewing a different brand (via selection),
-  // they should NOT land on Dashboard. They should be treated as a User (Home).
-  final selectedBrandId = ref.watch(selectedBrandIdProvider);
-
-  // If a brand is explicitly selected and it DOES NOT match their assigned brand,
-  // revoke staff privileges for this session context.
-  if (selectedBrandId != null &&
-      selectedBrandId.isNotEmpty &&
-      selectedBrandId != user.brandId) {
-    return false;
+  // Brand context: if there is no locked brand yet, treat as guest for role-gated flows.
+  final lockedBrandId = ref.watch(lockedBrandIdProvider);
+  if (lockedBrandId == null || lockedBrandId.isEmpty) {
+    return EffectiveUserRole.guest;
   }
 
-  return true;
+  // Non-staff users are always treated as regular users.
+  if (!user.role.isStaff) return EffectiveUserRole.user;
+
+  // Staff but mismatched brand: treat as regular user for this brand context.
+  if (user.brandId.isEmpty || user.brandId != lockedBrandId) {
+    return EffectiveUserRole.user;
+  }
+
+  // Staff with matching brand: respect their staff role.
+  switch (user.role) {
+    case UserRole.barber:
+      return EffectiveUserRole.barber;
+    case UserRole.superadmin:
+      return EffectiveUserRole.superadmin;
+    case UserRole.user:
+      return EffectiveUserRole.user;
+  }
+});
+
+/// True when user has barber or superadmin effective role. They navigate to dashboard, not main app.
+final isStaffProvider = Provider<bool>((ref) {
+  final role = ref.watch(effectiveUserRoleProvider);
+  return role == EffectiveUserRole.barber || role == EffectiveUserRole.superadmin;
 });

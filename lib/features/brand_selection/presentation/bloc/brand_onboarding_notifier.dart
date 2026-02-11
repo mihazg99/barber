@@ -1,3 +1,4 @@
+import 'package:barber/core/guest/guest_storage.dart';
 import 'package:barber/core/state/base_notifier.dart';
 import 'package:barber/features/auth/domain/failures/auth_failure.dart';
 import 'package:barber/features/brand/domain/entities/brand_entity.dart';
@@ -40,12 +41,14 @@ class BrandOnboardingNotifier
   BrandOnboardingNotifier(
     this._brandRepository,
     this._userBrandsRepository,
+    this._guestStorage,
   ) {
     setData(const BrandOnboardingState());
   }
 
   final BrandRepository _brandRepository;
   final UserBrandsRepository _userBrandsRepository;
+  final GuestStorage _guestStorage;
 
   /// Handle QR code scan. Expected format: "brand:{brandId}"
   Future<void> handleQrCode(String qrCode, String userId) async {
@@ -77,11 +80,51 @@ class BrandOnboardingNotifier
     await _joinBrand(brandId, userId);
   }
 
-  /// Join a brand by ID.
+  /// Join a brand by ID (signed-in user: writes to Firestore user_brands).
   Future<void> joinBrand(String brandId, String userId) async {
     final current = data ?? const BrandOnboardingState();
     setData(current.copyWith(isLoading: true, errorMessage: null));
     await _joinBrand(brandId, userId);
+  }
+
+  /// Select a brand as guest: only verifies brand exists and sets [selectedBrand].
+  /// Caller should set [lockedBrandIdProvider] and navigate to home (no Firestore).
+  /// Also saves this brand to guest storage for quick switching later.
+  Future<void> selectBrandForGuest(String brandId) async {
+    final current = data ?? const BrandOnboardingState();
+    setData(current.copyWith(isLoading: true, errorMessage: null));
+
+    final brandResult = await _brandRepository.getById(brandId);
+    brandResult.fold(
+      (failure) {
+        setData(
+          current.copyWith(
+            isLoading: false,
+            errorMessage: failure.message,
+          ),
+        );
+      },
+      (brand) {
+        if (brand == null) {
+          setData(
+            current.copyWith(
+              isLoading: false,
+              errorMessage: const BrandNotFoundFailure().message,
+            ),
+          );
+        } else {
+          // Save this brand to guest storage for future quick switching
+          _guestStorage.addGuestBrand(brandId);
+          
+          setData(
+            current.copyWith(
+              isLoading: false,
+              selectedBrand: brand,
+            ),
+          );
+        }
+      },
+    );
   }
 
   Future<void> _joinBrand(String brandId, String userId) async {
@@ -120,12 +163,23 @@ class BrandOnboardingNotifier
     final joinResult = await _userBrandsRepository.joinBrand(userId, brandId);
     joinResult.fold(
       (failure) {
-        setData(
-          current.copyWith(
-            isLoading: false,
-            errorMessage: failure.message,
-          ),
-        );
+        // If user already joined this brand, treat it as success so they can
+        // lock the brand and proceed, instead of blocking with an error.
+        if (failure is BrandAlreadyJoinedFailure && brand != null) {
+          setData(
+            current.copyWith(
+              isLoading: false,
+              selectedBrand: brand,
+            ),
+          );
+        } else {
+          setData(
+            current.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            ),
+          );
+        }
       },
       (_) {
         setData(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 
+import 'package:barber/core/di.dart';
 import 'package:barber/core/errors/firestore_failure.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
@@ -10,7 +11,7 @@ import 'package:barber/core/utils/snackbar_helper.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/widgets/custom_app_bar.dart';
-import 'package:barber/core/di.dart';
+import 'package:barber/features/booking/domain/entities/booking_draft.dart';
 import 'package:barber/core/firebase/collections.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/features/home/domain/entities/home_data.dart';
@@ -63,11 +64,14 @@ class _BookingPageState extends ConsumerState<BookingPage> {
       _initialized = true;
       // Defer so we don't modify provider (notifier.initialize) during build/didChangeDependencies.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _initializeFromQueryParams(
-          barberId: widget.initialBarberId,
-          serviceId: widget.initialServiceId,
-          locationId: widget.initialLocationId,
-        );
+        // Check if still mounted before initializing (prevents initialization during logout/navigation)
+        if (mounted) {
+          _initializeFromQueryParams(
+            barberId: widget.initialBarberId,
+            serviceId: widget.initialServiceId,
+            locationId: widget.initialLocationId,
+          );
+        }
       });
     }
   }
@@ -77,6 +81,25 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     String? serviceId,
     String? locationId,
   }) async {
+    if (!mounted) return;
+    
+    final userId = ref.read(authRepositoryProvider).currentUserId;
+    final guestStorage = ref.read(guestStorageProvider);
+    final draftJson = guestStorage.getBookingDraftJson();
+
+    if (userId != null && draftJson != null && draftJson.isNotEmpty) {
+      final draft = BookingDraft.fromJsonString(draftJson);
+      if (draft != null && mounted) {
+        await _restoreFromDraft(draft);
+        if (mounted) {
+          guestStorage.clearBookingDraft();
+        }
+        return;
+      }
+    }
+
+    if (!mounted) return;
+
     final servicesAsync = ref.read(servicesForHomeProvider);
     final services = servicesAsync.valueOrNull ?? [];
     final barbersAsync = ref.read(barbersForHomeProvider);
@@ -109,6 +132,8 @@ class _BookingPageState extends ConsumerState<BookingPage> {
       }
     }
 
+    if (!mounted) return;
+
     await ref
         .read(bookingNotifierProvider.notifier)
         .initialize(
@@ -122,6 +147,67 @@ class _BookingPageState extends ConsumerState<BookingPage> {
         );
   }
 
+  Future<void> _restoreFromDraft(BookingDraft draft) async {
+    if (!mounted) return;
+    
+    final servicesAsync = ref.read(servicesForHomeProvider);
+    final services = servicesAsync.valueOrNull ?? [];
+    final barbersAsync = ref.read(barbersForHomeProvider);
+    final barbers = barbersAsync.valueOrNull ?? [];
+    final homeState = ref.read(homeNotifierProvider);
+    final locations =
+        homeState is BaseData<HomeData>
+            ? homeState.data.locations
+            : <LocationEntity>[];
+
+    ServiceEntity? preSelectedService;
+    try {
+      preSelectedService = services.firstWhere(
+        (s) => s.serviceId == draft.serviceId,
+      );
+    } catch (_) {
+      preSelectedService = null;
+    }
+
+    BarberEntity? preSelectedBarber;
+    if (draft.barberId != null && draft.barberId!.isNotEmpty) {
+      try {
+        preSelectedBarber = barbers.firstWhere(
+          (b) => b.barberId == draft.barberId,
+        );
+      } catch (_) {
+        preSelectedBarber = null;
+      }
+    } else {
+      preSelectedBarber = null;
+    }
+
+    if (!mounted) return;
+    
+    final notifier = ref.read(bookingNotifierProvider.notifier);
+    await notifier.initialize(
+      isQuickBook: preSelectedBarber != null,
+      barberId: draft.barberId,
+      preSelectedBarber: preSelectedBarber,
+      preSelectedService: preSelectedService,
+      preSelectedLocationId: draft.locationId,
+      allServices: services,
+      locations: locations,
+    );
+
+    if (!mounted) return;
+
+    DateTime? date;
+    try {
+      date = DateTime.parse(draft.dateIso);
+    } catch (_) {}
+    if (date != null) notifier.selectDate(date);
+    notifier.selectTimeSlot(
+      draft.timeSlot,
+      barberId: draft.timeSlotBarberId,
+    );
+  }
+
   Future<void> _confirmBooking() async {
     setState(() => _isConfirming = true);
     final alreadyHasUpcomingMsg = context.l10n.bookingAlreadyHasUpcoming;
@@ -129,7 +215,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     try {
       final bookingState = ref.read(bookingNotifierProvider);
       final userId = ref.read(authRepositoryProvider).currentUserId;
-      final brandId = ref.read(selectedBrandIdProvider);
+      final brandId = ref.read(lockedBrandIdProvider);
 
       if (brandId == null) {
         _showError('No brand selected');
@@ -137,7 +223,25 @@ class _BookingPageState extends ConsumerState<BookingPage> {
       }
 
       if (userId == null) {
-        _showError(context.l10n.bookingUserNotAuthenticated);
+        final draft = BookingDraft(
+          brandId: brandId,
+          locationId: bookingState.locationId!,
+          serviceId: bookingState.selectedService!.serviceId,
+          barberId: bookingState.selectedBarber?.barberId,
+          dateIso:
+              '${bookingState.selectedDate!.year}-${bookingState.selectedDate!.month.toString().padLeft(2, '0')}-${bookingState.selectedDate!.day.toString().padLeft(2, '0')}',
+          timeSlot: bookingState.selectedTimeSlot!,
+          timeSlotBarberId: bookingState.selectedTimeSlotBarberId,
+        );
+        ref.read(guestStorageProvider).setBookingDraftJson(draft.toJsonString());
+        if (mounted) {
+          showSuccessSnackBar(
+            context,
+            message: context.l10n.signInToContinue,
+          );
+          context.push(AppRoute.auth.path);
+        }
+        if (mounted) setState(() => _isConfirming = false);
         return;
       }
 

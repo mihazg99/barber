@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:barber/core/state/base_state.dart';
@@ -37,7 +38,7 @@ final homeNotifierProvider = StateNotifierProvider<
 
   // 2. Otherwise (regular user), use the selected brand (multi-tenant)
   //    or flavor default (single-tenant).
-  final brandId = ref.watch(selectedBrandIdProvider);
+  final brandId = ref.watch(lockedBrandIdProvider);
 
   // Return empty state if no brand selected (user will be redirected by router)
   if (brandId == null) {
@@ -62,22 +63,35 @@ final loyaltyCardNotifierProvider =
 
 /// Barbers for the selected brand. Loaded for quick-action booking.
 final barbersForHomeProvider = FutureProvider<List<BarberEntity>>((ref) async {
-  final brandId = ref.watch(selectedBrandIdProvider);
+  final brandId = ref.watch(lockedBrandIdProvider);
   // Return empty list if no brand selected
-  if (brandId == null) return <BarberEntity>[];
+  if (brandId == null) {
+    debugPrint('[BarbersForHome] No brand selected');
+    return <BarberEntity>[];
+  }
 
+  debugPrint('[BarbersForHome] Loading barbers for brand: $brandId');
   final repo = ref.watch(barbers_di.barberRepositoryProvider);
   final result = await repo.getByBrandId(brandId);
   return result.fold(
-    (_) => <BarberEntity>[],
-    (list) => list.where((b) => b.active).toList(),
+    (failure) {
+      debugPrint('[BarbersForHome] Error: ${failure.message}');
+      return <BarberEntity>[];
+    },
+    (list) {
+      final activeBarbers = list.where((b) => b.active).toList();
+      debugPrint(
+        '[BarbersForHome] Loaded ${activeBarbers.length} active barbers (${list.length} total)',
+      );
+      return activeBarbers;
+    },
   );
 });
 
 /// Services for the selected brand. Loaded to speed up booking.
 final servicesForHomeProvider = FutureProvider<List<ServiceEntity>>(
   (ref) async {
-    final brandId = ref.watch(selectedBrandIdProvider);
+    final brandId = ref.watch(lockedBrandIdProvider);
     // Return empty list if no brand selected
     if (brandId == null) return <ServiceEntity>[];
 
@@ -107,7 +121,7 @@ final upcomingAppointmentProvider = StateNotifierProvider.autoDispose<
     }
     final uidAsync = ref.watch(currentUserIdProvider);
     final uid = uidAsync.valueOrNull;
-    final brandId = ref.watch(selectedBrandIdProvider);
+    final brandId = ref.watch(lockedBrandIdProvider);
 
     // Return empty notifier if no brand selected
     if (brandId == null) {

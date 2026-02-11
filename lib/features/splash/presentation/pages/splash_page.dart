@@ -15,8 +15,12 @@ class SplashPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Prefetch brand so home/dashboard get cached data when we navigate
-    ref.watch(brand_di.defaultBrandProvider);
+    // Prefetch brand so home/dashboard get cached data when we navigate.
+    // Only do this when a brand is actually locked to avoid unnecessary reads.
+    final lockedBrandId = ref.watch(brand_di.lockedBrandIdProvider);
+    if (lockedBrandId != null && lockedBrandId.isNotEmpty) {
+      ref.watch(brand_di.defaultBrandProvider);
+    }
 
     return const Scaffold(
       body: _SplashBody(),
@@ -31,7 +35,8 @@ class _SplashBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final brandAsync = ref.watch(brand_di.defaultBrandProvider);
     final logoUrl = brandAsync.valueOrNull?.logoUrl;
-    final brandName = brandAsync.valueOrNull?.name ??
+    final brandName =
+        brandAsync.valueOrNull?.name ??
         ref.watch(flavorConfigProvider).values.brandConfig.appTitle;
 
     return Container(

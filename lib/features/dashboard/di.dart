@@ -252,7 +252,7 @@ final dashboardBrandIdProvider = Provider.autoDispose<String>((ref) {
   final user = userAsync.valueOrNull;
   final flavorBrandId =
       ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
-  final selectedBrandId = ref.watch(selectedBrandIdProvider);
+  final selectedBrandId = ref.watch(lockedBrandIdProvider);
 
   debugPrint(
     'DashboardBrandIdProvider: user=${user?.userId}, role=${user?.role}, brandId=${user?.brandId}, flavor=$flavorBrandId, selected=$selectedBrandId',

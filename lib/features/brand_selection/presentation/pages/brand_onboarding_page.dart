@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import 'package:barber/core/di.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
@@ -24,7 +25,8 @@ final _brandOnboardingNotifierProvider = StateNotifierProvider.autoDispose<
 >((ref) {
   final brandRepo = ref.watch(brandRepositoryProvider);
   final userBrandsRepo = ref.watch(userBrandsRepositoryProvider);
-  return BrandOnboardingNotifier(brandRepo, userBrandsRepo);
+  final guestStorage = ref.watch(guestStorageProvider);
+  return BrandOnboardingNotifier(brandRepo, userBrandsRepo, guestStorage);
 });
 
 class BrandOnboardingPage extends HookConsumerWidget {
@@ -39,14 +41,18 @@ class BrandOnboardingPage extends HookConsumerWidget {
     ref.listen<BaseState<BrandOnboardingState>>(
       _brandOnboardingNotifierProvider,
       (prev, next) {
+        debugPrint('[BrandOnboarding Listener] State changed: prev=$prev, next=$next');
         if (next is BaseData<BrandOnboardingState>) {
           final state = next.data;
           if (state.errorMessage != null) {
+            debugPrint('[BrandOnboarding] Error: ${state.errorMessage}');
             showErrorSnackBar(context, message: state.errorMessage!);
           } else if (state.selectedBrand != null) {
             // Success: Update global selected brand and Navigate
-            ref.read(selectedBrandIdProvider.notifier).state =
-                state.selectedBrand!.brandId;
+            final brandId = state.selectedBrand!.brandId;
+            debugPrint('[BrandOnboarding] Setting locked brand: $brandId');
+            ref.read(lockedBrandIdProvider.notifier).state = brandId;
+            debugPrint('[BrandOnboarding] Navigating to home via context.go');
             context.go(AppRoute.home.path);
           }
         }
@@ -303,11 +309,15 @@ class _ScannerView extends HookConsumerWidget {
 
             final userIdAsync = ref.read(currentUserIdProvider);
             final userId = userIdAsync.valueOrNull;
+            final notifier = ref.read(_brandOnboardingNotifierProvider.notifier);
 
             if (userId != null) {
-              await ref
-                  .read(_brandOnboardingNotifierProvider.notifier)
-                  .handleQrCode(raw, userId);
+              await notifier.handleQrCode(raw, userId);
+            } else if (raw.startsWith('brand:')) {
+              final brandId = raw.substring(6).trim();
+              if (brandId.isNotEmpty) {
+                await notifier.selectBrandForGuest(brandId);
+              }
             }
 
             // Allow re-scan after delay if needed (e.g. error)
@@ -478,7 +488,7 @@ class _SearchView extends HookConsumerWidget {
                           ),
                           Gap(context.appSizes.paddingMedium),
                           Text(
-                            data!.errorMessage!,
+                            data?.errorMessage ?? '',
                             style: context.appTextStyles.body.copyWith(
                               color: context.appColors.errorColor,
                             ),
@@ -555,10 +565,14 @@ class _BrandResultCard extends ConsumerWidget {
           child: ElevatedButton(
             onPressed: () {
               final currentUserId =
-                  ref.read(currentUserIdProvider).valueOrNull!;
-              ref
-                  .read(_brandOnboardingNotifierProvider.notifier)
-                  .joinBrand(brand.brandId, currentUserId);
+                  ref.read(currentUserIdProvider).valueOrNull;
+              final notifier =
+                  ref.read(_brandOnboardingNotifierProvider.notifier);
+              if (currentUserId == null || currentUserId.isEmpty) {
+                notifier.selectBrandForGuest(brand.brandId);
+              } else {
+                notifier.joinBrand(brand.brandId, currentUserId);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: context.appColors.primaryColor,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:barber/core/di.dart';
@@ -36,18 +37,34 @@ final userBrandsProvider = StreamProvider.autoDispose<List<UserBrandEntity>>(
   (ref) {
     final userIdAsync = ref.watch(currentUserIdProvider);
     final userId = userIdAsync.valueOrNull;
-    if (userId == null) return Stream.value([]);
+    if (userId == null) {
+      debugPrint('[UserBrandsProvider] Guest user, returning empty list');
+      return Stream.value([]);
+    }
 
+    debugPrint('[UserBrandsProvider] Watching user brands for: $userId');
     final repository = ref.watch(userBrandsRepositoryProvider);
     return repository
         .watchUserBrands(userId)
         .map(
           (either) => either.fold(
             (_) => <UserBrandEntity>[],
-            (brands) => brands,
+            (brands) {
+              debugPrint('[UserBrandsProvider] Loaded ${brands.length} brands');
+              return brands;
+            },
           ),
         );
   },
 );
+
+/// Guest brand IDs (from local storage). Returns empty list for authenticated users.
+final guestBrandIdsProvider = Provider.autoDispose<List<String>>((ref) {
+  final isGuest = ref.watch(isGuestProvider);
+  if (!isGuest) return [];
+  
+  final guestStorage = ref.watch(guestStorageProvider);
+  return guestStorage.getGuestBrands();
+});
 
 // Providers for brand selection UI/logic

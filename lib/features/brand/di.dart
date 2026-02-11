@@ -19,24 +19,59 @@ final brandByIdProvider = FutureProvider.autoDispose
       return result;
     });
 
-/// Currently selected brand ID (persisted in SharedPreferences).
-final selectedBrandIdProvider = StateProvider<String?>((ref) {
-  // Load from SharedPreferences on init
+/// Locked brand ID for the current container (persisted in SharedPreferences).
+/// This is the single source of truth for which brand is active in the app.
+final lockedBrandIdProvider = StateProvider<String?>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
-  final val = prefs.getString('selected_brand_id');
-  if (val == 'default') return null;
-  return val;
+
+  // Primary key for new builds.
+  final locked = prefs.getString('locked_brand_id');
+  if (locked != null && locked.isNotEmpty && locked != 'default') {
+    return locked;
+  }
+
+  // Backwards compatibility: fall back to the old key if present.
+  final legacySelected = prefs.getString('selected_brand_id');
+  if (legacySelected != null &&
+      legacySelected.isNotEmpty &&
+      legacySelected != 'default') {
+    return legacySelected;
+  }
+
+  // Single-tenant flavors: treat configured default brand as an implicit lock.
+  final configBrandId =
+      ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
+  if (configBrandId.isNotEmpty && configBrandId != 'default') {
+    return configBrandId;
+  }
+
+  return null;
 });
 
-/// Auto-save selected brand to SharedPreferences when changed.
-final _selectedBrandPersistenceProvider = Provider<void>((ref) {
+/// Last loaded brand for the locked brand id.
+/// Used as an in-memory cache to avoid redundant Firestore reads.
+final lastLockedBrandProvider = StateProvider<BrandEntity?>((ref) => null);
+
+/// Auto-save locked brand to SharedPreferences when changed and keep theme in sync.
+final _lockedBrandPersistenceProvider = Provider<void>((ref) {
   // Persistence
-  ref.listen(selectedBrandIdProvider, (prev, next) {
+  ref.listen(lockedBrandIdProvider, (prev, next) {
     final prefs = ref.read(sharedPreferencesProvider);
-    if (next != null && next != prev) {
-      prefs.setString('selected_brand_id', next);
-    } else if (next == null) {
-      prefs.remove('selected_brand_id');
+
+    if (next != null && next.isNotEmpty && next != prev) {
+      prefs
+        ..setString('locked_brand_id', next)
+        ..remove('selected_brand_id'); // migrate away from legacy key
+    } else if (next == null || next.isEmpty) {
+      prefs
+        ..remove('locked_brand_id')
+        ..remove('selected_brand_id');
+    }
+
+    // When the locked brand id changes, clear the in-memory brand cache so
+    // the next read fetches the correct brand.
+    if (next != prev) {
+      ref.read(lastLockedBrandProvider.notifier).state = null;
     }
   });
 
@@ -54,13 +89,15 @@ final _selectedBrandPersistenceProvider = Provider<void>((ref) {
 
 /// Initialize persistence listener.
 void initSelectedBrandPersistence(Ref ref) {
-  ref.read(_selectedBrandPersistenceProvider);
+  // Keep the old name for backwards compatibility; under the hood this
+  // initialises the locked brand persistence + theme sync.
+  ref.read(_lockedBrandPersistenceProvider);
 }
 
 /// Default brand document. Single read shared by header and other consumers. Not autoDispose so one fetch is reused after login/navigation (avoids duplicate reads).
 /// Logic:
 /// 1. If flavor config has specific brand (single-tenant), use it.
-/// 2. Else (multi-tenant/platform), use selectedBrandIdProvider.
+/// 2. Else (multi-tenant/platform), use lockedBrandIdProvider.
 final defaultBrandProvider = FutureProvider<BrandEntity?>((ref) async {
   final configBrandId =
       ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
@@ -70,15 +107,29 @@ final defaultBrandProvider = FutureProvider<BrandEntity?>((ref) async {
   if (configBrandId.isNotEmpty && configBrandId != 'default') {
     targetBrandId = configBrandId;
   } else {
-    targetBrandId = ref.watch(selectedBrandIdProvider);
+    targetBrandId = ref.watch(lockedBrandIdProvider);
   }
 
   if (targetBrandId == null) return null;
 
+  // Fast path: if we already have a cached brand for this id, reuse it.
+  final cached = ref.read(lastLockedBrandProvider);
+  if (cached != null && cached.brandId == targetBrandId) {
+    return cached;
+  }
+
   final result = await ref
       .watch(brandRepositoryProvider)
       .getById(targetBrandId);
-  return result.fold((_) => null, (b) => b);
+  final brand = result.fold<BrandEntity?>((_) => null, (b) => b);
+
+  // Cache the brand in memory so subsequent reads for the same id avoid
+  // another Firestore get().
+  if (brand != null) {
+    ref.read(lastLockedBrandProvider.notifier).state = brand;
+  }
+
+  return brand;
 });
 
 /// Single source of brand logo URL for the app header. Uses [defaultBrandProvider].
