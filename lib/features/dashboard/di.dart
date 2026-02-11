@@ -370,7 +370,22 @@ final barberEffectiveWorkingHoursProvider = FutureProvider.autoDispose((
     return barber.workingHoursOverride;
   }
 
-  // Otherwise get location's default hours
+  // Otherwise get location's default hours from loaded dashboard locations (zero read)
+  final locationsState = ref.watch(dashboardLocationsViewProvider);
+  if (locationsState is BaseData<List<LocationEntity>>) {
+    LocationEntity? foundLocation;
+    for (final loc in locationsState.data) {
+      if (loc.locationId == barber.locationId) {
+        foundLocation = loc;
+        break;
+      }
+    }
+    if (foundLocation != null) {
+      return foundLocation.workingHours;
+    }
+  }
+
+  // Fallback: If locations not loaded or not found in list, fetch single doc
   final locationRepo = ref.watch(locationRepositoryProvider);
   final result = await locationRepo.getById(barber.locationId);
   return result.fold(

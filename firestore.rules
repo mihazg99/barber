@@ -84,7 +84,7 @@ service cloud.firestore {
     // Public: brands — authenticated read; write superadmin or owner (create allowed for onboarding).
     // -------------------------------------------------------------------------
     match /brands/{brandId} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow create: if request.auth != null;
       // Update: Superadmin can only update their OWN brand (must match user.brand_id)
       allow update, delete: if request.auth != null && isSuperadmin() && brandId == barberBrandId();

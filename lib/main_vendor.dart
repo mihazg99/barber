@@ -12,36 +12,43 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('hr');
-  await initializeDateFormatting('en');
-  await initializeFirebase();
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await initializeDateFormatting('hr');
+    await initializeDateFormatting('en');
+    await initializeFirebase();
 
-  final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
-  // For vendor onboarding, we might want a specific 'onboarding' flavor or just use default
-  // and override specific configs. For now, we'll use 'default' but point to the onboarding page.
-  const flavor = 'default';
-  final brandConfig = await AppConfigLoader.load(flavor);
+    // For vendor onboarding, we might want to use a specific 'onboarding' flavor or just use default
+    // and override specific configs. For now, we'll use 'default' but point to the onboarding page.
+    const flavor = 'default';
+    print('Starting app with flavor: $flavor');
+    final brandConfig = await AppConfigLoader.load(flavor);
+    print('Loaded brand config: ${brandConfig.appTitle}');
 
-  FlavorConfig(
-    environment:
-        AppEnvironment
-            .prod, // Or dev, depending on need. Using prod structure for now.
-    values: FlavorValues(
-      baseUrl: 'https://api.example.com', // Placeholder
-      brandConfig: brandConfig,
-    ),
-  );
+    FlavorConfig(
+      environment:
+          AppEnvironment
+              .prod, // Or dev, depending on need. Using prod structure for now.
+      values: FlavorValues(
+        baseUrl: 'https://api.example.com', // Placeholder
+        brandConfig: brandConfig,
+      ),
+    );
 
-  runApp(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
-      child: const VendorOnboardingApp(),
-    ),
-  );
+    runApp(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+        child: const VendorOnboardingApp(),
+      ),
+    );
+  } catch (e, stack) {
+    print('CRITICAL ERROR IN MAIN: $e');
+    print(stack);
+  }
 }
 
 class VendorOnboardingApp extends StatelessWidget {
