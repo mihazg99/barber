@@ -7,6 +7,7 @@ import 'package:barber/features/brand_selection/data/datasources/user_brands_rem
 import 'package:barber/features/brand_selection/data/repositories/user_brands_repository_impl.dart';
 import 'package:barber/features/brand_selection/domain/entities/user_brand_entity.dart';
 import 'package:barber/features/brand_selection/domain/repositories/user_brands_repository.dart';
+import 'package:barber/features/brand_selection/presentation/bloc/portal_notifier.dart';
 
 // ============================================================================
 // Data Sources
@@ -67,4 +68,12 @@ final guestBrandIdsProvider = Provider.autoDispose<List<String>>((ref) {
   return guestStorage.getGuestBrands();
 });
 
-// Providers for brand selection UI/logic
+// ============================================================================
+// Portal (Brand Selection UI)
+// ============================================================================
+
+/// Portal notifier for managing the morphing monolith experience
+final portalNotifierProvider =
+    StateNotifierProvider.autoDispose<PortalNotifier, PortalState>((ref) {
+  return PortalNotifier();
+});

@@ -21,23 +21,67 @@ class AppHeader extends ConsumerWidget {
 
     // Try to get dynamic brand name from dashboard state (superadmin)
     final dashboardState = ref.watch(dashboardBrandNotifierProvider);
-    final dashboardBrandName =
-        dashboardState is BaseData<BrandEntity?>
-            ? dashboardState.data?.name
-            : null;
+    final dashboardBrand = dashboardState is BaseData<BrandEntity?>
+        ? dashboardState.data
+        : null;
 
     // Try to get dynamic brand name from home state (user/barber)
     final homeState = ref.watch(homeNotifierProvider);
-    final homeBrandName =
-        homeState is BaseData<HomeData> ? homeState.data.brand?.name : null;
+    final homeBrand =
+        homeState is BaseData<HomeData> ? homeState.data.brand : null;
 
-    final brandTitle = dashboardBrandName ?? homeBrandName ?? flavorTitle;
+    final brand = dashboardBrand ?? homeBrand;
+    final brandTitle = brand?.name ?? flavorTitle;
+    final logoUrl = brand?.logoUrl;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 12, 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Brand logo (Hero widget for portal transition)
+          if (logoUrl != null && logoUrl.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Hero(
+                tag: 'brand-portal',
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      logoUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: context.appColors.secondaryColor,
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: context.appColors.secondaryColor,
+                        child: Icon(
+                          Icons.store,
+                          size: 20,
+                          color: context.appColors.primaryTextColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child: Align(
               alignment: Alignment.centerLeft,

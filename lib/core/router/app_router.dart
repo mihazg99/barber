@@ -27,7 +27,7 @@ import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:barber/features/brand_selection/di.dart';
 import 'package:barber/features/brand/di.dart';
-import 'package:barber/features/brand_selection/presentation/pages/brand_onboarding_page.dart';
+import 'package:barber/features/brand_selection/presentation/pages/shader_portal_page.dart';
 import 'package:barber/features/brand_selection/presentation/pages/brand_switcher_page.dart';
 
 import 'package:barber/core/di.dart';
@@ -350,7 +350,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.brandOnboarding.path,
         pageBuilder:
             (context, state) =>
-                NoTransitionPage(child: const BrandOnboardingPage()),
+                NoTransitionPage(child: const ShaderPortalPage()),
       ),
       GoRoute(
         name: AppRoute.brandSwitcher.name,
