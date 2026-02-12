@@ -28,6 +28,7 @@ import 'package:barber/features/onboarding/presentation/pages/onboarding_page.da
 import 'package:barber/features/brand_selection/di.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/brand_selection/presentation/pages/shader_portal_page.dart';
+import 'package:barber/features/brand_selection/presentation/pages/video_portal_page.dart';
 import 'package:barber/features/brand_selection/presentation/pages/brand_switcher_page.dart';
 
 import 'package:barber/core/di.dart';
@@ -46,7 +47,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = ref.watch(routerRefreshNotifierProvider);
 
   ref.listen(isAuthenticatedProvider, (prev, next) {
-    debugPrint('[Router Listener] isAuthenticatedProvider changed: ${next.valueOrNull}');
+    debugPrint(
+      '[Router Listener] isAuthenticatedProvider changed: ${next.valueOrNull}',
+    );
     if (next.valueOrNull == true) {
       // Clear guest login intent flag on successful authentication
       ref.read(isGuestLoginIntentProvider.notifier).state = false;
@@ -65,17 +68,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   // When currentUser loads after sign-in, redirect again so isProfileComplete is up to date
   // (returning users with profile complete can then navigate to home).
   ref.listen(currentUserProvider, (prev, next) {
-    debugPrint('[Router Listener] currentUserProvider changed: ${next.valueOrNull?.userId}');
+    debugPrint(
+      '[Router Listener] currentUserProvider changed: ${next.valueOrNull?.userId}',
+    );
+    // Only refresh if NOT in brand selection flow (to avoid interrupting animation)
     if (ref.read(isAuthenticatedProvider).valueOrNull == true &&
         next.valueOrNull != null) {
       ref.invalidate(upcomingAppointmentProvider);
-      Future.microtask(() => refreshNotifier.notify());
+      if (!ref.read(isInBrandSelectionFlowProvider)) {
+        Future.microtask(() => refreshNotifier.notify());
+      } else {
+        debugPrint('[Router Listener] Skipping refresh - brand selection in progress');
+      }
     }
   });
 
   // When repo sets lastSignedInUser (Google/Apple/OTP sign-in), invalidate currentUser so stream emits cache and router can redirect to home (not profile setup).
   ref.listen(lastSignedInUserProvider, (prev, next) {
-    debugPrint('[Router Listener] lastSignedInUserProvider changed: ${next?.userId}');
+    debugPrint(
+      '[Router Listener] lastSignedInUserProvider changed: ${next?.userId}',
+    );
     if (next != null && ref.read(isAuthenticatedProvider).valueOrNull == true) {
       ref.invalidate(currentUserProvider);
       Future.microtask(() => refreshNotifier.notify());
@@ -84,18 +96,32 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   // Listen for brand state changes to trigger redirects (onboarding/switcher)
   ref.listen(userBrandsProvider, (prev, next) {
-    debugPrint('[Router Listener] userBrandsProvider changed: ${next.valueOrNull?.length} brands, isLoading=${next.isLoading}');
+    debugPrint(
+      '[Router Listener] userBrandsProvider changed: ${next.valueOrNull?.length} brands, isLoading=${next.isLoading}',
+    );
+    // Only refresh if NOT in brand selection flow (to avoid interrupting animation)
     if (!next.isLoading) {
-      debugPrint('[Router Listener] userBrandsProvider triggering refresh');
-      refreshNotifier.notify();
+      if (!ref.read(isInBrandSelectionFlowProvider)) {
+        debugPrint('[Router Listener] userBrandsProvider triggering refresh');
+        refreshNotifier.notify();
+      } else {
+        debugPrint('[Router Listener] Skipping refresh - brand selection in progress');
+      }
     }
   }, fireImmediately: false);
 
   ref.listen(lockedBrandIdProvider, (prev, next) {
-    debugPrint('[Router Listener] lockedBrandIdProvider changed: $prev -> $next');
-    refreshNotifier.notify();
+    debugPrint(
+      '[Router Listener] lockedBrandIdProvider changed: $prev -> $next',
+    );
+    // Only refresh if NOT in brand selection flow (to avoid interrupting animation)
+    if (!ref.read(isInBrandSelectionFlowProvider)) {
+      refreshNotifier.notify();
+    } else {
+      debugPrint('[Router Listener] Skipping refresh - brand selection in progress');
+    }
   });
-  
+
   // Clear guest login intent when guest gets a brand (they selected one instead of logging in)
   ref.listen(lockedBrandIdProvider, (prev, next) {
     if (next != null && next.isNotEmpty) {
@@ -137,13 +163,29 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           authData is AuthFlowData && authData.isProfileInfo;
 
       final effectiveRole = container.read(effectiveUserRoleProvider);
-      final isStaff = effectiveRole == EffectiveUserRole.barber ||
+      final isStaff =
+          effectiveRole == EffectiveUserRole.barber ||
           effectiveRole == EffectiveUserRole.superadmin;
       final lockedBrandId = container.read(lockedBrandIdProvider);
       final path = state.uri.path;
       final location = state.uri.toString();
-      
-      debugPrint('[Router $timestamp] isAuth=$isAuthenticated, role=$effectiveRole, brand=$lockedBrandId, profileComplete=$isProfileComplete, onboardingDone=$onboardingCompleted');
+
+      debugPrint(
+        '[Router $timestamp] isAuth=$isAuthenticated, role=$effectiveRole, brand=$lockedBrandId, profileComplete=$isProfileComplete, onboardingDone=$onboardingCompleted',
+      );
+
+      // CRITICAL: Never redirect away from portal/switcher during brand selection
+      // Check both the path AND the brand selection flow flag
+      // (portal can be pushed as modal on top of home, so path might still be /)
+      final isInBrandSelectionFlow = container.read(isInBrandSelectionFlowProvider);
+      if (path == AppRoute.brandOnboarding.path ||
+          path == AppRoute.brandSwitcher.path ||
+          isInBrandSelectionFlow) {
+        debugPrint(
+          '[Router $timestamp] ⛔ BLOCKING REDIRECT - Brand selection in progress (path=$path, flag=$isInBrandSelectionFlow)',
+        );
+        return null;
+      }
 
       // Splash: stay until we know destination, then redirect
       if (path == AppRoute.splash.path) {
@@ -205,7 +247,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return AppRoute.onboarding.path;
       }
       if (onboardingCompleted && path == AppRoute.onboarding.path) {
-        debugPrint('[Router] Onboarding complete but at onboarding page -> ${isAuthenticated ? "auth or home" : "auth"}');
+        debugPrint(
+          '[Router] Onboarding complete but at onboarding page -> ${isAuthenticated ? "auth or home" : "auth"}',
+        );
         if (isAuthenticated) {
           return isProfileComplete
               ? (isStaff ? AppRoute.dashboard.path : AppRoute.home.path)
@@ -223,29 +267,35 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         // - If no brand is locked, send them to the brand onboarding portal.
         final hasLockedBrand =
             lockedBrandId != null && lockedBrandId.isNotEmpty;
-        
+
         // If at home but no brand, redirect to brand onboarding
         if (path == AppRoute.home.path && !hasLockedBrand) {
-          debugPrint('[Router $timestamp] Guest at home but no brand -> brandOnboarding');
+          debugPrint(
+            '[Router $timestamp] Guest at home but no brand -> brandOnboarding',
+          );
           return AppRoute.brandOnboarding.path;
         }
-        
+
         // If not at home/booking/loyalty and has brand, allow home
-        if (hasLockedBrand && 
-            path != AppRoute.home.path && 
+        if (hasLockedBrand &&
+            path != AppRoute.home.path &&
             path != AppRoute.booking.path &&
             path != AppRoute.loyalty.path) {
-          debugPrint('[Router $timestamp] Guest with brand, redirecting to home');
+          debugPrint(
+            '[Router $timestamp] Guest with brand, redirecting to home',
+          );
           return AppRoute.home.path;
         }
-        
+
         // If no brand and not at brandOnboarding, redirect there
         if (!hasLockedBrand) {
-          debugPrint('[Router $timestamp] Guest without brand -> brandOnboarding');
+          debugPrint(
+            '[Router $timestamp] Guest without brand -> brandOnboarding',
+          );
           return AppRoute.brandOnboarding.path;
         }
       }
-      
+
       // Redirect guests with brands away from auth UNLESS they explicitly want to login
       // (prevents getting stuck on auth after brand onboarding)
       if (effectiveRole == EffectiveUserRole.guest &&
@@ -254,11 +304,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             lockedBrandId != null && lockedBrandId.isNotEmpty;
         final wantsToLogin = container.read(isGuestLoginIntentProvider);
         if (hasLockedBrand && !wantsToLogin) {
-          debugPrint('[Router $timestamp] Guest with brand at auth (no intent) -> home');
+          debugPrint(
+            '[Router $timestamp] Guest with brand at auth (no intent) -> home',
+          );
           return AppRoute.home.path;
         }
       }
-      
+
       if (isAuthenticated && path == AppRoute.auth.path) {
         // Stay on auth when profile incomplete or when showing profile step (avoid redirect race).
         if (isInProfileStep || !isProfileComplete) return null;
@@ -284,7 +336,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // Brand container + role-based navigation after onboarding.
       // Only applies when the user is authenticated; guests are handled above.
       if (onboardingCompleted && isAuthenticated) {
-        debugPrint('[Router] Authenticated block: effectiveRole=$effectiveRole');
+        debugPrint(
+          '[Router] Authenticated block: effectiveRole=$effectiveRole',
+        );
         final hasLockedBrand =
             lockedBrandId != null && lockedBrandId.isNotEmpty;
 
@@ -292,14 +346,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         if (!hasLockedBrand &&
             path != AppRoute.brandOnboarding.path &&
             path != AppRoute.onboarding.path) {
-          debugPrint('[Router] No brand locked, redirecting to brandOnboarding');
+          debugPrint(
+            '[Router] No brand locked, redirecting to brandOnboarding',
+          );
           return AppRoute.brandOnboarding.path;
         }
 
-        // Allow explicit access to brand onboarding / switcher screens.
+        // CRITICAL: Allow authenticated users to stay on portal/switcher pages.
+        // When users switch brands, they need to remain on the portal page
+        // to see the complete cinematic animation before the portal itself
+        // navigates them to home. Don't redirect them away!
         if (path == AppRoute.brandOnboarding.path ||
             path == AppRoute.brandSwitcher.path) {
-          debugPrint('[Router] Allowing brandOnboarding/switcher access');
+          debugPrint('[Router] Authenticated user on portal/switcher - allowing access for animation');
           return null;
         }
 
@@ -308,7 +367,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           // Brand locked:
           if (effectiveRole == EffectiveUserRole.guest) {
             // Guest user → client home for that brand (unless already on auth/home).
-            debugPrint('[Router] Auth block guest: path=$path, staying if auth/home');
+            debugPrint(
+              '[Router] Auth block guest: path=$path, staying if auth/home',
+            );
             if (path != AppRoute.auth.path && path != AppRoute.home.path) {
               return AppRoute.home.path;
             }
@@ -323,7 +384,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           }
         }
       }
-      debugPrint('[Router $timestamp] End of redirect logic, returning null (allow navigation)');
+      debugPrint(
+        '[Router $timestamp] End of redirect logic, returning null (allow navigation)',
+      );
       return null;
     },
     routes: [
@@ -350,7 +413,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.brandOnboarding.path,
         pageBuilder:
             (context, state) =>
-                NoTransitionPage(child: const ShaderPortalPage()),
+                NoTransitionPage(child: const VideoPortalPage()),
       ),
       GoRoute(
         name: AppRoute.brandSwitcher.name,

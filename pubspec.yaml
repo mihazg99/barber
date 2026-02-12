@@ -61,6 +61,7 @@ dependencies:
   table_calendar: ^3.1.2
   uuid: ^4.5.1
   palette_generator: ^0.3.3+7
+  video_player: ^2.9.2
 
 
 dev_dependencies:
@@ -83,6 +84,8 @@ flutter:
     - assets/icons/
     - assets/config/
     - assets/images/
+    - assets/videos/
+  
 
   # Fragment shaders for portal effects
   shaders:

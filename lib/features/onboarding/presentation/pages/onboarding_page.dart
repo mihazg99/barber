@@ -4,11 +4,13 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:barber/core/di.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
+import 'package:barber/core/widgets/video_background.dart';
 import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/features/onboarding/domain/entities/onboarding_data.dart';
 import 'package:barber/features/onboarding/presentation/widgets/onboarding_actions.dart';
@@ -40,6 +42,14 @@ class OnboardingPage extends HookConsumerWidget {
           if (isCompleting.value) {
             isCompleting.value = false;
             ref.invalidate(onboardingHasCompletedProvider);
+
+            // Pause video before navigating (home will dispose it)
+            debugPrint('[Onboarding] Pausing video before navigating to home');
+            ref
+                .read(videoPreloaderServiceProvider)
+                .portalVideoController
+                ?.pause();
+
             context.go(AppRoute.home.path);
           }
         case BaseError():
@@ -52,19 +62,40 @@ class OnboardingPage extends HookConsumerWidget {
     final onboardingState = ref.watch(onboardingNotifierProvider);
 
     return Scaffold(
-      backgroundColor: context.appColors.backgroundColor,
-      body: SafeArea(
-        child: switch (onboardingState) {
-          BaseInitial() => const _OnboardingLoading(),
-          BaseLoading() => const _OnboardingLoading(),
-          BaseData(:final data) => _OnboardingContent(
-            data: data,
-            pageController: pageController,
-            isCompleting: isCompleting.value,
-            onCompletingChanged: (v) => isCompleting.value = v,
+      backgroundColor: const Color(0xFF020617),
+      body: Stack(
+        children: [
+          // Cinematic video background
+          const Positioned.fill(
+            child: VideoBackground(
+              baseColor: Color(0xFF4338CA),
+              opacity: 0.65,
+            ),
           ),
-          BaseError(:final message) => _OnboardingError(message: message),
-        },
+
+          // Bottom gradient mask
+          const Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _BottomGradientMask(),
+          ),
+
+          // Main content
+          SafeArea(
+            child: switch (onboardingState) {
+              BaseInitial() => const _OnboardingLoading(),
+              BaseLoading() => const _OnboardingLoading(),
+              BaseData(:final data) => _OnboardingContent(
+                data: data,
+                pageController: pageController,
+                isCompleting: isCompleting.value,
+                onCompletingChanged: (v) => isCompleting.value = v,
+              ),
+              BaseError(:final message) => _OnboardingError(message: message),
+            },
+          ),
+        ],
       ),
     );
   }
@@ -187,6 +218,28 @@ class _OnboardingError extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Bottom gradient mask to hide watermark remnants and provide contrast
+class _BottomGradientMask extends StatelessWidget {
+  const _BottomGradientMask();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 200,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            Color(0xFF020617),
+          ],
+        ),
       ),
     );
   }

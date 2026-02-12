@@ -10,6 +10,7 @@ import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/widgets/glass_container.dart';
 import 'package:barber/core/widgets/shimmer_placeholder.dart';
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
 import 'package:barber/features/home/di.dart';
@@ -51,23 +52,16 @@ class UpcomingBookingCard extends StatelessWidget {
               ),
             ),
         borderRadius: BorderRadius.circular(_cardRadius),
-        child: Container(
+        child: GlassContainer(
+          borderRadius: _cardRadius,
           padding: EdgeInsets.all(context.appSizes.paddingMedium),
-          decoration: BoxDecoration(
-            color: colors.menuBackgroundColor,
-            borderRadius: BorderRadius.circular(_cardRadius),
-            border: Border.all(
-              color: colors.borderColor.withValues(alpha: 0.2),
-              width: 1,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+          ],
           child: IntrinsicHeight(
             child: Row(
               children: [
@@ -156,23 +150,16 @@ class NoUpcomingBookingCTA extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(_cardRadius),
-        child: Container(
+        child: GlassContainer(
+          borderRadius: _cardRadius,
           padding: EdgeInsets.all(context.appSizes.paddingMedium),
-          decoration: BoxDecoration(
-            color: colors.menuBackgroundColor,
-            borderRadius: BorderRadius.circular(_cardRadius),
-            border: Border.all(
-              color: colors.borderColor.withValues(alpha: 0.2),
-              width: 1,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+          ],
           child: IntrinsicHeight(
             child: Row(
               children: [
@@ -246,7 +233,7 @@ class _PillButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final accent = colors.primaryColorOnDark;
+    final accent = colors.primaryColor;
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(

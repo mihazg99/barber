@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:barber/core/guest/guest_storage.dart';
 import 'package:barber/core/state/base_notifier.dart';
 import 'package:barber/features/auth/domain/failures/auth_failure.dart';
@@ -77,26 +79,97 @@ class BrandOnboardingNotifier
       return;
     }
 
-    await _joinBrand(brandId, userId);
+    // Check if user already has this brand
+    final userBrandResult = await _userBrandsRepository.getUserBrand(userId, brandId);
+    bool alreadyHasBrand = false;
+    userBrandResult.fold(
+      (failure) {
+        debugPrint('[BrandOnboarding] Failed to check if user has brand: ${failure.message}');
+        // Continue anyway and try to join
+      },
+      (userBrand) {
+        alreadyHasBrand = userBrand != null;
+        debugPrint('[BrandOnboarding] User already has brand: $alreadyHasBrand');
+      },
+    );
+
+    await _joinBrand(brandId, userId, alreadyHasBrand: alreadyHasBrand);
   }
 
   /// Join a brand by ID (signed-in user: writes to Firestore user_brands).
+  /// If the user already has this brand, just selects it instead of joining again.
   Future<void> joinBrand(String brandId, String userId) async {
+    debugPrint('[BrandOnboarding] joinBrand called: brandId=$brandId, userId=$userId');
     final current = data ?? const BrandOnboardingState();
     setData(current.copyWith(isLoading: true, errorMessage: null));
-    await _joinBrand(brandId, userId);
+    
+    // Check if user already has this brand
+    final userBrandResult = await _userBrandsRepository.getUserBrand(userId, brandId);
+    bool alreadyHasBrand = false;
+    userBrandResult.fold(
+      (failure) {
+        debugPrint('[BrandOnboarding] Failed to check if user has brand: ${failure.message}');
+        // Continue anyway and try to join
+      },
+      (userBrand) {
+        alreadyHasBrand = userBrand != null;
+        debugPrint('[BrandOnboarding] User already has brand: $alreadyHasBrand');
+      },
+    );
+    
+    if (alreadyHasBrand) {
+      // User already has this brand, just load it and trigger animation
+      debugPrint('[BrandOnboarding] User already has this brand, switching to it');
+      final brandResult = await _brandRepository.getById(brandId);
+      brandResult.fold(
+        (failure) {
+          debugPrint('[BrandOnboarding] Failed to get brand: ${failure.message}');
+          setData(
+            current.copyWith(
+              isLoading: false,
+              errorMessage: failure.message,
+            ),
+          );
+        },
+        (brand) {
+          if (brand == null) {
+            debugPrint('[BrandOnboarding] Brand not found');
+            setData(
+              current.copyWith(
+                isLoading: false,
+                errorMessage: const BrandNotFoundFailure().message,
+              ),
+            );
+          } else {
+            debugPrint('[BrandOnboarding] Brand loaded: ${brand.name}');
+            setData(
+              current.copyWith(
+                isLoading: false,
+                selectedBrand: brand,
+              ),
+            );
+          }
+        },
+      );
+    } else {
+      // User doesn't have this brand, try to join it
+      debugPrint('[BrandOnboarding] User does not have this brand, joining');
+      await _joinBrand(brandId, userId, alreadyHasBrand: false);
+    }
   }
 
   /// Select a brand as guest: only verifies brand exists and sets [selectedBrand].
   /// Caller should set [lockedBrandIdProvider] and navigate to home (no Firestore).
   /// Also saves this brand to guest storage for quick switching later.
   Future<void> selectBrandForGuest(String brandId) async {
+    debugPrint('[BrandOnboarding] selectBrandForGuest called: $brandId');
     final current = data ?? const BrandOnboardingState();
     setData(current.copyWith(isLoading: true, errorMessage: null));
 
     final brandResult = await _brandRepository.getById(brandId);
     brandResult.fold(
       (failure) {
+        debugPrint('[BrandOnboarding] Failed to get brand: ${failure.message}');
         setData(
           current.copyWith(
             isLoading: false,
@@ -106,6 +179,7 @@ class BrandOnboardingNotifier
       },
       (brand) {
         if (brand == null) {
+          debugPrint('[BrandOnboarding] Brand not found');
           setData(
             current.copyWith(
               isLoading: false,
@@ -116,6 +190,7 @@ class BrandOnboardingNotifier
           // Save this brand to guest storage for future quick switching
           _guestStorage.addGuestBrand(brandId);
           
+          debugPrint('[BrandOnboarding] Brand selected for guest: ${brand.name}');
           setData(
             current.copyWith(
               isLoading: false,
@@ -127,14 +202,20 @@ class BrandOnboardingNotifier
     );
   }
 
-  Future<void> _joinBrand(String brandId, String userId) async {
+  Future<void> _joinBrand(
+    String brandId,
+    String userId, {
+    required bool alreadyHasBrand,
+  }) async {
     final current = data ?? const BrandOnboardingState();
 
     // Verify brand exists
+    debugPrint('[BrandOnboarding] Verifying brand exists: $brandId');
     final brandResult = await _brandRepository.getById(brandId);
     BrandEntity? brand;
     brandResult.fold(
       (failure) {
+        debugPrint('[BrandOnboarding] Failed to get brand: ${failure.message}');
         setData(
           current.copyWith(
             isLoading: false,
@@ -145,6 +226,7 @@ class BrandOnboardingNotifier
       },
       (b) {
         if (b == null) {
+          debugPrint('[BrandOnboarding] Brand not found');
           setData(
             current.copyWith(
               isLoading: false,
@@ -154,40 +236,57 @@ class BrandOnboardingNotifier
           return;
         }
         brand = b;
+        debugPrint('[BrandOnboarding] Brand found: ${b.name}');
       },
     );
 
-    if (brand == null) return;
+    if (brand == null) {
+      debugPrint('[BrandOnboarding] Brand is null, aborting');
+      return;
+    }
 
     // Join brand
+    debugPrint('[BrandOnboarding] Joining brand in Firestore');
     final joinResult = await _userBrandsRepository.joinBrand(userId, brandId);
     joinResult.fold(
       (failure) {
-        // If user already joined this brand, treat it as success so they can
-        // lock the brand and proceed, instead of blocking with an error.
-        if (failure is BrandAlreadyJoinedFailure && brand != null) {
+        // Only treat permission denied as success if we KNOW the user already has the brand
+        // Otherwise, it's a real permission error that should be shown to the user
+        final isAlreadyJoinedError = failure is BrandAlreadyJoinedFailure ||
+            failure.message.toLowerCase().contains('already exists');
+        
+        if (isAlreadyJoinedError && brand != null) {
+          debugPrint('[BrandOnboarding] Brand already joined, treating as success');
+          if (mounted) {
+            setData(
+              current.copyWith(
+                isLoading: false,
+                selectedBrand: brand,
+              ),
+            );
+          }
+        } else {
+          debugPrint('[BrandOnboarding] Join brand failed: ${failure.message}');
+          if (mounted) {
+            setData(
+              current.copyWith(
+                isLoading: false,
+                errorMessage: failure.message,
+              ),
+            );
+          }
+        }
+      },
+      (_) {
+        debugPrint('[BrandOnboarding] Brand joined successfully: ${brand?.name}');
+        if (mounted) {
           setData(
             current.copyWith(
               isLoading: false,
               selectedBrand: brand,
             ),
           );
-        } else {
-          setData(
-            current.copyWith(
-              isLoading: false,
-              errorMessage: failure.message,
-            ),
-          );
         }
-      },
-      (_) {
-        setData(
-          current.copyWith(
-            isLoading: false,
-            selectedBrand: brand,
-          ),
-        );
       },
     );
   }

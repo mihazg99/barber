@@ -22,6 +22,7 @@ import 'package:barber/features/brand_selection/presentation/bloc/brand_onboardi
 import 'package:barber/features/brand_selection/presentation/bloc/portal_notifier.dart';
 import 'package:barber/features/brand_selection/presentation/widgets/monolith_card.dart';
 import 'package:barber/features/brand_selection/presentation/widgets/portal_background.dart';
+import 'package:barber/features/home/di.dart';
 
 /// Design constants for the Sapphire Architect style
 class _PortalDesign {
@@ -119,11 +120,18 @@ class PortalPage extends HookConsumerWidget {
     ref.listen<BaseState<BrandOnboardingState>>(
       _brandOnboardingNotifierProvider,
       (prev, next) {
+        debugPrint('[Portal] Listener triggered: state type=${next.runtimeType}');
         if (next is BaseData<BrandOnboardingState>) {
           final state = next.data;
+          debugPrint('[Portal] BaseData received: selectedBrand=${state.selectedBrand?.name}, error=${state.errorMessage}, isLoading=${state.isLoading}');
           if (state.errorMessage != null) {
             showErrorSnackBar(context, message: state.errorMessage!);
-          } else if (state.selectedBrand != null) {
+          } else if (state.selectedBrand != null && !state.isLoading) {
+            debugPrint('[Portal] Brand selected, triggering morph');
+            // Close scanner/search first to prevent user interaction
+            showScanner.value = false;
+            showSearch.value = false;
+            
             // Trigger morphing animation
             _triggerMorph(
               state.selectedBrand!,
@@ -134,9 +142,6 @@ class PortalPage extends HookConsumerWidget {
               ref,
               context,
             );
-            // Close scanner/search
-            showScanner.value = false;
-            showSearch.value = false;
           }
         }
       },
@@ -262,11 +267,21 @@ class PortalPage extends HookConsumerWidget {
     debugPrint('[Portal] Starting hero transition');
     portalNotifier.onHeroTransitionStart();
 
-    // Phase 2 & 3: Set brand globally and navigate
+    // Lock the brand before navigation
     ref.read(lockedBrandIdProvider.notifier).state = brand.brandId;
+    debugPrint('[Portal] Brand locked: ${brand.brandId}');
 
     // Small delay for state propagation
     await Future.delayed(const Duration(milliseconds: 100));
+
+    if (!isMounted.value || !context.mounted) return;
+
+    // Invalidate providers to ensure they reload with new brand
+    ref.invalidate(defaultBrandProvider);
+    ref.invalidate(homeNotifierProvider);
+
+    // Small delay to ensure invalidation completes
+    await Future.delayed(const Duration(milliseconds: 50));
 
     if (!isMounted.value || !context.mounted) return;
 

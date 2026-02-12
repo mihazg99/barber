@@ -77,3 +77,8 @@ final portalNotifierProvider =
     StateNotifierProvider.autoDispose<PortalNotifier, PortalState>((ref) {
   return PortalNotifier();
 });
+
+/// Flag to prevent router redirects during brand selection animation
+/// This is set to true when the portal page is opened and false when it closes
+/// Used by router to avoid interrupting the cinematic experience
+final isInBrandSelectionFlowProvider = StateProvider<bool>((ref) => false);

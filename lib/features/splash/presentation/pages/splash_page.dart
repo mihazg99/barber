@@ -10,11 +10,35 @@ import 'package:barber/core/theme/app_text_styles.dart';
 /// Branded splash screen. Shown while loading user and determining destination.
 /// Prefetches brand for cache; router redirect handles navigation to onboarding,
 /// auth, home, or dashboard based on user role.
-class SplashPage extends ConsumerWidget {
+/// Also preloads the portal video for seamless onboarding experience.
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends ConsumerState<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Preload portal video during splash
+    _preloadVideo();
+  }
+
+  Future<void> _preloadVideo() async {
+    final videoPreloader = ref.read(videoPreloaderServiceProvider);
+    await videoPreloader.preloadPortalVideo();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Ensure brand config from flavor is available and app colors are initialized
+    // Brand config is loaded in main.dart, but we ensure it's ready here
+    ref.watch(flavorConfigProvider);
+    // Ensure app colors provider is initialized with brand config
+    ref.watch(appColorsProvider);
+    
     // Prefetch brand so home/dashboard get cached data when we navigate.
     // Only do this when a brand is actually locked to avoid unnecessary reads.
     final lockedBrandId = ref.watch(brand_di.lockedBrandIdProvider);

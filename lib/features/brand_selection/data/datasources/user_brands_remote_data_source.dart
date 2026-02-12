@@ -45,17 +45,11 @@ class UserBrandsRemoteDataSourceImpl implements UserBrandsRemoteDataSource {
       lastActive: DateTime.now(),
     );
 
-    final batch = _firestore.batch();
-
-    // Create user_brand document
-    batch.set(_userBrandsRef(userId).doc(brandId), userBrand.toFirestore());
-
-    // Update main user document with new brand_id
-    batch.update(_firestore.collection('users').doc(userId), {
-      'brand_id': brandId,
-    });
-
-    await batch.commit();
+    // Create user_brand document in subcollection
+    // Note: We don't update the main user document's brand_id field
+    // because it's a staff-managed field per security rules.
+    // The app tracks the currently selected brand via lockedBrandIdProvider.
+    await _userBrandsRef(userId).doc(brandId).set(userBrand.toFirestore());
   }
 
   @override

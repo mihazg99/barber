@@ -202,16 +202,18 @@ class _LocationCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => context.push(
-          '${AppRoute.booking.path}?locationId=${location.locationId}',
-        ),
+        onTap:
+            () => context.push(
+              '${AppRoute.booking.path}?locationId=${location.locationId}',
+            ),
         borderRadius: BorderRadius.circular(_cardRadius),
         child: Container(
           decoration: BoxDecoration(
             color: context.appColors.menuBackgroundColor,
             borderRadius: BorderRadius.circular(_cardRadius),
             border: Border.all(
-              color: context.appColors.borderColor.withValues(alpha: 0.4),
+              color: context.appColors.borderColor.withValues(alpha: 0.1),
+              width: 1,
             ),
           ),
           child: Column(
@@ -289,9 +291,10 @@ class _LocationCard extends StatelessWidget {
                     ],
                     Gap(context.appSizes.paddingSmall),
                     _BookNowPill(
-                      onTap: () => context.push(
-                        '${AppRoute.booking.path}?locationId=${location.locationId}',
-                      ),
+                      onTap:
+                          () => context.push(
+                            '${AppRoute.booking.path}?locationId=${location.locationId}',
+                          ),
                     ),
                   ],
                 ),

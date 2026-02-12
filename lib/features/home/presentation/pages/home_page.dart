@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:barber/core/di.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
@@ -25,10 +26,28 @@ class HomePage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Ensure brand config from flavor is available and app colors are initialized
+    // Brand config is loaded in main.dart, but we ensure it's ready here
+    ref.watch(flavorConfigProvider);
+    // Ensure app colors provider is initialized with brand config
+    ref.watch(appColorsProvider);
+    
     useEffect(() {
       var cancelled = false;
       final notifier = ref.read(homeNotifierProvider.notifier);
       final brandFuture = ref.read(brand_di.defaultBrandProvider.future);
+
+      // Ensure video is disposed after navigation transition completes
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (!cancelled) {
+          final videoService = ref.read(videoPreloaderServiceProvider);
+          if (videoService.isPortalVideoReady) {
+            debugPrint('[HomePage] Disposing video after navigation');
+            videoService.dispose();
+          }
+        }
+      });
+
       Future.microtask(() async {
         final cachedBrand = await brandFuture;
         if (!cancelled) notifier.load(cachedBrand: cachedBrand);
@@ -52,17 +71,19 @@ class HomePage extends HookConsumerWidget {
           },
         ),
       ),
-      floatingActionButton: isStaff
-          ? FloatingActionButton(
-              onPressed: () => context.push(AppRoute.dashboardRedeemReward.path),
-              backgroundColor: context.appColors.primaryColor,
-              child: Icon(
-                Icons.qr_code_scanner,
-                color: context.appColors.primaryWhiteColor,
-                size: 28,
-              ),
-            )
-          : null,
+      floatingActionButton:
+          isStaff
+              ? FloatingActionButton(
+                onPressed:
+                    () => context.push(AppRoute.dashboardRedeemReward.path),
+                backgroundColor: context.appColors.primaryColor,
+                child: Icon(
+                  Icons.qr_code_scanner,
+                  color: context.appColors.primaryWhiteColor,
+                  size: 28,
+                ),
+              )
+              : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
@@ -133,9 +154,12 @@ class _HomeError extends ConsumerWidget {
           Gap(context.appSizes.paddingMedium),
           TextButton.icon(
             onPressed: () {
-                final cachedBrand = ref.read(brand_di.defaultBrandProvider).valueOrNull;
-                ref.read(homeNotifierProvider.notifier).refresh(cachedBrand: cachedBrand);
-              },
+              final cachedBrand =
+                  ref.read(brand_di.defaultBrandProvider).valueOrNull;
+              ref
+                  .read(homeNotifierProvider.notifier)
+                  .refresh(cachedBrand: cachedBrand);
+            },
             icon: Icon(Icons.refresh, color: context.appColors.primaryColor),
             label: Text(
               context.l10n.retry,

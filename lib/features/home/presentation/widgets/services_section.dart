@@ -189,7 +189,8 @@ class _ServiceCard extends StatelessWidget {
             color: context.appColors.menuBackgroundColor,
             borderRadius: BorderRadius.circular(_cardRadius),
             border: Border.all(
-              color: context.appColors.borderColor.withValues(alpha: 0.4),
+              color: context.appColors.borderColor.withValues(alpha: 0.1),
+              width: 1,
             ),
           ),
           child: Column(
@@ -234,7 +235,7 @@ class _ServiceCard extends StatelessWidget {
                     context.l10n.book,
                     style: context.appTextStyles.caption.copyWith(
                       fontSize: 12,
-                      color: context.appColors.primaryColorOnDark,
+                      color: context.appColors.primaryColor,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -242,7 +243,7 @@ class _ServiceCard extends StatelessWidget {
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 10,
-                    color: context.appColors.primaryColorOnDark,
+                    color: context.appColors.primaryColor,
                   ),
                 ],
               ),

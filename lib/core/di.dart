@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:barber/core/config/flavor_config.dart';
 import 'package:barber/core/data/database/app_database.dart';
 import 'package:barber/core/guest/guest_storage.dart';
+import 'package:barber/core/services/video_preloader_service.dart';
 
 /// Root ScaffoldMessenger key for showing snackbars from anywhere (e.g. dashboard tabs).
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -52,4 +53,10 @@ final firebaseFirestoreProvider = Provider<FirebaseFirestore>((ref) {
 
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
   return FirebaseAuth.instance;
+});
+
+/// Video preloader service for loading videos during splash screen.
+/// Ensures seamless playback when navigating to video-based screens.
+final videoPreloaderServiceProvider = Provider<VideoPreloaderService>((ref) {
+  return VideoPreloaderService();
 });

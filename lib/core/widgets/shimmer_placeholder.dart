@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:barber/core/theme/app_colors.dart';
 
 /// A box placeholder that shows a shimmer effect. Use inside [ShimmerWrapper].
-class ShimmerPlaceholder extends StatelessWidget {
+class ShimmerPlaceholder extends ConsumerWidget {
   const ShimmerPlaceholder({
     super.key,
     required this.width,
@@ -17,12 +18,14 @@ class ShimmerPlaceholder extends StatelessWidget {
   final BorderRadius? borderRadius;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Ensure brand config colors are available
+    final colors = ref.watch(appColorsProvider);
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: context.appColors.menuBackgroundColor,
+        color: colors.menuBackgroundColor,
         borderRadius: borderRadius ?? BorderRadius.zero,
       ),
     );
@@ -38,7 +41,7 @@ enum ShimmerVariant {
 /// Wraps [child] with [Shimmer.fromColors] using theme-based base and highlight.
 /// Use for loading skeletons; place [ShimmerPlaceholder] widgets inside [child].
 /// [variant] defaults to [ShimmerVariant.home]; use [ShimmerVariant.dashboard] in dashboard tabs.
-class ShimmerWrapper extends StatelessWidget {
+class ShimmerWrapper extends ConsumerWidget {
   const ShimmerWrapper({
     super.key,
     required this.child,
@@ -49,8 +52,9 @@ class ShimmerWrapper extends StatelessWidget {
   final ShimmerVariant variant;
 
   @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Ensure brand config colors are available
+    final colors = ref.watch(appColorsProvider);
     final Color base;
     final Color highlight;
     switch (variant) {
