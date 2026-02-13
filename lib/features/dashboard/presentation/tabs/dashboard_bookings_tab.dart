@@ -24,6 +24,7 @@ class DashboardBookingsTab extends HookConsumerWidget {
         homeState is BaseData<HomeData>
             ? homeState.data.locations
             : <LocationEntity>[];
+    final isLocationsLoading = homeState is BaseLoading;
 
     return appointmentsAsync.when(
       data: (appointments) {
@@ -42,6 +43,7 @@ class DashboardBookingsTab extends HookConsumerWidget {
               child: UpcomingBookingCard(
                 appointment: a,
                 locationName: locationName,
+                isLocationsLoading: isLocationsLoading,
               ),
             );
           },

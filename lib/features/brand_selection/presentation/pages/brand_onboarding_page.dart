@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'package:barber/core/di.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
@@ -41,7 +42,9 @@ class BrandOnboardingPage extends HookConsumerWidget {
     ref.listen<BaseState<BrandOnboardingState>>(
       _brandOnboardingNotifierProvider,
       (prev, next) {
-        debugPrint('[BrandOnboarding Listener] State changed: prev=$prev, next=$next');
+        debugPrint(
+          '[BrandOnboarding Listener] State changed: prev=$prev, next=$next',
+        );
         if (next is BaseData<BrandOnboardingState>) {
           final state = next.data;
           if (state.errorMessage != null) {
@@ -168,7 +171,7 @@ class _SelectionMenu extends HookConsumerWidget {
               }
             },
             child: Text(
-              'Find Your Barbershop',
+              context.l10n.findYourBusiness,
               style: context.appTextStyles.h1.copyWith(
                 color: context.appColors.primaryTextColor,
               ),
@@ -190,14 +193,14 @@ class _SelectionMenu extends HookConsumerWidget {
           // Actions
           _ActionButton(
             icon: Icons.qr_code_scanner_rounded,
-            label: 'Scan QR Code',
+            label: context.l10n.scanQrCode,
             onTap: onScanTap,
             isPrimary: true,
           ),
           Gap(context.appSizes.paddingMedium),
           _ActionButton(
             icon: Icons.search_rounded,
-            label: 'Search by Tag',
+            label: context.l10n.searchByTag,
             onTap: onSearchTap,
             isPrimary: false,
           ),
@@ -309,7 +312,9 @@ class _ScannerView extends HookConsumerWidget {
 
             final userIdAsync = ref.read(currentUserIdProvider);
             final userId = userIdAsync.valueOrNull;
-            final notifier = ref.read(_brandOnboardingNotifierProvider.notifier);
+            final notifier = ref.read(
+              _brandOnboardingNotifierProvider.notifier,
+            );
 
             if (userId != null) {
               await notifier.handleQrCode(raw, userId);
@@ -499,7 +504,7 @@ class _SearchView extends HookConsumerWidget {
                     )
                     : Center(
                       child: Text(
-                        'Search for your barbershop by their unique tag.',
+                        context.l10n.searchBusinessByTagSingleLine,
                         style: context.appTextStyles.body.copyWith(
                           color: context.appColors.secondaryTextColor,
                         ),
@@ -564,10 +569,10 @@ class _BrandResultCard extends ConsumerWidget {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              final currentUserId =
-                  ref.read(currentUserIdProvider).valueOrNull;
-              final notifier =
-                  ref.read(_brandOnboardingNotifierProvider.notifier);
+              final currentUserId = ref.read(currentUserIdProvider).valueOrNull;
+              final notifier = ref.read(
+                _brandOnboardingNotifierProvider.notifier,
+              );
               if (currentUserId == null || currentUserId.isEmpty) {
                 notifier.selectBrandForGuest(brand.brandId);
               } else {

@@ -182,6 +182,18 @@ abstract class AppLocalizations {
   /// **'Odjava'**
   String get logout;
 
+  /// No description provided for @logoutConfirmTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Odjava'**
+  String get logoutConfirmTitle;
+
+  /// No description provided for @logoutConfirmMessage.
+  ///
+  /// In hr, this message translates to:
+  /// **'Jeste li sigurni da želite se odjaviti?'**
+  String get logoutConfirmMessage;
+
   /// No description provided for @navHome.
   ///
   /// In hr, this message translates to:
@@ -350,11 +362,23 @@ abstract class AppLocalizations {
   /// **'Dobrodošli'**
   String get welcome;
 
+  /// No description provided for @signIn.
+  ///
+  /// In hr, this message translates to:
+  /// **'Prijavi se'**
+  String get signIn;
+
   /// No description provided for @signInToContinue.
   ///
   /// In hr, this message translates to:
   /// **'Prijavite se za nastavak'**
   String get signInToContinue;
+
+  /// No description provided for @signInToAccessExclusiveRewards.
+  ///
+  /// In hr, this message translates to:
+  /// **'Prijavite se za pristup ekskluzivnim nagradama'**
+  String get signInToAccessExclusiveRewards;
 
   /// No description provided for @continueWithGoogle.
   ///
@@ -395,13 +419,13 @@ abstract class AppLocalizations {
   /// No description provided for @bookingSelectBarber.
   ///
   /// In hr, this message translates to:
-  /// **'Odaberi brijača'**
+  /// **'Odaberi profesionalca'**
   String get bookingSelectBarber;
 
   /// No description provided for @bookingAnyBarber.
   ///
   /// In hr, this message translates to:
-  /// **'Bilo koji brijač'**
+  /// **'Bilo koji profesionalac'**
   String get bookingAnyBarber;
 
   /// No description provided for @bookingSelectDate.
@@ -503,7 +527,7 @@ abstract class AppLocalizations {
   /// No description provided for @bookingStepBarber.
   ///
   /// In hr, this message translates to:
-  /// **'Brijač'**
+  /// **'Tim'**
   String get bookingStepBarber;
 
   /// No description provided for @bookingStepTime.
@@ -635,7 +659,7 @@ abstract class AppLocalizations {
   /// No description provided for @sectionBarbers.
   ///
   /// In hr, this message translates to:
-  /// **'Rezerviraj kod brijača'**
+  /// **'Odaberi profesionalca'**
   String get sectionBarbers;
 
   /// No description provided for @sectionPopularServices.
@@ -647,7 +671,7 @@ abstract class AppLocalizations {
   /// No description provided for @sectionNearbyBarbershop.
   ///
   /// In hr, this message translates to:
-  /// **'OBLIŽNJA BRIJANICA'**
+  /// **'Lokacije u blizini'**
   String get sectionNearbyBarbershop;
 
   /// No description provided for @loyaltyTitle.
@@ -713,7 +737,7 @@ abstract class AppLocalizations {
   /// No description provided for @loyaltyRedeemSuccess.
   ///
   /// In hr, this message translates to:
-  /// **'Nagrada zatražena! Pokažite ovaj QR brijaču.'**
+  /// **'Nagrada zatražena! Pokažite ovaj QR kod.'**
   String get loyaltyRedeemSuccess;
 
   /// No description provided for @dashboardRedeemReward.
@@ -887,7 +911,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardNavBarbers.
   ///
   /// In hr, this message translates to:
-  /// **'Brijači'**
+  /// **'Tim'**
   String get dashboardNavBarbers;
 
   /// No description provided for @dashboardNavAnalytics.
@@ -1154,6 +1178,84 @@ abstract class AppLocalizations {
   /// **'Pretraži državu ili pozivni broj'**
   String get searchCountryOrCode;
 
+  /// No description provided for @switchBrand.
+  ///
+  /// In hr, this message translates to:
+  /// **'Promijeni salon'**
+  String get switchBrand;
+
+  /// No description provided for @discoverBrand.
+  ///
+  /// In hr, this message translates to:
+  /// **'Otkrij salon'**
+  String get discoverBrand;
+
+  /// No description provided for @switchBrandConfirmTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Promijeni salon'**
+  String get switchBrandConfirmTitle;
+
+  /// No description provided for @switchBrandConfirmMessage.
+  ///
+  /// In hr, this message translates to:
+  /// **'Prebaciti na {brandName}?'**
+  String switchBrandConfirmMessage(String brandName);
+
+  /// No description provided for @switchBrandButton.
+  ///
+  /// In hr, this message translates to:
+  /// **'Prebaci'**
+  String get switchBrandButton;
+
+  /// No description provided for @noBrandsFound.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nema pronađenih salona'**
+  String get noBrandsFound;
+
+  /// No description provided for @discoverBrandsHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dodirnite ikonu skeniranja iznad za otkrivanje salona'**
+  String get discoverBrandsHint;
+
+  /// No description provided for @findYourBusiness.
+  ///
+  /// In hr, this message translates to:
+  /// **'Pronađite svoj salon'**
+  String get findYourBusiness;
+
+  /// No description provided for @searchBusinessByTag.
+  ///
+  /// In hr, this message translates to:
+  /// **'Pretražite svoj salon\npo jedinstvenoj oznaci'**
+  String get searchBusinessByTag;
+
+  /// No description provided for @searchBusinessByTagSingleLine.
+  ///
+  /// In hr, this message translates to:
+  /// **'Pretražite svoj salon po jedinstvenoj oznaci.'**
+  String get searchBusinessByTagSingleLine;
+
+  /// No description provided for @selectBusinessFirst.
+  ///
+  /// In hr, this message translates to:
+  /// **'Molimo prvo odaberite salon.'**
+  String get selectBusinessFirst;
+
+  /// No description provided for @scanQrCode.
+  ///
+  /// In hr, this message translates to:
+  /// **'Skeniraj QR kod'**
+  String get scanQrCode;
+
+  /// No description provided for @searchByTag.
+  ///
+  /// In hr, this message translates to:
+  /// **'Pretraži po oznaci'**
+  String get searchByTag;
+
   /// No description provided for @dashboardBrandTitle.
   ///
   /// In hr, this message translates to:
@@ -1169,7 +1271,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardBrandNameHint.
   ///
   /// In hr, this message translates to:
-  /// **'npr. Kingsman Barbershop'**
+  /// **'npr. Kingsman Salon'**
   String get dashboardBrandNameHint;
 
   /// No description provided for @dashboardBrandNameRequired.
@@ -1547,13 +1649,13 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardBarberAdd.
   ///
   /// In hr, this message translates to:
-  /// **'Dodaj brijača'**
+  /// **'Dodaj profesionalca'**
   String get dashboardBarberAdd;
 
   /// No description provided for @dashboardBarberEdit.
   ///
   /// In hr, this message translates to:
-  /// **'Uredi brijača'**
+  /// **'Uredi profesionalca'**
   String get dashboardBarberEdit;
 
   /// No description provided for @dashboardBarberName.
@@ -1619,25 +1721,25 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardBarberWorkingHoursOverrideHint.
   ///
   /// In hr, this message translates to:
-  /// **'Nadopiši radno vrijeme lokacije za ovog brijača. Ostavite prazno za vrijeme lokacije.'**
+  /// **'Nadopiši radno vrijeme lokacije za ovog profesionalca. Ostavite prazno za vrijeme lokacije.'**
   String get dashboardBarberWorkingHoursOverrideHint;
 
   /// No description provided for @dashboardBarberSaved.
   ///
   /// In hr, this message translates to:
-  /// **'Brijač spremljen'**
+  /// **'Profesionalac spremljen'**
   String get dashboardBarberSaved;
 
   /// No description provided for @dashboardBarberCreated.
   ///
   /// In hr, this message translates to:
-  /// **'Brijač kreiran'**
+  /// **'Profesionalac kreiran'**
   String get dashboardBarberCreated;
 
   /// No description provided for @dashboardBarberDeleteConfirm.
   ///
   /// In hr, this message translates to:
-  /// **'Obrisati ovog brijača?'**
+  /// **'Obrisati ovog profesionalca?'**
   String get dashboardBarberDeleteConfirm;
 
   /// No description provided for @dashboardBarberDeleteConfirmMessage.
@@ -1655,13 +1757,13 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardBarberDeleted.
   ///
   /// In hr, this message translates to:
-  /// **'Brijač obrisan'**
+  /// **'Profesionalac obrisan'**
   String get dashboardBarberDeleted;
 
   /// No description provided for @dashboardBarberEmpty.
   ///
   /// In hr, this message translates to:
-  /// **'Još nema brijača. Dodajte novog.'**
+  /// **'Još nema profesionalaca. Dodajte novog.'**
   String get dashboardBarberEmpty;
 
   /// No description provided for @dashboardBarberInactive.
@@ -2047,6 +2149,12 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Krajnji datum mora biti nakon početnog datuma'**
   String get timeOffEndBeforeStart;
+
+  /// No description provided for @timeOffDays.
+  ///
+  /// In hr, this message translates to:
+  /// **'dana'**
+  String get timeOffDays;
 
   /// No description provided for @shiftMyWorkingHours.
   ///

@@ -51,6 +51,12 @@ class AppLocalizationsHr extends AppLocalizations {
   String get logout => 'Odjava';
 
   @override
+  String get logoutConfirmTitle => 'Odjava';
+
+  @override
+  String get logoutConfirmMessage => 'Jeste li sigurni da želite se odjaviti?';
+
+  @override
   String get navHome => 'Početna';
 
   @override
@@ -141,7 +147,14 @@ class AppLocalizationsHr extends AppLocalizations {
   String get welcome => 'Dobrodošli';
 
   @override
+  String get signIn => 'Prijavi se';
+
+  @override
   String get signInToContinue => 'Prijavite se za nastavak';
+
+  @override
+  String get signInToAccessExclusiveRewards =>
+      'Prijavite se za pristup ekskluzivnim nagradama';
 
   @override
   String get continueWithGoogle => 'Nastavi s Googleom';
@@ -162,10 +175,10 @@ class AppLocalizationsHr extends AppLocalizations {
   String get bookingSelectService => 'Odaberi uslugu';
 
   @override
-  String get bookingSelectBarber => 'Odaberi brijača';
+  String get bookingSelectBarber => 'Odaberi profesionalca';
 
   @override
-  String get bookingAnyBarber => 'Bilo koji brijač';
+  String get bookingAnyBarber => 'Bilo koji profesionalac';
 
   @override
   String get bookingSelectDate => 'Odaberi datum';
@@ -219,7 +232,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get bookingStepService => 'Usluga';
 
   @override
-  String get bookingStepBarber => 'Brijač';
+  String get bookingStepBarber => 'Tim';
 
   @override
   String get bookingStepTime => 'Vrijeme';
@@ -290,13 +303,13 @@ class AppLocalizationsHr extends AppLocalizations {
   String get bookNow => 'Rezerviraj sada';
 
   @override
-  String get sectionBarbers => 'Rezerviraj kod brijača';
+  String get sectionBarbers => 'Odaberi profesionalca';
 
   @override
   String get sectionPopularServices => 'Popularne usluge';
 
   @override
-  String get sectionNearbyBarbershop => 'OBLIŽNJA BRIJANICA';
+  String get sectionNearbyBarbershop => 'Lokacije u blizini';
 
   @override
   String get loyaltyTitle => 'LOYALTY';
@@ -330,8 +343,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get loyaltyInsufficientPoints => 'Nedovoljno bodova';
 
   @override
-  String get loyaltyRedeemSuccess =>
-      'Nagrada zatražena! Pokažite ovaj QR brijaču.';
+  String get loyaltyRedeemSuccess => 'Nagrada zatražena! Pokažite ovaj QR kod.';
 
   @override
   String get dashboardRedeemReward => 'Skeniraj kod';
@@ -422,7 +434,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get dashboardNavRewards => 'Nagrade';
 
   @override
-  String get dashboardNavBarbers => 'Brijači';
+  String get dashboardNavBarbers => 'Tim';
 
   @override
   String get dashboardNavAnalytics => 'Analitika';
@@ -566,13 +578,57 @@ class AppLocalizationsHr extends AppLocalizations {
   String get searchCountryOrCode => 'Pretraži državu ili pozivni broj';
 
   @override
+  String get switchBrand => 'Promijeni salon';
+
+  @override
+  String get discoverBrand => 'Otkrij salon';
+
+  @override
+  String get switchBrandConfirmTitle => 'Promijeni salon';
+
+  @override
+  String switchBrandConfirmMessage(String brandName) {
+    return 'Prebaciti na $brandName?';
+  }
+
+  @override
+  String get switchBrandButton => 'Prebaci';
+
+  @override
+  String get noBrandsFound => 'Nema pronađenih salona';
+
+  @override
+  String get discoverBrandsHint =>
+      'Dodirnite ikonu skeniranja iznad za otkrivanje salona';
+
+  @override
+  String get findYourBusiness => 'Pronađite svoj salon';
+
+  @override
+  String get searchBusinessByTag =>
+      'Pretražite svoj salon\npo jedinstvenoj oznaci';
+
+  @override
+  String get searchBusinessByTagSingleLine =>
+      'Pretražite svoj salon po jedinstvenoj oznaci.';
+
+  @override
+  String get selectBusinessFirst => 'Molimo prvo odaberite salon.';
+
+  @override
+  String get scanQrCode => 'Skeniraj QR kod';
+
+  @override
+  String get searchByTag => 'Pretraži po oznaci';
+
+  @override
   String get dashboardBrandTitle => 'Brend';
 
   @override
   String get dashboardBrandName => 'Naziv';
 
   @override
-  String get dashboardBrandNameHint => 'npr. Kingsman Barbershop';
+  String get dashboardBrandNameHint => 'npr. Kingsman Salon';
 
   @override
   String get dashboardBrandNameRequired => 'Naziv je obavezan';
@@ -766,10 +822,10 @@ class AppLocalizationsHr extends AppLocalizations {
   String get dashboardServiceEmpty => 'Još nema usluga. Dodajte novu.';
 
   @override
-  String get dashboardBarberAdd => 'Dodaj brijača';
+  String get dashboardBarberAdd => 'Dodaj profesionalca';
 
   @override
-  String get dashboardBarberEdit => 'Uredi brijača';
+  String get dashboardBarberEdit => 'Uredi profesionalca';
 
   @override
   String get dashboardBarberName => 'Naziv';
@@ -804,16 +860,16 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get dashboardBarberWorkingHoursOverrideHint =>
-      'Nadopiši radno vrijeme lokacije za ovog brijača. Ostavite prazno za vrijeme lokacije.';
+      'Nadopiši radno vrijeme lokacije za ovog profesionalca. Ostavite prazno za vrijeme lokacije.';
 
   @override
-  String get dashboardBarberSaved => 'Brijač spremljen';
+  String get dashboardBarberSaved => 'Profesionalac spremljen';
 
   @override
-  String get dashboardBarberCreated => 'Brijač kreiran';
+  String get dashboardBarberCreated => 'Profesionalac kreiran';
 
   @override
-  String get dashboardBarberDeleteConfirm => 'Obrisati ovog brijača?';
+  String get dashboardBarberDeleteConfirm => 'Obrisati ovog profesionalca?';
 
   @override
   String get dashboardBarberDeleteConfirmMessage =>
@@ -823,10 +879,10 @@ class AppLocalizationsHr extends AppLocalizations {
   String get dashboardBarberDeleteButton => 'Obriši';
 
   @override
-  String get dashboardBarberDeleted => 'Brijač obrisan';
+  String get dashboardBarberDeleted => 'Profesionalac obrisan';
 
   @override
-  String get dashboardBarberEmpty => 'Još nema brijača. Dodajte novog.';
+  String get dashboardBarberEmpty => 'Još nema profesionalaca. Dodajte novog.';
 
   @override
   String get dashboardBarberInactive => 'Neaktivan';
@@ -1031,6 +1087,9 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get timeOffEndBeforeStart =>
       'Krajnji datum mora biti nakon početnog datuma';
+
+  @override
+  String get timeOffDays => 'dana';
 
   @override
   String get shiftMyWorkingHours => 'Moje radno vrijeme';

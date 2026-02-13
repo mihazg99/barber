@@ -38,7 +38,7 @@ class LoyaltyPage extends HookConsumerWidget {
         ),
         body: Center(
           child: Text(
-            'Please select a barbershop first.',
+            context.l10n.selectBusinessFirst,
             style: context.appTextStyles.body.copyWith(
               color: context.appColors.secondaryTextColor,
             ),

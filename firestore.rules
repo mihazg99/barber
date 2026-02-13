@@ -137,11 +137,19 @@ service cloud.firestore {
 
     // -------------------------------------------------------------------------
     // Public: barbers — read for everyone (guest booking flow); write superadmin only.
+    // Barbers can update their own working_hours_override field.
     // -------------------------------------------------------------------------
-    match /barbers/{document=**} {
+    match /barbers/{barberId} {
       allow read: if true;
       allow create: if request.auth != null && isSuperadmin() && request.resource.data.brand_id == barberBrandId();
-      allow update, delete: if request.auth != null && isSuperadmin() && resource.data.brand_id == barberBrandId();
+      allow update: if request.auth != null && (
+        // Superadmin can update any barber in their brand
+        (isSuperadmin() && resource.data.brand_id == barberBrandId())
+        ||
+        // Barber can update their own barber document (for working_hours_override)
+        (isBarberOrSuperadmin() && barberId == userBarberId())
+      );
+      allow delete: if request.auth != null && isSuperadmin() && resource.data.brand_id == barberBrandId();
     }
 
     // -------------------------------------------------------------------------

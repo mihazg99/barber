@@ -82,7 +82,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     String? locationId,
   }) async {
     if (!mounted) return;
-    
+
     final userId = ref.read(authRepositoryProvider).currentUserId;
     final guestStorage = ref.read(guestStorageProvider);
     final draftJson = guestStorage.getBookingDraftJson();
@@ -149,7 +149,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
 
   Future<void> _restoreFromDraft(BookingDraft draft) async {
     if (!mounted) return;
-    
+
     final servicesAsync = ref.read(servicesForHomeProvider);
     final services = servicesAsync.valueOrNull ?? [];
     final barbersAsync = ref.read(barbersForHomeProvider);
@@ -183,7 +183,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     }
 
     if (!mounted) return;
-    
+
     final notifier = ref.read(bookingNotifierProvider.notifier);
     await notifier.initialize(
       isQuickBook: preSelectedBarber != null,
@@ -233,13 +233,16 @@ class _BookingPageState extends ConsumerState<BookingPage> {
           timeSlot: bookingState.selectedTimeSlot!,
           timeSlotBarberId: bookingState.selectedTimeSlotBarberId,
         );
-        ref.read(guestStorageProvider).setBookingDraftJson(draft.toJsonString());
+        ref
+            .read(guestStorageProvider)
+            .setBookingDraftJson(draft.toJsonString());
         if (mounted) {
           showSuccessSnackBar(
             context,
             message: context.l10n.signInToContinue,
           );
-          context.push(AppRoute.auth.path);
+          // Show the login overlay instead of navigating to auth screen
+          ref.read(loginOverlayNotifierProvider.notifier).show();
         }
         if (mounted) setState(() => _isConfirming = false);
         return;

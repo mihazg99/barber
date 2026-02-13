@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'package:barber/core/di.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -33,13 +34,14 @@ class _PortalDesign {
 /// Provider for portal state
 final _portalNotifierProvider =
     StateNotifierProvider.autoDispose<PortalNotifier, PortalState>((ref) {
-  return PortalNotifier();
-});
+      return PortalNotifier();
+    });
 
 /// Provider for brand onboarding
 final _brandOnboardingNotifierProvider = StateNotifierProvider.autoDispose<
-    BrandOnboardingNotifier,
-    BaseState<BrandOnboardingState>>((ref) {
+  BrandOnboardingNotifier,
+  BaseState<BrandOnboardingState>
+>((ref) {
   final brandRepo = ref.watch(brandRepositoryProvider);
   final userBrandsRepo = ref.watch(userBrandsRepositoryProvider);
   final guestStorage = ref.watch(guestStorageProvider);
@@ -107,10 +109,14 @@ class ShaderPortalPage extends HookConsumerWidget {
     ref.listen<BaseState<BrandOnboardingState>>(
       _brandOnboardingNotifierProvider,
       (prev, next) {
-        debugPrint('[ShaderPortal] Listener triggered: state type=${next.runtimeType}');
+        debugPrint(
+          '[ShaderPortal] Listener triggered: state type=${next.runtimeType}',
+        );
         if (next is BaseData<BrandOnboardingState>) {
           final state = next.data;
-          debugPrint('[ShaderPortal] BaseData received: selectedBrand=${state.selectedBrand?.name}, error=${state.errorMessage}, isLoading=${state.isLoading}');
+          debugPrint(
+            '[ShaderPortal] BaseData received: selectedBrand=${state.selectedBrand?.name}, error=${state.errorMessage}, isLoading=${state.isLoading}',
+          );
           if (state.errorMessage != null) {
             showErrorSnackBar(context, message: state.errorMessage!);
           } else if (state.selectedBrand != null && !state.isLoading) {
@@ -118,7 +124,7 @@ class ShaderPortalPage extends HookConsumerWidget {
             // Close scanner/search first to prevent user interaction
             showScanner.value = false;
             showSearch.value = false;
-            
+
             _triggerMorph(
               state.selectedBrand!,
               portalNotifier,
@@ -133,16 +139,28 @@ class ShaderPortalPage extends HookConsumerWidget {
       },
     );
 
-    // Reset on entry
+    // Reset on entry and set brand selection flow flag
     useEffect(() {
       portalNotifier.reset();
-      return null;
+      // Use microtask so we don't modify providers during build
+      Future.microtask(() {
+        ref.read(isInBrandSelectionFlowProvider.notifier).state = true;
+        debugPrint('[ShaderPortal] Brand selection flow flag SET');
+      });
+      return () {
+        // Clear flag when leaving portal
+        Future.microtask(() {
+          ref.read(isInBrandSelectionFlowProvider.notifier).state = false;
+          debugPrint('[ShaderPortal] Brand selection flow flag CLEARED');
+        });
+      };
     }, []);
 
     // Calculate colors
-    final targetColor = portalState.selectedBrand != null
-        ? _hexToColor(portalState.selectedBrand!.primaryColor)
-        : _PortalDesign.neutralBackground;
+    final targetColor =
+        portalState.selectedBrand != null
+            ? _hexToColor(portalState.selectedBrand!.primaryColor)
+            : _PortalDesign.neutralBackground;
 
     return PopScope(
       canPop: !showScanner.value && !showSearch.value,
@@ -172,27 +190,28 @@ class ShaderPortalPage extends HookConsumerWidget {
             SafeArea(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
-                child: showScanner.value
-                    ? _ScannerView(
-                        onClose: () => showScanner.value = false,
-                      )
-                    : showSearch.value
+                child:
+                    showScanner.value
+                        ? _ScannerView(
+                          onClose: () => showScanner.value = false,
+                        )
+                        : showSearch.value
                         ? _SearchView(
-                            onClose: () {
-                              showSearch.value = false;
-                              ref
-                                  .read(_brandOnboardingNotifierProvider.notifier)
-                                  .clearSearch();
-                            },
-                          )
+                          onClose: () {
+                            showSearch.value = false;
+                            ref
+                                .read(_brandOnboardingNotifierProvider.notifier)
+                                .clearSearch();
+                          },
+                        )
                         : _PortalContent(
-                            brand: portalState.selectedBrand,
-                            morphProgress: morphValue,
-                            scale: scaleValue,
-                            canInteract: portalNotifier.canInteract,
-                            onScanTap: () => showScanner.value = true,
-                            onSearchTap: () => showSearch.value = true,
-                          ),
+                          brand: portalState.selectedBrand,
+                          morphProgress: morphValue,
+                          scale: scaleValue,
+                          canInteract: portalNotifier.canInteract,
+                          onScanTap: () => showScanner.value = true,
+                          onSearchTap: () => showSearch.value = true,
+                        ),
               ),
             ),
           ],
@@ -247,6 +266,12 @@ class ShaderPortalPage extends HookConsumerWidget {
     debugPrint('[ShaderPortal] Starting hero transition');
     portalNotifier.onHeroTransitionStart();
 
+    // Clear brand selection flow flag BEFORE locking brand to allow router redirects
+    ref.read(isInBrandSelectionFlowProvider.notifier).state = false;
+    debugPrint(
+      '[ShaderPortal] Brand selection flow flag cleared before navigation',
+    );
+
     // Lock the brand before navigation
     ref.read(lockedBrandIdProvider.notifier).state = brand.brandId;
     debugPrint('[ShaderPortal] Brand locked: ${brand.brandId}');
@@ -300,11 +325,12 @@ class _PortalContent extends StatelessWidget {
   Widget build(BuildContext context) {
     // Accent color for buttons
     final brandColor = brand != null ? _hexToColor(brand!.primaryColor) : null;
-    final accentColor = Color.lerp(
-      const Color(0xFF6366F1),
-      brandColor ?? const Color(0xFF6366F1),
-      morphProgress,
-    )!;
+    final accentColor =
+        Color.lerp(
+          const Color(0xFF6366F1),
+          brandColor ?? const Color(0xFF6366F1),
+          morphProgress,
+        )!;
 
     return Column(
       children: [
@@ -335,7 +361,7 @@ class _PortalContent extends StatelessWidget {
                 children: [
                   _PremiumButton(
                     icon: Icons.qr_code_scanner_rounded,
-                    label: 'Scan QR Code',
+                    label: context.l10n.scanQrCode,
                     onTap: onScanTap,
                     isPrimary: true,
                     accentColor: accentColor,
@@ -343,7 +369,7 @@ class _PortalContent extends StatelessWidget {
                   Gap(context.appSizes.paddingMedium),
                   _PremiumButton(
                     icon: Icons.search_rounded,
-                    label: 'Search by Tag',
+                    label: context.l10n.searchByTag,
                     onTap: onSearchTap,
                     isPrimary: false,
                     accentColor: accentColor,
@@ -414,16 +440,18 @@ class _PremiumButton extends HookWidget {
           ),
           decoration: BoxDecoration(
             // Semi-transparent base
-            color: isPrimary
-                ? accentColor.withValues(alpha: 0.12)
-                : Colors.white.withValues(alpha: 0.05),
+            color:
+                isPrimary
+                    ? accentColor.withValues(alpha: 0.12)
+                    : Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
             // 1px precise border
             border: Border.all(
               width: 1.0,
-              color: isPrimary
-                  ? accentColor.withValues(alpha: 0.5)
-                  : Colors.white.withValues(alpha: 0.25),
+              color:
+                  isPrimary
+                      ? accentColor.withValues(alpha: 0.5)
+                      : Colors.white.withValues(alpha: 0.25),
             ),
           ),
           child: Row(
@@ -489,8 +517,9 @@ class _ScannerView extends HookConsumerWidget {
 
             final userIdAsync = ref.read(currentUserIdProvider);
             final userId = userIdAsync.valueOrNull;
-            final notifier =
-                ref.read(_brandOnboardingNotifierProvider.notifier);
+            final notifier = ref.read(
+              _brandOnboardingNotifierProvider.notifier,
+            );
 
             if (userId != null) {
               await notifier.handleQrCode(raw, userId);
@@ -684,38 +713,39 @@ class _SearchView extends HookConsumerWidget {
         Expanded(
           child: Padding(
             padding: EdgeInsets.all(context.appSizes.paddingLarge),
-            child: searchResult != null
-                ? _BrandResultCard(brand: searchResult)
-                : data?.errorMessage != null
+            child:
+                searchResult != null
+                    ? _BrandResultCard(brand: searchResult)
+                    : data?.errorMessage != null
                     ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              size: 48,
-                              color: Colors.white.withValues(alpha: 0.7),
-                            ),
-                            Gap(context.appSizes.paddingMedium),
-                            Text(
-                              data?.errorMessage ?? '',
-                              style: context.appTextStyles.body.copyWith(
-                                color: Colors.white.withValues(alpha: 0.9),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      )
-                    : Center(
-                        child: Text(
-                          'Search for your barbershop\nby their unique tag',
-                          style: context.appTextStyles.body.copyWith(
-                            color: Colors.white.withValues(alpha: 0.6),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.white.withValues(alpha: 0.7),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
+                          Gap(context.appSizes.paddingMedium),
+                          Text(
+                            data?.errorMessage ?? '',
+                            style: context.appTextStyles.body.copyWith(
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
+                    )
+                    : Center(
+                      child: Text(
+                        context.l10n.searchBusinessByTag,
+                        style: context.appTextStyles.body.copyWith(
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
           ),
         ),
       ],
@@ -742,20 +772,22 @@ class _BrandResultCard extends ConsumerWidget {
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.2),
             ),
-            image: brand.logoUrl.isNotEmpty
-                ? DecorationImage(
-                    image: NetworkImage(brand.logoUrl),
-                    fit: BoxFit.cover,
-                  )
-                : null,
+            image:
+                brand.logoUrl.isNotEmpty
+                    ? DecorationImage(
+                      image: NetworkImage(brand.logoUrl),
+                      fit: BoxFit.cover,
+                    )
+                    : null,
           ),
-          child: brand.logoUrl.isEmpty
-              ? Icon(
-                  Icons.store,
-                  size: 60,
-                  color: Colors.white.withValues(alpha: 0.5),
-                )
-              : null,
+          child:
+              brand.logoUrl.isEmpty
+                  ? Icon(
+                    Icons.store,
+                    size: 60,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  )
+                  : null,
         ),
         Gap(context.appSizes.paddingLarge),
         Text(
@@ -781,8 +813,9 @@ class _BrandResultCard extends ConsumerWidget {
             label: 'Join ${brand.name}',
             onTap: () {
               final currentUserId = ref.read(currentUserIdProvider).valueOrNull;
-              final notifier =
-                  ref.read(_brandOnboardingNotifierProvider.notifier);
+              final notifier = ref.read(
+                _brandOnboardingNotifierProvider.notifier,
+              );
               if (currentUserId == null || currentUserId.isEmpty) {
                 notifier.selectBrandForGuest(brand.brandId);
               } else {

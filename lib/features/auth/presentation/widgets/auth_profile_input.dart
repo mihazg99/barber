@@ -57,7 +57,10 @@ class AuthProfileInput extends HookConsumerWidget {
           orElse: () => selectedCountry.value,
         );
         selectedCountry.value = matchingCountry;
-        final phoneWithoutCode = phone.replaceFirst(matchingCountry.dialCode, '');
+        final phoneWithoutCode = phone.replaceFirst(
+          matchingCountry.dialCode,
+          '',
+        );
         phoneController.text = phoneWithoutCode;
       }
       return null;
@@ -149,7 +152,8 @@ class AuthProfileInput extends HookConsumerWidget {
                     : () async {
                       if (formKey.currentState?.validate() ?? false) {
                         final digits = _digitsOnly(phoneController.text);
-                        final fullPhone = selectedCountry.value.dialCode + digits;
+                        final fullPhone =
+                            selectedCountry.value.dialCode + digits;
                         await onSubmit(
                           nameController.text.trim(),
                           fullPhone,

@@ -37,10 +37,7 @@ class HomeDrawer extends HookConsumerWidget {
             _SwitchBrandTile(),
             Gap(context.appSizes.paddingSmall),
             // Login or Logout option
-            if (isGuest)
-              _LoginTile()
-            else
-              _LogoutTile(),
+            if (isGuest) _LoginTile() else _LogoutTile(),
           ],
         ),
       ),
@@ -109,7 +106,7 @@ class _SwitchBrandTile extends HookConsumerWidget {
         size: 24,
       ),
       title: Text(
-        'Switch Barbershop',
+        context.l10n.switchBrand,
         style: context.appTextStyles.body.copyWith(
           fontWeight: FontWeight.w600,
           color: context.appColors.primaryTextColor,
@@ -136,7 +133,7 @@ class _LoginTile extends HookConsumerWidget {
         size: 24,
       ),
       title: Text(
-        'Login',
+        context.l10n.signIn,
         style: context.appTextStyles.body.copyWith(
           fontWeight: FontWeight.w600,
           color: context.appColors.primaryTextColor,
@@ -147,10 +144,9 @@ class _LoginTile extends HookConsumerWidget {
   }
 
   void _handleLogin(BuildContext context, WidgetRef ref) {
-    // Set flag to indicate intentional login attempt
-    ref.read(isGuestLoginIntentProvider.notifier).state = true;
     Navigator.of(context).pop();
-    context.push(AppRoute.auth.path);
+    // Show the login overlay instead of navigating to auth screen
+    ref.read(loginOverlayNotifierProvider.notifier).show();
   }
 }
 
@@ -161,22 +157,23 @@ class _LogoutTile extends HookConsumerWidget {
     final isLoggingOut = useState(false);
 
     return ListTile(
-      leading: isLoggingOut.value
-          ? SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  context.appColors.primaryTextColor,
+      leading:
+          isLoggingOut.value
+              ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    context.appColors.primaryTextColor,
+                  ),
                 ),
+              )
+              : Icon(
+                Icons.logout_rounded,
+                color: context.appColors.primaryTextColor,
+                size: 24,
               ),
-            )
-          : Icon(
-              Icons.logout_rounded,
-              color: context.appColors.primaryTextColor,
-              size: 24,
-            ),
       title: Text(
         context.l10n.logout,
         style: context.appTextStyles.body.copyWith(
@@ -209,12 +206,12 @@ class _LogoutTile extends HookConsumerWidget {
     try {
       // Set logout flag to prevent PERMISSION_DENIED errors
       container.read(isLoggingOutProvider.notifier).state = true;
-      
+
       // Close drawer first
       if (context.mounted) {
         Navigator.of(context).pop();
       }
-      
+
       // Navigate to home if not already there to avoid disposal issues with other pages
       if (context.mounted) {
         final currentLocation = GoRouterState.of(context).uri.path;
@@ -224,39 +221,38 @@ class _LogoutTile extends HookConsumerWidget {
           await Future.delayed(const Duration(milliseconds: 100));
         }
       }
-      
+
       // Invalidate user-specific providers that depend on auth
       // These will automatically cancel their Firestore listeners
       container.invalidate(upcomingAppointmentProvider);
       container.invalidate(currentUserProvider);
-      
+
       // Trigger re-read to cancel listeners immediately
       container.read(upcomingAppointmentProvider);
       container.read(currentUserProvider);
-      
+
       // Perform Firebase sign out
       await container.read(authNotifierProvider.notifier).signOut();
-      
+
       // Clear all user-specific cached data
       container.read(lastSignedInUserProvider.notifier).state = null;
-      
+
       // Invalidate providers to force reload with guest context
       // homeNotifierProvider will reload with the same brand but as guest
       container.invalidate(homeNotifierProvider);
-      
+
       // userBrandsProvider is autoDispose and will clear automatically
       // currentUserLoyaltyPointsProvider is autoDispose and will clear automatically
       // availableTimeSlotsProvider is autoDispose and will clear automatically
-      
+
       // Keep the locked brand - user stays on the same brand as a guest
       // Keep defaultBrandProvider - brand config should remain cached
-      
+
       // Clear guest login intent flag
       container.read(isGuestLoginIntentProvider.notifier).state = false;
-      
+
       // Trigger router refresh to update UI with guest state
       container.read(routerRefreshNotifierProvider).notify();
-      
     } catch (e) {
       debugPrint('[HomeDrawer] Logout error: $e');
       if (context.mounted) {
@@ -280,16 +276,16 @@ class _LogoutConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Logout'),
-      content: const Text('Are you sure you want to logout?'),
+      title: Text(context.l10n.logoutConfirmTitle),
+      content: Text(context.l10n.logoutConfirmMessage),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Logout'),
+          child: Text(context.l10n.logout),
         ),
       ],
     );

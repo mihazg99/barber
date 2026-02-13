@@ -52,11 +52,11 @@ class AuthLanding extends HookConsumerWidget {
           loading: isLoading,
           icon: Icon(
             Icons.g_mobiledata,
-            color: context.appColors.primaryTextColor,
+            color: context.appColors.primaryWhiteColor,
             size: 24,
           ),
           child: Text(
-            context.l10n.continueWithGoogle ?? 'Continue with Google',
+            context.l10n.continueWithGoogle,
           ),
         ),
         if (showAppleSignIn) ...[
@@ -72,22 +72,45 @@ class AuthLanding extends HookConsumerWidget {
               size: 24,
             ),
             child: Text(
-              context.l10n.continueWithApple ?? 'Continue with Apple',
+              context.l10n.continueWithApple,
             ),
           ),
         ],
         if (errorMessage != null) ...[
           Gap(context.appSizes.paddingMedium),
-          Text(
-            errorMessage!,
-            style: TextStyle(
-              color: context.appColors.errorColor,
-              fontSize: 14,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          _ErrorText(message: errorMessage!),
         ],
       ],
+    );
+  }
+}
+
+/// Error message widget matching home page style
+class _ErrorText extends StatelessWidget {
+  const _ErrorText({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(context.appSizes.paddingMedium),
+      decoration: BoxDecoration(
+        color: context.appColors.errorColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
+        border: Border.all(
+          color: context.appColors.errorColor.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        message,
+        style: TextStyle(
+          color: context.appColors.errorColor,
+          fontSize: 14,
+        ),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }

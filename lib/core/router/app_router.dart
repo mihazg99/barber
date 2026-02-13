@@ -27,7 +27,7 @@ import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:barber/features/brand_selection/di.dart';
 import 'package:barber/features/brand/di.dart';
-import 'package:barber/features/brand_selection/presentation/pages/shader_portal_page.dart';
+import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 import 'package:barber/features/brand_selection/presentation/pages/video_portal_page.dart';
 import 'package:barber/features/brand_selection/presentation/pages/brand_switcher_page.dart';
 
@@ -132,6 +132,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     }
   });
 
+  // Listen for brand config loading completion to trigger redirect from splash
+  // This ensures that when defaultBrandProvider finishes loading (or errors),
+  // the router redirect logic runs again and navigates away from splash.
+  ref.listen<AsyncValue<BrandEntity?>>(defaultBrandProvider, (prev, next) {
+    debugPrint(
+      '[Router Listener] defaultBrandProvider changed: isLoading=${next.isLoading}, hasValue=${next.hasValue}, hasError=${next.hasError}',
+    );
+    // Only refresh if NOT in brand selection flow and NOT loading
+    // This triggers redirect logic to re-run when brand config finishes loading
+    // The redirect logic will check if we're on splash and navigate accordingly
+    if (!next.isLoading && !ref.read(isInBrandSelectionFlowProvider)) {
+      debugPrint('[Router Listener] Brand config finished loading, triggering router refresh');
+      Future.microtask(() => refreshNotifier.notify());
+    }
+  });
+
   return GoRouter(
     initialLocation: AppRoute.auth.path,
     refreshListenable: refreshNotifier,
@@ -143,9 +159,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // but allow Auth as fallback for future refreshes to avoid splash flash.
       if (_isFirstRun && state.uri.path == AppRoute.auth.path) {
         _isFirstRun = false;
+        debugPrint('[Router $timestamp] First run -> redirecting to splash');
         return AppRoute.splash.path;
       }
-      _isFirstRun = false;
+      // Reset _isFirstRun flag after first redirect is handled
+      if (_isFirstRun) {
+        _isFirstRun = false;
+      }
 
       // Use container from context so we don't use ref during "dependency changed"
       // (e.g. when refreshNotifier.notify() runs from ref.listen), which would throw.
@@ -196,16 +216,42 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         }
 
         // Wait for auth state to resolve.
-        if (isAuthAsync.isLoading) return null;
+        if (isAuthAsync.isLoading) {
+          debugPrint('[Router] Splash -> waiting for auth state');
+          return null;
+        }
 
         // Brand + auth resolution:
         final hasLockedBrand =
             lockedBrandId != null && lockedBrandId.isNotEmpty;
 
         if (hasLockedBrand) {
-          // Wait for brand config when a brand is locked.
+          // Wait for brand config when a brand is locked, but don't block forever.
+          // If brand config fails to load, we still allow navigation (brand ID is locked).
           final brandAsync = container.read(defaultBrandProvider);
-          if (brandAsync.isLoading) return null;
+          
+          // CRITICAL: Wait until brand has completed loading (has value or error).
+          // This ensures we don't proceed before the brand is loaded.
+          // The splash page watches this provider, which triggers the load, but we need to
+          // wait here to ensure the load completes before navigating away.
+          if (!brandAsync.hasValue && !brandAsync.hasError) {
+            debugPrint(
+              '[Router] Splash -> waiting for brand config (isLoading=${brandAsync.isLoading}, hasValue=${brandAsync.hasValue}, hasError=${brandAsync.hasError})',
+            );
+            return null;
+          }
+          
+          // If brand config has error, log but proceed (brand ID is still locked)
+          if (brandAsync.hasError) {
+            debugPrint(
+              '[Router] Splash -> brand config error, but proceeding (brand ID locked): ${brandAsync.error}',
+            );
+          } else {
+            // Brand loaded successfully - proceed with navigation
+            debugPrint(
+              '[Router] Splash -> brand config loaded successfully: ${brandAsync.valueOrNull?.name ?? "null"}',
+            );
+          }
         }
 
         // Decision tree from Splash once everything is resolved.
@@ -214,6 +260,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return AppRoute.brandOnboarding.path;
         }
 
+        // If we have a locked brand and onboarding is complete, we should always navigate away.
         if (effectiveRole == EffectiveUserRole.guest) {
           debugPrint('[Router] Splash -> home (guest with brand)');
           return AppRoute.home.path;
@@ -226,8 +273,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             debugPrint('[Router] Splash -> dashboard (staff)');
             return AppRoute.dashboard.path;
           case EffectiveUserRole.user:
-          case EffectiveUserRole.guest:
             debugPrint('[Router] Splash -> home (user)');
+            return AppRoute.home.path;
+          case EffectiveUserRole.guest:
+            // Already handled above, but included for completeness
+            debugPrint('[Router] Splash -> home (guest)');
             return AppRoute.home.path;
         }
       }

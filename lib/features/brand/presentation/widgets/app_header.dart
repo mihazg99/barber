@@ -5,6 +5,8 @@ import 'package:barber/core/di.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/widgets/shimmer_placeholder.dart';
+import 'package:barber/features/brand/di.dart' as brand_di;
 import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/home/di.dart';
@@ -19,20 +21,29 @@ class AppHeader extends ConsumerWidget {
     final flavorTitle =
         ref.watch(flavorConfigProvider).values.brandConfig.appTitle;
 
+    // Watch default brand provider to detect loading state
+    final defaultBrandAsync = ref.watch(brand_di.defaultBrandProvider);
+
     // Try to get dynamic brand name from dashboard state (superadmin)
     final dashboardState = ref.watch(dashboardBrandNotifierProvider);
-    final dashboardBrand = dashboardState is BaseData<BrandEntity?>
-        ? dashboardState.data
-        : null;
+    final dashboardBrand =
+        dashboardState is BaseData<BrandEntity?> ? dashboardState.data : null;
 
     // Try to get dynamic brand name from home state (user/barber)
     final homeState = ref.watch(homeNotifierProvider);
     final homeBrand =
         homeState is BaseData<HomeData> ? homeState.data.brand : null;
 
-    final brand = dashboardBrand ?? homeBrand;
-    final brandTitle = brand?.name ?? flavorTitle;
+    final brand = dashboardBrand ?? homeBrand ?? defaultBrandAsync.valueOrNull;
+    final brandTitle = brand?.name;
     final logoUrl = brand?.logoUrl;
+
+    // Show shimmer if brand is loading and we have a locked brand ID
+    final lockedBrandId = ref.watch(brand_di.lockedBrandIdProvider);
+    final isBrandLoading =
+        defaultBrandAsync.isLoading &&
+        lockedBrandId != null &&
+        brandTitle == null;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 12, 12),
@@ -69,14 +80,15 @@ class AppHeader extends ConsumerWidget {
                           color: context.appColors.secondaryColor,
                         );
                       },
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: context.appColors.secondaryColor,
-                        child: Icon(
-                          Icons.store,
-                          size: 20,
-                          color: context.appColors.primaryTextColor,
-                        ),
-                      ),
+                      errorBuilder:
+                          (context, error, stackTrace) => Container(
+                            color: context.appColors.secondaryColor,
+                            child: Icon(
+                              Icons.store,
+                              size: 20,
+                              color: context.appColors.primaryTextColor,
+                            ),
+                          ),
                     ),
                   ),
                 ),
@@ -85,18 +97,27 @@ class AppHeader extends ConsumerWidget {
           Expanded(
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                brandTitle,
-                style: context.appTextStyles.h1.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.3,
-                  height: 1.2,
-                  color: context.appColors.primaryTextColor,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              child:
+                  isBrandLoading
+                      ? ShimmerWrapper(
+                        child: ShimmerPlaceholder(
+                          width: 120,
+                          height: 20,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      )
+                      : Text(
+                        brandTitle ?? flavorTitle,
+                        style: context.appTextStyles.h1.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.3,
+                          height: 1.2,
+                          color: context.appColors.primaryTextColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
             ),
           ),
           IconButton(

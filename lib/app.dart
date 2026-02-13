@@ -4,6 +4,7 @@ import 'package:barber/core/di.dart';
 import 'package:barber/core/router/app_router.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_theme.dart';
+import 'package:barber/features/auth/presentation/widgets/login_overlay.dart';
 import 'package:barber/features/home/di.dart';
 import 'package:barber/gen/l10n/app_localizations.dart';
 
@@ -56,6 +57,16 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       locale: const Locale('hr'),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            if (child != null) child,
+            Positioned.fill(
+              child: const LoginOverlay(),
+            ),
+          ],
+        );
+      },
     );
   }
 }

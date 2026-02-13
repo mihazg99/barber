@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:barber/core/di.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
@@ -11,6 +12,7 @@ import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/utils/time_input_formatter.dart';
 import 'package:barber/core/value_objects/working_hours.dart';
+import 'package:barber/core/widgets/time_picker_field.dart';
 import 'package:barber/core/widgets/custom_back_button.dart';
 import 'package:barber/core/widgets/custom_textfield.dart';
 import 'package:barber/core/widgets/primary_button.dart';
@@ -18,7 +20,6 @@ import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 
 const _dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 /// Full-page form for add/edit location. Pass [location] for edit, null for create.
 class LocationFormPage extends HookConsumerWidget {
@@ -49,6 +50,17 @@ class LocationFormPage extends HookConsumerWidget {
               : '',
     );
     final formKey = useMemoized(() => GlobalKey<FormState>());
+
+    // Get localized weekday abbreviations
+    final locale = Localizations.localeOf(context).toString();
+    final baseDate = DateTime(2024, 1, 1); // Monday
+    final dayLabels = List.generate(7, (index) {
+      final weekday = index + 1; // Convert 0-6 index to 1-7 weekday
+      final targetDate = baseDate.add(Duration(days: weekday - 1));
+      final formatted = DateFormat('EEE', locale).format(targetDate);
+      // Capitalize first letter
+      return formatted.isEmpty ? formatted : formatted[0].toUpperCase() + formatted.substring(1);
+    });
 
     final openControllers = useMemoized(
       () => List.generate(
@@ -246,10 +258,10 @@ class LocationFormPage extends HookConsumerWidget {
                   ),
                 ),
                 Gap(context.appSizes.paddingSmall),
-                ...List.generate(
-                  7,
-                  (i) => _WorkingHoursRow(
-                    dayLabel: _dayLabels[i],
+                  ...List.generate(
+                    7,
+                    (i) => _WorkingHoursRow(
+                      dayLabel: dayLabels[i],
                     openController: openControllers[i],
                     closeController: closeControllers[i],
                     timeFormatError: context.l10n.dashboardLocationTimeFormat,
@@ -329,29 +341,10 @@ class _WorkingHoursRow extends StatelessWidget {
           ),
           Gap(context.appSizes.paddingSmall),
           Expanded(
-            child: TextFormField(
+            child: TimePickerField(
               controller: openController,
-              decoration: InputDecoration(
-                hintText: '14:00',
-                hintStyle: context.appTextStyles.fields.copyWith(
-                  color: context.appColors.hintTextColor,
-                ),
-                filled: true,
-                fillColor: context.appColors.secondaryColor,
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: context.appSizes.paddingSmall,
-                  horizontal: context.appSizes.paddingMedium,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(
-                    context.appSizes.borderRadius,
-                  ),
-                ),
-              ),
-              inputFormatters: [
-                TimeInputFormatter(),
-                LengthLimitingTextInputFormatter(5),
-              ],
+              hintText: '14:00',
+              fillColor: context.appColors.secondaryColor,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return null;
                 return validateTimeFormat(v, formatError: timeFormatError);
@@ -368,29 +361,10 @@ class _WorkingHoursRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: TextFormField(
+            child: TimePickerField(
               controller: closeController,
-              decoration: InputDecoration(
-                hintText: '18:00',
-                hintStyle: context.appTextStyles.fields.copyWith(
-                  color: context.appColors.hintTextColor,
-                ),
-                filled: true,
-                fillColor: context.appColors.secondaryColor,
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: context.appSizes.paddingSmall,
-                  horizontal: context.appSizes.paddingMedium,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(
-                    context.appSizes.borderRadius,
-                  ),
-                ),
-              ),
-              inputFormatters: [
-                TimeInputFormatter(),
-                LengthLimitingTextInputFormatter(5),
-              ],
+              hintText: '18:00',
+              fillColor: context.appColors.secondaryColor,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return null;
                 final formatErr = validateTimeFormat(

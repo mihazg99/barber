@@ -40,7 +40,7 @@ class NearbyLocationsSection extends ConsumerWidget {
 class _NearbyLocationsContent extends StatelessWidget {
   const _NearbyLocationsContent({
     required this.locations,
-    this.title = 'NEARBY BARBERSHOP',
+    this.title = 'Nearby locations',
   });
 
   final List<LocationEntity> locations;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:intl/intl.dart';
 
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
@@ -169,9 +170,17 @@ class WorkingHoursCard extends HookWidget {
   }
 
   String _getDayLabel(BuildContext context, int index) {
-    // Using simple labels for now - can be localized later
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[index];
+    // Get localized weekday abbreviation
+    // index 0 = Monday (weekday 1), index 6 = Sunday (weekday 7)
+    final locale = Localizations.localeOf(context).toString();
+    final weekday = index + 1; // Convert 0-6 index to 1-7 weekday
+    // Create a date for the specific weekday (using a reference date)
+    // We'll use a known Monday as base: 2024-01-01 was a Monday
+    final baseDate = DateTime(2024, 1, 1); // Monday
+    final targetDate = baseDate.add(Duration(days: weekday - 1));
+    final formatted = DateFormat('EEE', locale).format(targetDate);
+    // Capitalize first letter
+    return formatted.isEmpty ? formatted : formatted[0].toUpperCase() + formatted.substring(1);
   }
 }
 

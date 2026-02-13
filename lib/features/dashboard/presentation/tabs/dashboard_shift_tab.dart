@@ -269,8 +269,10 @@ class _WorkingHoursSection extends HookConsumerWidget {
           (workingHours) => WorkingHoursCard(
             workingHours: workingHours,
             onEdit: () {
-              showDialog(
+              showModalBottomSheet(
                 context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
                 builder: (context) => const EditWorkingHoursDialog(),
               );
             },

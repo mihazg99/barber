@@ -25,7 +25,9 @@ class TimeOffCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.appColors;
-    final dateFormat = DateFormat.MMMd(locale);
+    // Use full locale from context for proper weekday localization
+    final fullLocale = Localizations.localeOf(context).toString();
+    final dateFormat = DateFormat('EEE, MMM d', fullLocale);
 
     final startDateStr = dateFormat.format(timeOff.startDate);
     final endDateStr = dateFormat.format(timeOff.endDate);
@@ -39,39 +41,44 @@ class TimeOffCard extends HookConsumerWidget {
     final reasonColor = _getReasonColor(timeOff.reason);
     final reasonIcon = _getReasonIcon(timeOff.reason);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: colors.menuBackgroundColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: colors.borderColor.withOpacity(0.1),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            // Decorative background accent
-            Positioned(
-              right: -20,
-              top: -20,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: reasonColor.withOpacity(0.05),
-                  shape: BoxShape.circle,
-                ),
+    return Material(
+      color: Colors.transparent,
+      child: Focus(
+        canRequestFocus: false,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: colors.menuBackgroundColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
+            ],
+            border: Border.all(
+              color: colors.borderColor.withOpacity(0.1),
             ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              children: [
+                // Decorative background accent (hidden for vacation to avoid green overlay)
+                if (timeOff.reason != 'vacation')
+                  Positioned(
+                    right: -20,
+                    top: -20,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: reasonColor.withOpacity(0.05),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
 
             Padding(
               padding: EdgeInsets.all(context.appSizes.paddingMedium),
@@ -137,22 +144,18 @@ class TimeOffCard extends HookConsumerWidget {
                   ),
 
                   // Right: Delete action
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _showDeleteConfirmation(context, ref),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colors.errorColor.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.delete_outline_rounded,
-                          color: colors.errorColor.withOpacity(0.7),
-                          size: 20,
-                        ),
+                  GestureDetector(
+                    onTap: () => _showDeleteConfirmation(context, ref),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colors.errorColor.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.delete_outline_rounded,
+                        color: colors.errorColor.withOpacity(0.7),
+                        size: 20,
                       ),
                     ),
                   ),
@@ -160,6 +163,8 @@ class TimeOffCard extends HookConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
         ),
       ),
     );
@@ -175,7 +180,7 @@ class TimeOffCard extends HookConsumerWidget {
     DateTime end,
   ) {
     final days = end.difference(start).inDays + 1;
-    return '$days days'; // TODO: Localize 'days'
+    return '$days ${context.l10n.timeOffDays}';
   }
 
   String _getReasonLabel(BuildContext context, String reason) {

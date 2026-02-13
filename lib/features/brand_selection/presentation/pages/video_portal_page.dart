@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'package:barber/core/di.dart';
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -47,7 +48,6 @@ class _MonolithDesign {
   static const double blurSigma = 25.0; // Matching "Search by Tag" button
   static const double borderWidth = 1.5; // Precise border
 }
-
 
 /// Provider for brand onboarding
 final _brandOnboardingNotifierProvider = StateNotifierProvider.autoDispose<
@@ -122,10 +122,14 @@ class VideoPortalPage extends HookConsumerWidget {
     ref.listen<BaseState<BrandOnboardingState>>(
       _brandOnboardingNotifierProvider,
       (prev, next) {
-        debugPrint('[VideoPortal] Listener triggered: state type=${next.runtimeType}');
+        debugPrint(
+          '[VideoPortal] Listener triggered: state type=${next.runtimeType}',
+        );
         if (next is BaseData<BrandOnboardingState>) {
           final state = next.data;
-          debugPrint('[VideoPortal] BaseData received: selectedBrand=${state.selectedBrand?.name}, error=${state.errorMessage}, isLoading=${state.isLoading}');
+          debugPrint(
+            '[VideoPortal] BaseData received: selectedBrand=${state.selectedBrand?.name}, error=${state.errorMessage}, isLoading=${state.isLoading}',
+          );
           if (state.errorMessage != null) {
             showErrorSnackBar(context, message: state.errorMessage!);
           } else if (state.selectedBrand != null && !state.isLoading) {
@@ -133,7 +137,7 @@ class VideoPortalPage extends HookConsumerWidget {
             // Close scanner/search first to prevent user interaction
             showScanner.value = false;
             showSearch.value = false;
-            
+
             // Trigger the morph animation sequence
             _triggerMorph(
               state.selectedBrand!,
@@ -186,7 +190,8 @@ class VideoPortalPage extends HookConsumerWidget {
       },
       child: Scaffold(
         backgroundColor: _PortalDesign.neutralBackground,
-        resizeToAvoidBottomInset: false, // Prevent keyboard from pushing content
+        resizeToAvoidBottomInset:
+            false, // Prevent keyboard from pushing content
         body: Stack(
           children: [
             // Cinematic video background with color grading
@@ -201,29 +206,29 @@ class VideoPortalPage extends HookConsumerWidget {
 
             // Main content
             AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child:
-                    showScanner.value
-                        ? _ScannerView(
-                          onClose: () => showScanner.value = false,
-                        )
-                        : showSearch.value
-                        ? _SearchView(
-                          onClose: () {
-                            showSearch.value = false;
-                            ref
-                                .read(_brandOnboardingNotifierProvider.notifier)
-                                .clearSearch();
-                          },
-                        )
-                        : _PortalContent(
-                          brand: portalState.selectedBrand,
-                          morphProgress: morphValue,
-                          scale: scaleValue,
-                          canInteract: portalNotifier.canInteract,
-                          onScanTap: () => showScanner.value = true,
-                          onSearchTap: () => showSearch.value = true,
-                        ),
+              duration: const Duration(milliseconds: 300),
+              child:
+                  showScanner.value
+                      ? _ScannerView(
+                        onClose: () => showScanner.value = false,
+                      )
+                      : showSearch.value
+                      ? _SearchView(
+                        onClose: () {
+                          showSearch.value = false;
+                          ref
+                              .read(_brandOnboardingNotifierProvider.notifier)
+                              .clearSearch();
+                        },
+                      )
+                      : _PortalContent(
+                        brand: portalState.selectedBrand,
+                        morphProgress: morphValue,
+                        scale: scaleValue,
+                        canInteract: portalNotifier.canInteract,
+                        onScanTap: () => showScanner.value = true,
+                        onSearchTap: () => showSearch.value = true,
+                      ),
             ),
           ],
         ),
@@ -280,7 +285,9 @@ class VideoPortalPage extends HookConsumerWidget {
     // Clear brand selection flow flag BEFORE locking brand
     // This allows router to redirect to home when brand is locked
     ref.read(isInBrandSelectionFlowProvider.notifier).state = false;
-    debugPrint('[VideoPortal] Brand selection flow flag cleared before navigation');
+    debugPrint(
+      '[VideoPortal] Brand selection flow flag cleared before navigation',
+    );
 
     // Lock the brand before navigation
     ref.read(lockedBrandIdProvider.notifier).state = brand.brandId;
@@ -755,7 +762,7 @@ class _PortalContent extends StatelessWidget {
                 children: [
                   _PremiumButton(
                     icon: Icons.qr_code_scanner_rounded,
-                    label: 'Scan QR Code',
+                    label: context.l10n.scanQrCode,
                     onTap: onScanTap,
                     isPrimary: true,
                     accentColor: accentColor,
@@ -763,7 +770,7 @@ class _PortalContent extends StatelessWidget {
                   Gap(context.appSizes.paddingMedium),
                   _PremiumButton(
                     icon: Icons.search_rounded,
-                    label: 'Search by Tag',
+                    label: context.l10n.searchByTag,
                     onTap: onSearchTap,
                     isPrimary: false,
                     accentColor: accentColor,
@@ -1033,6 +1040,7 @@ class _SearchView extends HookConsumerWidget {
 
     return Column(
       children: [
+        const Gap(24),
         Padding(
           padding: EdgeInsets.all(context.appSizes.paddingMedium),
           child: Row(
@@ -1126,7 +1134,7 @@ class _SearchView extends HookConsumerWidget {
                     )
                     : Center(
                       child: Text(
-                        'Search for your barbershop\nby their unique tag',
+                        context.l10n.searchBusinessByTag,
                         style: context.appTextStyles.body.copyWith(
                           color: Colors.white.withValues(alpha: 0.6),
                         ),

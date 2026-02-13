@@ -34,6 +34,7 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
         homeState is BaseData<HomeData>
             ? homeState.data.locations
             : <LocationEntity>[];
+    final isLocationsLoading = homeState is BaseLoading;
 
     // Home data loaded centrally by DashboardPage when barber dashboard mounts.
     final firstName = _firstName(user?.fullName);
@@ -128,6 +129,7 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
                               locations,
                               a.locationId,
                             ),
+                            isLocationsLoading: isLocationsLoading,
                           ),
                         ),
                       ),

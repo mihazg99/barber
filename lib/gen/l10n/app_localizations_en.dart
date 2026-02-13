@@ -51,6 +51,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logout => 'Log out';
 
   @override
+  String get logoutConfirmTitle => 'Logout';
+
+  @override
+  String get logoutConfirmMessage => 'Are you sure you want to logout?';
+
+  @override
   String get navHome => 'Home';
 
   @override
@@ -141,7 +147,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcome => 'Welcome';
 
   @override
+  String get signIn => 'Sign in';
+
+  @override
   String get signInToContinue => 'Sign in to continue';
+
+  @override
+  String get signInToAccessExclusiveRewards =>
+      'Sign in to access exclusive rewards';
 
   @override
   String get continueWithGoogle => 'Continue with Google';
@@ -162,10 +175,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingSelectService => 'Select Service';
 
   @override
-  String get bookingSelectBarber => 'Select Barber';
+  String get bookingSelectBarber => 'Select a professional';
 
   @override
-  String get bookingAnyBarber => 'Any Barber';
+  String get bookingAnyBarber => 'Any professional';
 
   @override
   String get bookingSelectDate => 'Select Date';
@@ -219,7 +232,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingStepService => 'Service';
 
   @override
-  String get bookingStepBarber => 'Barber';
+  String get bookingStepBarber => 'Staff';
 
   @override
   String get bookingStepTime => 'Time';
@@ -290,13 +303,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookNow => 'Book Now';
 
   @override
-  String get sectionBarbers => 'Book with a barber';
+  String get sectionBarbers => 'Select a professional';
 
   @override
   String get sectionPopularServices => 'Popular services';
 
   @override
-  String get sectionNearbyBarbershop => 'NEARBY BARBERSHOP';
+  String get sectionNearbyBarbershop => 'Nearby locations';
 
   @override
   String get loyaltyTitle => 'LOYALTY';
@@ -329,8 +342,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loyaltyInsufficientPoints => 'Not enough points';
 
   @override
-  String get loyaltyRedeemSuccess =>
-      'Reward claimed! Show this QR at the barber.';
+  String get loyaltyRedeemSuccess => 'Reward claimed! Show this QR code.';
 
   @override
   String get dashboardRedeemReward => 'Redeem reward';
@@ -421,7 +433,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardNavRewards => 'Rewards';
 
   @override
-  String get dashboardNavBarbers => 'Barbers';
+  String get dashboardNavBarbers => 'Staff';
 
   @override
   String get dashboardNavAnalytics => 'Analytics';
@@ -565,13 +577,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchCountryOrCode => 'Search country or code';
 
   @override
+  String get switchBrand => 'Switch business';
+
+  @override
+  String get discoverBrand => 'Discover business';
+
+  @override
+  String get switchBrandConfirmTitle => 'Switch business';
+
+  @override
+  String switchBrandConfirmMessage(String brandName) {
+    return 'Switch to $brandName?';
+  }
+
+  @override
+  String get switchBrandButton => 'Switch';
+
+  @override
+  String get noBrandsFound => 'No businesses found';
+
+  @override
+  String get discoverBrandsHint =>
+      'Tap the scan icon above to discover businesses';
+
+  @override
+  String get findYourBusiness => 'Find your business';
+
+  @override
+  String get searchBusinessByTag =>
+      'Search for your business\nby their unique tag';
+
+  @override
+  String get searchBusinessByTagSingleLine =>
+      'Search for your business by their unique tag.';
+
+  @override
+  String get selectBusinessFirst => 'Please select a business first.';
+
+  @override
+  String get scanQrCode => 'Scan QR Code';
+
+  @override
+  String get searchByTag => 'Search by Tag';
+
+  @override
   String get dashboardBrandTitle => 'Brand';
 
   @override
   String get dashboardBrandName => 'Name';
 
   @override
-  String get dashboardBrandNameHint => 'e.g. Kingsman Barbershop';
+  String get dashboardBrandNameHint => 'e.g. Kingsman Salon';
 
   @override
   String get dashboardBrandNameRequired => 'Name is required';
@@ -763,10 +819,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardServiceEmpty => 'No services yet. Tap + to add one.';
 
   @override
-  String get dashboardBarberAdd => 'Add Barber';
+  String get dashboardBarberAdd => 'Add Staff';
 
   @override
-  String get dashboardBarberEdit => 'Edit Barber';
+  String get dashboardBarberEdit => 'Edit Staff';
 
   @override
   String get dashboardBarberName => 'Name';
@@ -801,16 +857,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardBarberWorkingHoursOverrideHint =>
-      'Override location hours for this barber. Leave empty to use location hours.';
+      'Override location hours for this staff member. Leave empty to use location hours.';
 
   @override
-  String get dashboardBarberSaved => 'Barber saved';
+  String get dashboardBarberSaved => 'Staff saved';
 
   @override
-  String get dashboardBarberCreated => 'Barber created';
+  String get dashboardBarberCreated => 'Staff created';
 
   @override
-  String get dashboardBarberDeleteConfirm => 'Delete this barber?';
+  String get dashboardBarberDeleteConfirm => 'Delete this staff member?';
 
   @override
   String get dashboardBarberDeleteConfirmMessage => 'This cannot be undone.';
@@ -819,10 +875,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardBarberDeleteButton => 'Delete';
 
   @override
-  String get dashboardBarberDeleted => 'Barber deleted';
+  String get dashboardBarberDeleted => 'Staff deleted';
 
   @override
-  String get dashboardBarberEmpty => 'No barbers yet. Tap + to add one.';
+  String get dashboardBarberEmpty => 'No staff yet. Tap + to add one.';
 
   @override
   String get dashboardBarberInactive => 'Inactive';
@@ -1025,6 +1081,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timeOffEndBeforeStart => 'End date must be after start date';
+
+  @override
+  String get timeOffDays => 'days';
 
   @override
   String get shiftMyWorkingHours => 'My Working Hours';

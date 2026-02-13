@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -23,12 +25,13 @@ class BrandSwitcherPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isGuest = ref.watch(isGuestProvider);
     final selectedBrandId = ref.watch(lockedBrandIdProvider);
+    final isLoadingBrand = useState(false);
 
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Switch Barbershop',
+          context.l10n.switchBrand,
           style: context.appTextStyles.bold.copyWith(
             color: context.appColors.primaryTextColor,
           ),
@@ -39,20 +42,35 @@ class BrandSwitcherPage extends HookConsumerWidget {
             Icons.arrow_back,
             color: context.appColors.primaryTextColor,
           ),
-          onPressed: () => context.pop(),
+          onPressed: isLoadingBrand.value ? null : () => context.pop(),
         ),
         actions: [
           IconButton(
-            onPressed: () => context.push(AppRoute.brandOnboarding.path),
+            onPressed: isLoadingBrand.value
+                ? null
+                : () => context.push(AppRoute.brandOnboarding.path),
             icon: Icon(
               Icons.qr_code_scanner_rounded,
               color: context.appColors.primaryTextColor,
             ),
-            tooltip: 'Discover Barbershop',
+            tooltip: context.l10n.discoverBrand,
           ),
         ],
       ),
-      body: isGuest ? _GuestBrandList(selectedBrandId: selectedBrandId) : _AuthenticatedUserBrandList(selectedBrandId: selectedBrandId),
+      body: Stack(
+        children: [
+          isGuest
+              ? _GuestBrandList(
+                  selectedBrandId: selectedBrandId,
+                  isLoadingBrand: isLoadingBrand,
+                )
+              : _AuthenticatedUserBrandList(
+                  selectedBrandId: selectedBrandId,
+                  isLoadingBrand: isLoadingBrand,
+                ),
+          if (isLoadingBrand.value) _BrandLoadingOverlay(),
+        ],
+      ),
     );
   }
 }
@@ -61,9 +79,11 @@ class BrandSwitcherPage extends HookConsumerWidget {
 class _AuthenticatedUserBrandList extends HookConsumerWidget {
   const _AuthenticatedUserBrandList({
     required this.selectedBrandId,
+    required this.isLoadingBrand,
   });
 
   final String? selectedBrandId;
+  final ValueNotifier<bool> isLoadingBrand;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,6 +98,7 @@ class _AuthenticatedUserBrandList extends HookConsumerWidget {
         return _BrandList(
           brandIds: userBrands.map((ub) => ub.brandId).toList(),
           selectedBrandId: selectedBrandId,
+          isLoadingBrand: isLoadingBrand,
         );
       },
       loading: () => const _LoadingState(),
@@ -90,9 +111,11 @@ class _AuthenticatedUserBrandList extends HookConsumerWidget {
 class _GuestBrandList extends HookConsumerWidget {
   const _GuestBrandList({
     required this.selectedBrandId,
+    required this.isLoadingBrand,
   });
 
   final String? selectedBrandId;
+  final ValueNotifier<bool> isLoadingBrand;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -105,6 +128,7 @@ class _GuestBrandList extends HookConsumerWidget {
     return _BrandList(
       brandIds: guestBrandIds,
       selectedBrandId: selectedBrandId,
+      isLoadingBrand: isLoadingBrand,
     );
   }
 }
@@ -113,10 +137,12 @@ class _BrandList extends HookConsumerWidget {
   const _BrandList({
     required this.brandIds,
     required this.selectedBrandId,
+    required this.isLoadingBrand,
   });
 
   final List<String> brandIds;
   final String? selectedBrandId;
+  final ValueNotifier<bool> isLoadingBrand;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -129,6 +155,7 @@ class _BrandList extends HookConsumerWidget {
         return _BrandCard(
           brandId: brandId,
           isSelected: brandId == selectedBrandId,
+          isLoadingBrand: isLoadingBrand,
         );
       },
     );
@@ -139,10 +166,12 @@ class _BrandCard extends HookConsumerWidget {
   const _BrandCard({
     required this.brandId,
     required this.isSelected,
+    required this.isLoadingBrand,
   });
 
   final String brandId;
   final bool isSelected;
+  final ValueNotifier<bool> isLoadingBrand;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -184,17 +213,66 @@ class _BrandCard extends HookConsumerWidget {
 
     if (confirm != true || !context.mounted) return;
 
-    // Switch brand
-    ref.read(lockedBrandIdProvider.notifier).state = brand.brandId;
+    // Set loading state
+    isLoadingBrand.value = true;
 
-    // Invalidate all providers to refresh UI with new brand
-    ref.invalidate(userBrandsProvider);
-    ref.invalidate(defaultBrandProvider);
-    ref.invalidate(homeNotifierProvider);
-    ref.invalidate(upcomingAppointmentProvider);
+    try {
+      // Set theme override IMMEDIATELY from brand entity to prevent default config flash
+      // This ensures the UI shows the correct brand colors right away
+      if (brand.themeColors.isNotEmpty) {
+        ref.read(themeOverrideProvider.notifier).state = brand.themeColors;
+        debugPrint('[BrandSwitcher] Theme override set immediately from brand entity');
+      } else {
+        // Clear override if brand has no theme colors
+        ref.read(themeOverrideProvider.notifier).state = null;
+      }
+
+      // Small delay to ensure theme propagates
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      // Now set the locked brand ID
+      ref.read(lockedBrandIdProvider.notifier).state = brand.brandId;
+      debugPrint('[BrandSwitcher] Locked brand set: ${brand.brandId}');
+
+      // Invalidate providers to ensure fresh fetch
+      ref.invalidate(defaultBrandProvider);
+      ref.invalidate(userBrandsProvider);
+      ref.invalidate(homeNotifierProvider);
+      ref.invalidate(upcomingAppointmentProvider);
+
+      // Wait for brand config to fully load (this will update theme override if needed)
+      await ref.read(defaultBrandProvider.future);
+      debugPrint('[BrandSwitcher] Brand config loaded');
+
+      // Wait for theme to fully propagate
+      await Future.delayed(const Duration(milliseconds: 150));
+
+      // Ensure app colors provider has updated
+      ref.read(appColorsProvider);
+      debugPrint('[BrandSwitcher] Theme fully propagated');
+    } catch (e) {
+      debugPrint('[BrandSwitcher] Error loading brand config: $e');
+      // Reset theme override on error
+      ref.read(themeOverrideProvider.notifier).state = null;
+      if (context.mounted) {
+        isLoadingBrand.value = false;
+        return;
+      }
+    } finally {
+      isLoadingBrand.value = false;
+    }
 
     if (context.mounted) {
+      // Pop the dialog first
       context.pop();
+      
+      // Then manually navigate to home after a brief delay to ensure
+      // the dialog is fully dismissed and UI has updated
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      if (context.mounted) {
+        context.go(AppRoute.home.path);
+      }
     }
   }
 }
@@ -342,16 +420,16 @@ class _SwitchConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Switch Barbershop'),
-      content: Text('Switch to $brandName?'),
+      title: Text(context.l10n.switchBrandConfirmTitle),
+      content: Text(context.l10n.switchBrandConfirmMessage(brandName)),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Switch'),
+          child: Text(context.l10n.switchBrandButton),
         ),
       ],
     );
@@ -376,14 +454,14 @@ class _EmptyState extends StatelessWidget {
             ),
             Gap(context.appSizes.paddingMedium),
             Text(
-              'No barbershops found',
+              context.l10n.noBrandsFound,
               style: context.appTextStyles.body.copyWith(
                 color: context.appColors.secondaryTextColor,
               ),
             ),
             Gap(context.appSizes.paddingSmall),
             Text(
-              'Tap the scan icon above to discover barbershops',
+              context.l10n.discoverBrandsHint,
               style: context.appTextStyles.caption.copyWith(
                 color: context.appColors.secondaryTextColor,
               ),
@@ -424,6 +502,21 @@ class _ErrorState extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
+      ),
+    );
+  }
+}
+
+/// Loading overlay shown while brand config is loading
+class _BrandLoadingOverlay extends StatelessWidget {
+  const _BrandLoadingOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black54,
+      child: const Center(
+        child: CircularProgressIndicator(color: Colors.white),
       ),
     );
   }

@@ -5,7 +5,7 @@ import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
-import 'package:barber/core/widgets/primary_button.dart';
+import 'package:barber/core/widgets/glass_button.dart';
 import 'package:barber/features/onboarding/domain/entities/onboarding_data.dart';
 
 class OnboardingActions extends StatelessWidget {
@@ -44,15 +44,26 @@ class OnboardingActions extends StatelessWidget {
           else
             Gap(context.appSizes.paddingXxl),
           if (data.isLastPage)
-            PrimaryButton.big(
-              onPressed: isCompleting ? null : onGetStarted,
-              loading: isCompleting,
-              child: Text(context.l10n.getStarted),
+            SizedBox(
+              width: double.infinity,
+              child: GlassPrimaryButton(
+                label: context.l10n.getStarted,
+                onTap: isCompleting ? null : onGetStarted,
+                loading: isCompleting,
+                enabled: !isCompleting,
+                accentColor: context.appColors.primaryColor,
+              ),
             )
           else
-            PrimaryButton.big(
-              onPressed: isCompleting ? null : onNext,
-              child: Text(context.l10n.next),
+            SizedBox(
+              width: double.infinity,
+              child: GlassPrimaryButton(
+                label: context.l10n.next,
+                onTap: isCompleting ? null : onNext,
+                enabled: !isCompleting,
+                accentColor: context.appColors.primaryColor,
+                icon: null,
+              ),
             ),
         ],
       ),

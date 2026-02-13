@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -37,7 +38,7 @@ class BarbersSection extends ConsumerWidget {
             : Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _BarbersContent(barbers: value, title: 'Book with a barber'),
+                _BarbersContent(barbers: value),
                 Gap(_barbersSectionSpacing),
               ],
             ),
@@ -50,18 +51,16 @@ class BarbersSection extends ConsumerWidget {
 class _BarbersContent extends StatelessWidget {
   const _BarbersContent({
     required this.barbers,
-    this.title = 'Your barbers',
   });
 
   final List<BarberEntity> barbers;
-  final String title;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        HomeSectionTitle(title: title),
+        HomeSectionTitle(title: context.l10n.sectionBarbers),
         Gap(context.appSizes.paddingSmall),
         SizedBox(
           height: 132,
@@ -96,7 +95,7 @@ class _BarbersSectionShimmer extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const HomeSectionTitle(title: 'Book with a barber'),
+        HomeSectionTitle(title: context.l10n.sectionBarbers),
         Gap(context.appSizes.paddingSmall),
         SizedBox(
           height: 132,

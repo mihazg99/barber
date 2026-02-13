@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/value_objects/working_hours.dart';
-import 'package:barber/core/utils/time_input_formatter.dart';
 import 'package:barber/core/widgets/primary_button.dart';
+import 'package:barber/core/widgets/time_picker_field.dart';
 import 'package:barber/features/barbers/di.dart' as barbers_di;
 import 'package:barber/features/dashboard/di.dart';
 
@@ -20,6 +22,7 @@ class EditWorkingHoursDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final sizes = context.appSizes;
     final l10n = context.l10n;
 
@@ -29,22 +32,28 @@ class EditWorkingHoursDialog extends HookConsumerWidget {
     final effectiveHoursAsync = ref.watch(barberEffectiveWorkingHoursProvider);
 
     final isLoading = useState(false);
+    final isInitialized = useRef(false);
 
-    // Initialize controllers with effective hours (or empty if none)
+    // Initialize controllers only once - don't recreate on data changes
     final openControllers = useMemoized(() {
-      final hours = effectiveHoursAsync.asData?.value;
-      return List.generate(7, (i) {
-        final val = hours?[_dayKeys[i]]?.open ?? '';
-        return TextEditingController(text: val);
-      });
-    }, [effectiveHoursAsync.asData?.value]);
+      return List.generate(7, (_) => TextEditingController());
+    }, []);
 
     final closeControllers = useMemoized(() {
+      return List.generate(7, (_) => TextEditingController());
+    }, []);
+
+    // Initialize controller values only once when data first loads
+    useEffect(() {
       final hours = effectiveHoursAsync.asData?.value;
-      return List.generate(7, (i) {
-        final val = hours?[_dayKeys[i]]?.close ?? '';
-        return TextEditingController(text: val);
-      });
+      if (hours != null && !isInitialized.value) {
+        for (var i = 0; i < 7; i++) {
+          openControllers[i].text = hours[_dayKeys[i]]?.open ?? '';
+          closeControllers[i].text = hours[_dayKeys[i]]?.close ?? '';
+        }
+        isInitialized.value = true;
+      }
+      return null;
     }, [effectiveHoursAsync.asData?.value]);
 
     // Dispose controllers
@@ -55,8 +64,16 @@ class EditWorkingHoursDialog extends HookConsumerWidget {
       };
     }, []);
 
-    // Simple day labels for now (matching WorkingHoursCard)
-    final dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    // Get localized weekday abbreviations
+    final locale = Localizations.localeOf(context).toString();
+    final baseDate = DateTime(2024, 1, 1); // Monday
+    final dayLabels = List.generate(7, (index) {
+      final weekday = index + 1; // Convert 0-6 index to 1-7 weekday
+      final targetDate = baseDate.add(Duration(days: weekday - 1));
+      final formatted = DateFormat('EEE', locale).format(targetDate);
+      // Capitalize first letter
+      return formatted.isEmpty ? formatted : formatted[0].toUpperCase() + formatted.substring(1);
+    });
 
     Future<void> onSave() async {
       final barber = barberAsync.valueOrNull;
@@ -115,6 +132,10 @@ class EditWorkingHoursDialog extends HookConsumerWidget {
             );
           },
           (_) {
+            // Invalidate providers to refresh the UI
+            ref.invalidate(currentBarberProvider);
+            ref.invalidate(barberEffectiveWorkingHoursProvider);
+            
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(l10n.shiftWorkingHoursSaved)),
             );
@@ -130,58 +151,65 @@ class EditWorkingHoursDialog extends HookConsumerWidget {
       }
     }
 
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(sizes.paddingMedium),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  l10n.shiftEditWorkingHours,
-                  style: context.appTextStyles.h3,
-                ),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            Gap(sizes.paddingMedium),
-            if (barberAsync.isLoading || effectiveHoursAsync.isLoading)
-              const Center(child: CircularProgressIndicator())
-            else
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: List.generate(7, (i) {
-                      return _WorkingHoursRow(
-                        dayLabel: dayLabels[i],
-                        openController: openControllers[i],
-                        closeController: closeControllers[i],
-                      );
-                    }),
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: Material(
+        color: colors.menuBackgroundColor,
+        child: Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(sizes.paddingMedium),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    l10n.shiftEditWorkingHours,
+                    style: context.appTextStyles.h3.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icon(Icons.close, color: colors.secondaryTextColor),
+                  ),
+                ],
+              ),
+              Gap(sizes.paddingMedium),
+              if (barberAsync.isLoading || effectiveHoursAsync.isLoading)
+                const Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: List.generate(7, (i) {
+                        return _WorkingHoursRow(
+                          dayLabel: dayLabels[i],
+                          openController: openControllers[i],
+                          closeController: closeControllers[i],
+                        );
+                      }),
+                    ),
                   ),
                 ),
+              Gap(sizes.paddingMedium),
+              PrimaryButton.big(
+                onPressed: isLoading.value ? null : onSave,
+                loading: isLoading.value,
+                child: Text(l10n.save),
               ),
-            Gap(sizes.paddingMedium),
-            PrimaryButton.big(
-              onPressed: isLoading.value ? null : onSave,
-              // isLoading is handled inside PrimaryButton if we pass it,
-              // but here we just disable onPressed.
-              // Wait, PrimaryButton has loading parameter.
-              loading: isLoading.value,
-              child: Text(l10n.save),
-            ),
-            Gap(sizes.paddingMedium),
-          ],
+            ],
+          ),
         ),
+      ),
       ),
     );
   }
@@ -215,61 +243,39 @@ class _WorkingHoursRow extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 40,
+            width: 50,
             child: Text(
               dayLabel,
               style: context.appTextStyles.medium.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
                 color: colors.secondaryTextColor,
               ),
             ),
           ),
           Gap(sizes.paddingSmall),
           Expanded(
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                border: Border.all(color: colors.borderColor),
-                borderRadius: BorderRadius.circular(8),
+            child: TimePickerField(
+              controller: openController,
+              hintText: '09:00',
+              fillColor: colors.menuBackgroundColor,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: sizes.paddingSmall),
+            child: Text(
+              '–',
+              style: context.appTextStyles.medium.copyWith(
+                color: colors.captionTextColor,
+                fontSize: 18,
               ),
-              padding: EdgeInsets.symmetric(horizontal: sizes.paddingSmall),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: openController,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: '09:00',
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      style: context.appTextStyles.medium,
-                      keyboardType: TextInputType.datetime,
-                      inputFormatters: [
-                        TimeInputFormatter(),
-                      ],
-                    ),
-                  ),
-                  Text('-', style: context.appTextStyles.medium),
-                  Expanded(
-                    child: TextField(
-                      controller: closeController,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: '17:00',
-                        isDense: true,
-                        contentPadding: EdgeInsets.only(left: 8),
-                      ),
-                      style: context.appTextStyles.medium,
-                      keyboardType: TextInputType.datetime,
-                      inputFormatters: [
-                        TimeInputFormatter(),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            ),
+          ),
+          Expanded(
+            child: TimePickerField(
+              controller: closeController,
+              hintText: '17:00',
+              fillColor: colors.menuBackgroundColor,
             ),
           ),
         ],

@@ -14,6 +14,7 @@ import 'package:barber/features/auth/domain/repositories/auth_repository.dart';
 import 'package:barber/features/auth/data/repositories/user_repository_impl.dart';
 import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 import 'package:barber/features/auth/presentation/bloc/auth_notifier.dart';
+import 'package:barber/features/auth/presentation/bloc/login_overlay_notifier.dart';
 
 /// Effective role for navigation and client-side access control.
 /// This is derived from the raw [UserRole] and the locked brand context.
@@ -190,5 +191,16 @@ final effectiveUserRoleProvider = Provider<EffectiveUserRole>((ref) {
 /// True when user has barber or superadmin effective role. They navigate to dashboard, not main app.
 final isStaffProvider = Provider<bool>((ref) {
   final role = ref.watch(effectiveUserRoleProvider);
-  return role == EffectiveUserRole.barber || role == EffectiveUserRole.superadmin;
+  return role == EffectiveUserRole.barber ||
+      role == EffectiveUserRole.superadmin;
+});
+
+/// Login overlay notifier for showing/hiding the contextual login modal.
+final loginOverlayNotifierProvider = StateNotifierProvider.autoDispose<
+  LoginOverlayNotifier,
+  BaseState<LoginOverlayState>
+>((
+  ref,
+) {
+  return LoginOverlayNotifier();
 });

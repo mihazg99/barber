@@ -27,6 +27,47 @@ const _sectionSpacing = 28.0;
 
 final _log = Logger(printer: PrettyPrinter(methodCount: 0));
 
+// --- Contrast-safe text on card gradient (works across all brand configs) ---
+
+/// Relative luminance 0..1 (WCAG). Used to choose text color on gradient.
+double _relativeLuminance(Color c) {
+  final r = c.red / 255.0;
+  final g = c.green / 255.0;
+  final b = c.blue / 255.0;
+  double channel(double x) =>
+      x <= 0.03928 ? x / 12.92 : math.pow((x + 0.055) / 1.055, 2.4) as double;
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+}
+
+/// Whether the card gradient is dark (use light text). Average of start/end.
+bool _cardGradientIsDark(Color gradientStart, Color gradientEnd) {
+  final avg =
+      (_relativeLuminance(gradientStart) + _relativeLuminance(gradientEnd)) / 2;
+  return avg < 0.45;
+}
+
+/// Text color that contrasts with the card gradient. Premium and visible on all brands.
+Color _cardTextColor(Color gradientStart, Color gradientEnd) {
+  return _cardGradientIsDark(gradientStart, gradientEnd)
+      ? const Color(0xFFF5F5F5)
+      : const Color(0xFF1A1A1A);
+}
+
+/// Subtle shadow so text reads on any gradient. Use with _cardTextColor.
+List<Shadow> _cardTextShadow(Color gradientStart, Color gradientEnd) {
+  final isDark = _cardGradientIsDark(gradientStart, gradientEnd);
+  return [
+    Shadow(
+      color:
+          isDark
+              ? Colors.black.withValues(alpha: 0.35)
+              : Colors.black.withValues(alpha: 0.12),
+      offset: const Offset(0, 1),
+      blurRadius: 2,
+    ),
+  ];
+}
+
 void _playPointsAwardedHaptic() {
   // Chaotic haptic pattern like Apple Pay
   HapticFeedback.mediumImpact();
@@ -89,7 +130,7 @@ class LoyaltyCard extends HookConsumerWidget {
 }
 
 /// Flipping loyalty card: front = points/chip/name/CTA, back = big QR. Tap to flip.
-/// 
+///
 /// ANIMATION CONVENTION:
 /// - isFlipped=false → flipController at 0.0 → FRONT face visible (not flipped)
 /// - isFlipped=true → flipController at 1.0 → BACK face visible (flipped over)
@@ -119,12 +160,13 @@ class _LoyaltyCardContent extends HookConsumerWidget {
     // Watch loyalty points from provider
     final loyaltyPointsAsync = ref.watch(currentUserLoyaltyPointsProvider);
     final loyaltyPoints = loyaltyPointsAsync.valueOrNull ?? 0;
-    
+
     // Watch upcoming appointment to detect when it becomes completed
     final upcomingAppointmentState = ref.watch(upcomingAppointmentProvider);
-    final upcomingAppointment = upcomingAppointmentState is BaseData<AppointmentEntity?>
-        ? upcomingAppointmentState.data
-        : null;
+    final upcomingAppointment =
+        upcomingAppointmentState is BaseData<AppointmentEntity?>
+            ? upcomingAppointmentState.data
+            : null;
 
     final flipController = useAnimationController(duration: _flipDuration);
     final flipCurve = useMemoized(
@@ -167,7 +209,7 @@ class _LoyaltyCardContent extends HookConsumerWidget {
 
     // Track if we've initialized the card (to skip animation on first load)
     final hasInitialized = useRef(false);
-    
+
     // Track if widget is still mounted (to prevent using disposed controllers)
     final isMounted = useRef(true);
     useEffect(() {
@@ -175,36 +217,40 @@ class _LoyaltyCardContent extends HookConsumerWidget {
         isMounted.value = false;
       };
     }, []);
-    
+
     // Track previous appointment to detect when it becomes completed
     final previousAppointmentId = useRef<String?>(null);
     final previousAppointmentStatus = useRef<String?>(null);
-    
+
     useEffect(() {
       // On first render, initialize tracking without animation
       if (!hasInitialized.value) {
         hasInitialized.value = true;
         previousPoints.value = loyaltyPoints;
-        
+
         // Store current appointment state
         previousAppointmentId.value = upcomingAppointment?.appointmentId;
         previousAppointmentStatus.value = upcomingAppointment?.status;
-        
+
         // Ensure flip controller shows FRONT side on initialization
         // NOTE: flipT value 0.0 = front visible, value 1.0 = back visible
         // Default notifier state is isFlipped=false (front), so sync controller to dismissed
         if (flipController.status != AnimationStatus.dismissed) {
-          _log.d('LoyaltyCard: Setting flip controller to dismissed (value=0.0, front) on init');
+          _log.d(
+            'LoyaltyCard: Setting flip controller to dismissed (value=0.0, front) on init',
+          );
           flipController.value = 0.0;
         }
-        
+
         // Ensure notifier state is showing front (should be false by default)
         // IMPORTANT: Wrap in Future.microtask to avoid "modifying provider during build"
         if (cardState.isFlipped) {
-          _log.d('LoyaltyCard: Card state was showing back, resetting to front on init');
+          _log.d(
+            'LoyaltyCard: Card state was showing back, resetting to front on init',
+          );
           Future.microtask(() => notifier.flipToFront());
         }
-        
+
         // Reset any running animations to clean state
         if (pointsController.isAnimating) {
           pointsController.stop();
@@ -214,21 +260,24 @@ class _LoyaltyCardContent extends HookConsumerWidget {
           scaleController.stop();
           scaleController.reset();
         }
-        
-        _log.d('LoyaltyCard: Initialized with $loyaltyPoints points (no animation)');
+
+        _log.d(
+          'LoyaltyCard: Initialized with $loyaltyPoints points (no animation)',
+        );
         return null;
       }
-      
+
       // After initialization, check if appointment status changed to completed
       final currentAppointmentId = upcomingAppointment?.appointmentId;
       final currentStatus = upcomingAppointment?.status;
-      
+
       // Detect if the SAME appointment transitioned to completed
-      final isAppointmentCompleted = currentAppointmentId != null &&
+      final isAppointmentCompleted =
+          currentAppointmentId != null &&
           currentAppointmentId == previousAppointmentId.value &&
           previousAppointmentStatus.value == AppointmentStatus.scheduled &&
           currentStatus == AppointmentStatus.completed;
-      
+
       if (isAppointmentCompleted && loyaltyPoints > previousPoints.value) {
         final pointsAdded = loyaltyPoints - previousPoints.value;
         _log.d(
@@ -261,12 +310,12 @@ class _LoyaltyCardContent extends HookConsumerWidget {
           // Stage 4: Animate points counting with scale
           if (!isMounted.value) return;
           _log.d('LoyaltyCard: Stage 4 - Animate counting');
-          
+
           // Start scale animation (with mounted check on reverse)
           scaleController.forward().then((_) {
             if (isMounted.value) scaleController.reverse();
           });
-          
+
           // Start points counting animation (with mounted check)
           if (isMounted.value) {
             await pointsController.forward();
@@ -274,13 +323,14 @@ class _LoyaltyCardContent extends HookConsumerWidget {
 
           if (!isMounted.value) return;
           previousPoints.value = loyaltyPoints;
-          
+
           if (isMounted.value) {
             pointsController.reset();
           }
           _log.d('LoyaltyCard: Animation complete');
         });
-      } else if (loyaltyPoints != previousPoints.value && !pointsController.isAnimating) {
+      } else if (loyaltyPoints != previousPoints.value &&
+          !pointsController.isAnimating) {
         // Points changed but not from appointment completion (e.g., login, data sync)
         // Update silently without animation
         _log.d(
@@ -288,17 +338,17 @@ class _LoyaltyCardContent extends HookConsumerWidget {
         );
         previousPoints.value = loyaltyPoints;
       }
-      
+
       // Update tracked appointment state for next comparison
       previousAppointmentId.value = currentAppointmentId;
       previousAppointmentStatus.value = currentStatus;
-      
+
       return null;
     }, [upcomingAppointment, loyaltyPoints]);
 
     useEffect(() {
       if (!isMounted.value) return null;
-      
+
       if (cardState.isFlipped &&
           flipController.status != AnimationStatus.completed) {
         flipController.forward();
@@ -399,6 +449,8 @@ class _LoyaltyCardFrontFace extends HookWidget {
   Widget build(BuildContext context) {
     final c = context.appColors;
     const cardRadius = 16.0;
+    final cardTextColor = _cardTextColor(gradientStart, gradientEnd);
+    final cardShadow = _cardTextShadow(gradientStart, gradientEnd);
 
     final angle = flipT * math.pi;
     final visible = flipT < 0.5;
@@ -477,7 +529,8 @@ class _LoyaltyCardFrontFace extends HookWidget {
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 2.4,
-                            color: c.captionTextColor.withValues(alpha: 0.9),
+                            color: cardTextColor,
+                            shadows: cardShadow,
                           ),
                         ),
                       ],
@@ -496,11 +549,12 @@ class _LoyaltyCardFrontFace extends HookWidget {
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 2,
-                              color: c.primaryTextColor,
+                              color: cardTextColor,
                               height: 1.1,
                               fontFeatures: const [
                                 FontFeature.tabularFigures(),
                               ],
+                              shadows: cardShadow,
                             ),
                           ),
                         ),
@@ -525,9 +579,8 @@ class _LoyaltyCardFrontFace extends HookWidget {
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 1.2,
-                              color: c.secondaryTextColor.withValues(
-                                alpha: 0.95,
-                              ),
+                              color: cardTextColor,
+                              shadows: cardShadow,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -536,7 +589,7 @@ class _LoyaltyCardFrontFace extends HookWidget {
                         TextButton(
                           onPressed: () => context.push(AppRoute.loyalty.path),
                           style: TextButton.styleFrom(
-                            foregroundColor: accent,
+                            foregroundColor: cardTextColor,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 4,
                               vertical: 2,
@@ -551,15 +604,16 @@ class _LoyaltyCardFrontFace extends HookWidget {
                                 context.l10n.loyaltyViewRewards,
                                 style: context.appTextStyles.caption.copyWith(
                                   fontSize: 11,
-                                  color: accent,
+                                  color: cardTextColor,
                                   fontWeight: FontWeight.w600,
+                                  shadows: cardShadow,
                                 ),
                               ),
                               const Gap(4),
                               Icon(
                                 Icons.arrow_forward_ios,
                                 size: 9,
-                                color: accent,
+                                color: cardTextColor,
                               ),
                             ],
                           ),
@@ -656,10 +710,12 @@ class _LoyaltyCardBackFace extends HookWidget {
   @override
   Widget build(BuildContext context) {
     const cardRadius = 16.0;
+    final cardTextColor = _cardTextColor(gradientStart, gradientEnd);
+    final cardShadow = _cardTextShadow(gradientStart, gradientEnd);
+    final styles = context.appTextStyles;
 
     final angle = math.pi + flipT * math.pi;
     final visible = flipT > 0.5;
-    final styles = context.appTextStyles;
 
     return IgnorePointer(
       ignoring: !visible,
@@ -744,7 +800,8 @@ class _LoyaltyCardBackFace extends HookWidget {
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 2.4,
-                        color: colors.captionTextColor.withValues(alpha: 0.9),
+                        color: cardTextColor,
+                        shadows: cardShadow,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -833,8 +890,8 @@ class _LoyaltyCardShimmer extends StatelessWidget {
   }
 }
 
-/// Guest loyalty card: frozen/locked appearance with 0 points.
-class _GuestLoyaltyCard extends StatelessWidget {
+/// Guest loyalty card: inactive/locked state with guest name and CTAs.
+class _GuestLoyaltyCard extends HookConsumerWidget {
   const _GuestLoyaltyCard();
 
   static const _cardHeight = 156.0;
@@ -844,210 +901,222 @@ class _GuestLoyaltyCard extends StatelessWidget {
   static const _chipGoldBorder = Color(0xFF7A6039);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.appColors;
+    final styles = context.appTextStyles;
     const cardRadius = 16.0;
 
     final gradientStart = c.primaryColor;
     final gradientEnd = c.secondaryColor;
     final accent = c.primaryColor;
+    final cardTextColor = _cardTextColor(gradientStart, gradientEnd);
+    final cardShadow = _cardTextShadow(gradientStart, gradientEnd);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: SizedBox(
         height: _cardHeight,
         width: double.infinity,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(cardRadius),
-                gradient: LinearGradient(
-                  colors: [
-                    gradientStart.withValues(alpha: 0.3),
-                    gradientEnd.withValues(alpha: 0.3),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(
-                  color: c.borderColor.withValues(alpha: 0.3),
-                  width: 1,
-                ),
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(cardRadius),
+            gradient: LinearGradient(
+              colors: [gradientStart, gradientEnd],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.06),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: accent.withValues(alpha: 0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+                spreadRadius: -2,
               ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                child: Column(
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+                spreadRadius: -4,
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Opacity(
-                          opacity: 0.4,
-                          child: Container(
-                            width: _chipSize,
-                            height: _chipSize * 0.75,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(6),
-                              gradient: const LinearGradient(
-                                colors: [
-                                  _chipGoldTop,
-                                  _chipGoldBottom,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              border: Border.all(
-                                color: _chipGoldBorder,
-                                width: 1,
-                              ),
-                            ),
-                          ),
+                    Container(
+                      width: _chipSize,
+                      height: _chipSize * 0.75,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        gradient: const LinearGradient(
+                          colors: [
+                            _chipGoldTop,
+                            _chipGoldBottom,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.lock_outline,
-                              size: 12,
-                              color: c.captionTextColor.withValues(alpha: 0.6),
-                            ),
-                            const Gap(4),
-                            Text(
-                              context.l10n.loyaltyTitle,
-                              style: context.appTextStyles.caption.copyWith(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 2.4,
-                                color: c.captionTextColor.withValues(
-                                  alpha: 0.6,
+                        border: Border.all(
+                          color: _chipGoldBorder,
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      context.l10n.loyaltyTitle,
+                      style: styles.caption.copyWith(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2.4,
+                        color: cardTextColor,
+                        shadows: cardShadow,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                // Same middle row as signed-in card but no points — locked icon where QR is
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const SizedBox.shrink(),
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.lock_outline,
+                        size: 18,
+                        color: cardTextColor.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+                const Gap(10),
+                // Bottom row: same as signed-in — left = CTA on top of name "Guest", right = view rewards
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // CTA Sign in on top (short label to avoid overflow)
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                // Show the login overlay instead of navigating to auth screen
+                                ref
+                                    .read(loginOverlayNotifierProvider.notifier)
+                                    .show();
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: c.primaryWhiteColor,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  context.l10n.signIn,
+                                  style: styles.caption.copyWith(
+                                    fontSize: 11,
+                                    color: gradientStart,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.3,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    Text(
-                      '0 ${context.l10n.loyaltyPointsAbbrev}',
-                      style: context.appTextStyles.h2.copyWith(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2,
-                        color: c.captionTextColor.withValues(alpha: 0.6),
-                        height: 1.1,
-                        fontFeatures: const [
-                          FontFeature.tabularFigures(),
-                        ],
-                      ),
-                    ),
-                    const Gap(10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Text(
+                          ),
+                          const Gap(6),
+                          // Name "Guest" in bottom left, matching signed-in typography (all caps)
+                          Text(
                             'GUEST',
-                            style: context.appTextStyles.caption.copyWith(
+                            style: styles.caption.copyWith(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 1.2,
-                              color: c.captionTextColor.withValues(alpha: 0.6),
+                              color: cardTextColor,
+                              shadows: cardShadow,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push(AppRoute.loyalty.path),
+                      style: TextButton.styleFrom(
+                        foregroundColor: cardTextColor,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
                         ),
-                        TextButton(
-                          onPressed: () => context.push(AppRoute.loyalty.path),
-                          style: TextButton.styleFrom(
-                            foregroundColor: accent.withValues(alpha: 0.6),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 2,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            context.l10n.loyaltyViewRewards,
+                            style: styles.caption.copyWith(
+                              fontSize: 11,
+                              color: cardTextColor,
+                              fontWeight: FontWeight.w600,
+                              shadows: cardShadow,
                             ),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                context.l10n.loyaltyViewRewards,
-                                style: context.appTextStyles.caption.copyWith(
-                                  fontSize: 11,
-                                  color: accent.withValues(alpha: 0.7),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const Gap(4),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                size: 9,
-                                color: accent.withValues(alpha: 0.7),
-                              ),
-                            ],
+                          const Gap(4),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 9,
+                            color: cardTextColor,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: c.backgroundColor.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(cardRadius),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(cardRadius),
-                  child: CustomPaint(
-                    painter: _FrostedGlassPainter(
-                      color: c.primaryWhiteColor.withValues(alpha: 0.08),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
-}
-
-/// Custom painter for frosted glass effect with diagonal lines.
-class _FrostedGlassPainter extends CustomPainter {
-  _FrostedGlassPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = color
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5;
-
-    final spacing = size.height / 8;
-    for (var i = 0; i < 15; i++) {
-      final startY = i * spacing - size.height * 0.2;
-      canvas.drawLine(
-        Offset(0, startY),
-        Offset(size.width, startY + size.height * 0.3),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

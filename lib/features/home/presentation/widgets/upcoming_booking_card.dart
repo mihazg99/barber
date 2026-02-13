@@ -24,10 +24,12 @@ class UpcomingBookingCard extends StatelessWidget {
     super.key,
     required this.appointment,
     this.locationName,
+    this.isLocationsLoading = false,
   });
 
   final AppointmentEntity appointment;
   final String? locationName;
+  final bool isLocationsLoading;
 
   static const _cardRadius = 16.0;
 
@@ -93,14 +95,22 @@ class UpcomingBookingCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        locationName ?? context.l10n.upcomingAppointment,
-                        style: context.appTextStyles.h2.copyWith(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: colors.primaryTextColor,
-                        ),
-                      ),
+                      locationName == null && isLocationsLoading
+                          ? ShimmerWrapper(
+                            child: ShimmerPlaceholder(
+                              width: 140,
+                              height: 15,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          )
+                          : Text(
+                            locationName ?? context.l10n.upcomingAppointment,
+                            style: context.appTextStyles.h2.copyWith(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: colors.primaryTextColor,
+                            ),
+                          ),
                       Gap(2),
                       Text(
                         _formatDateTime(context, appointment.startTime),
@@ -271,6 +281,7 @@ class UpcomingBooking extends ConsumerWidget {
         homeState is BaseData<HomeData>
             ? homeState.data.locations
             : <LocationEntity>[];
+    final isLocationsLoading = homeState is BaseLoading;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -288,6 +299,7 @@ class UpcomingBooking extends ConsumerWidget {
                 : UpcomingBookingCard(
                   appointment: data,
                   locationName: _locationNameFor(locations, data.locationId),
+                  isLocationsLoading: isLocationsLoading,
                 ),
           _ => NoUpcomingBookingCTA(
             onTap: () => context.push(AppRoute.booking.path),

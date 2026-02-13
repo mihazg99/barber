@@ -42,21 +42,52 @@ class AuthPage extends HookConsumerWidget {
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(context.appSizes.paddingMedium),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Gap(context.appSizes.paddingXxl),
-              _AuthStepContent(
-                data: data,
-                notifier: notifier,
-                requireSmsVerification: requireSmsVerification,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(context.appSizes.paddingLarge),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: _AuthCard(
+                child: _AuthStepContent(
+                  data: data,
+                  notifier: notifier,
+                  requireSmsVerification: requireSmsVerification,
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Clean card container matching home page style
+class _AuthCard extends StatelessWidget {
+  const _AuthCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(context.appSizes.paddingXl),
+      decoration: BoxDecoration(
+        color: context.appColors.menuBackgroundColor,
+        borderRadius: BorderRadius.circular(context.appSizes.borderRadius),
+        border: Border.all(
+          color: context.appColors.borderColor.withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:barber/core/di.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
@@ -11,6 +12,7 @@ import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/utils/time_input_formatter.dart';
 import 'package:barber/core/value_objects/working_hours.dart';
+import 'package:barber/core/widgets/time_picker_field.dart';
 import 'package:barber/core/widgets/custom_back_button.dart';
 import 'package:barber/core/widgets/custom_textfield.dart';
 import 'package:barber/core/widgets/primary_button.dart';
@@ -20,7 +22,6 @@ import 'package:barber/features/locations/domain/entities/location_entity.dart';
 import 'package:barber/features/locations/di.dart';
 
 const _dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 /// Full-page form for add/edit barber. Pass [barber] for edit, null for create.
 class BarberFormPage extends HookConsumerWidget {
@@ -42,6 +43,17 @@ class BarberFormPage extends HookConsumerWidget {
           barber!.workingHoursOverride!.isNotEmpty,
     );
     final formKey = useMemoized(() => GlobalKey<FormState>());
+
+    // Get localized weekday abbreviations
+    final locale = Localizations.localeOf(context).toString();
+    final baseDate = DateTime(2024, 1, 1); // Monday
+    final dayLabels = List.generate(7, (index) {
+      final weekday = index + 1; // Convert 0-6 index to 1-7 weekday
+      final targetDate = baseDate.add(Duration(days: weekday - 1));
+      final formatted = DateFormat('EEE', locale).format(targetDate);
+      // Capitalize first letter
+      return formatted.isEmpty ? formatted : formatted[0].toUpperCase() + formatted.substring(1);
+    });
 
     final locations = useState<List<LocationEntity>>([]);
     final currentLocation = useState<LocationEntity?>(null);
@@ -365,7 +377,7 @@ class BarberFormPage extends HookConsumerWidget {
                   ...List.generate(
                     7,
                     (i) => _BarberWorkingHoursRow(
-                      dayLabel: _dayLabels[i],
+                      dayLabel: dayLabels[i],
                       openController: openControllers[i],
                       closeController: closeControllers[i],
                       timeFormatError: context.l10n.dashboardLocationTimeFormat,
@@ -442,26 +454,10 @@ class _BarberWorkingHoursRow extends StatelessWidget {
           ),
           Gap(context.appSizes.paddingSmall),
           Expanded(
-            child: TextFormField(
+            child: TimePickerField(
               controller: openController,
-              decoration: InputDecoration(
-                hintText: '09:00',
-                filled: true,
-                fillColor: context.appColors.secondaryColor,
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: context.appSizes.paddingSmall,
-                  horizontal: context.appSizes.paddingMedium,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(
-                    context.appSizes.borderRadius,
-                  ),
-                ),
-              ),
-              inputFormatters: [
-                TimeInputFormatter(),
-                LengthLimitingTextInputFormatter(5),
-              ],
+              hintText: '09:00',
+              fillColor: context.appColors.secondaryColor,
             ),
           ),
           Padding(
@@ -474,26 +470,10 @@ class _BarberWorkingHoursRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: TextFormField(
+            child: TimePickerField(
               controller: closeController,
-              decoration: InputDecoration(
-                hintText: '18:00',
-                filled: true,
-                fillColor: context.appColors.secondaryColor,
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: context.appSizes.paddingSmall,
-                  horizontal: context.appSizes.paddingMedium,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(
-                    context.appSizes.borderRadius,
-                  ),
-                ),
-              ),
-              inputFormatters: [
-                TimeInputFormatter(),
-                LengthLimitingTextInputFormatter(5),
-              ],
+              hintText: '18:00',
+              fillColor: context.appColors.secondaryColor,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return null;
                 final formatErr = validateTimeFormat(
