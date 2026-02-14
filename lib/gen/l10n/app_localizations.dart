@@ -1187,7 +1187,7 @@ abstract class AppLocalizations {
   /// No description provided for @discoverBrand.
   ///
   /// In hr, this message translates to:
-  /// **'Otkrij salon'**
+  /// **'Pronađi salon'**
   String get discoverBrand;
 
   /// No description provided for @switchBrandConfirmTitle.
@@ -1207,6 +1207,12 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Prebaci'**
   String get switchBrandButton;
+
+  /// No description provided for @currentBrand.
+  ///
+  /// In hr, this message translates to:
+  /// **'Trenutni'**
+  String get currentBrand;
 
   /// No description provided for @noBrandsFound.
   ///

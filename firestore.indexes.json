@@ -1,6 +1,20 @@
 {
   "indexes": [
     {
+      "collectionGroup": "user_brands",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "next_visit_due",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "reminded_this_cycle",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "users",
       "queryScope": "COLLECTION",
       "fields": [

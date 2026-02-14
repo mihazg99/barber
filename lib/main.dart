@@ -6,8 +6,10 @@ import 'package:barber/core/config/flavor_config.dart';
 import 'package:barber/core/config/flavor_values.dart';
 import 'package:barber/core/di.dart';
 import 'package:barber/core/firebase/firebase_app.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:barber/core/push/push_background_handler.dart';
 import 'core/config/app_environment.dart';
 import 'app.dart';
 
@@ -16,6 +18,13 @@ Future<void> main() async {
   await initializeDateFormatting('hr');
   await initializeDateFormatting('en');
   await initializeFirebase();
+
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   final prefs = await SharedPreferences.getInstance();
 

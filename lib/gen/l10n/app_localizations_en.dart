@@ -594,6 +594,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get switchBrandButton => 'Switch';
 
   @override
+  String get currentBrand => 'Current';
+
+  @override
   String get noBrandsFound => 'No businesses found';
 
   @override

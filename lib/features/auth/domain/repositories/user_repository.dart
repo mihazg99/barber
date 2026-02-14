@@ -14,4 +14,7 @@ abstract class UserRepository {
 
   /// Adds [pointsToAdd] to the user's loyalty_points. Used by barber when scanning loyalty QR.
   Future<Either<Failure, void>> addLoyaltyPoints(String userId, int pointsToAdd);
+
+  /// Updates the FCM token for the user (for push notifications). Called when token is obtained or refreshed.
+  Future<Either<Failure, void>> updateFcmToken(String userId, String token);
 }

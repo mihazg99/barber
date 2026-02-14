@@ -1,7 +1,14 @@
+import 'package:app_links/app_links.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+import 'package:barber/core/deep_link/deep_link_di.dart';
 import 'package:barber/core/di.dart';
 import 'package:barber/core/router/app_router.dart';
+import 'package:barber/features/auth/di.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_theme.dart';
 import 'package:barber/features/auth/presentation/widgets/login_overlay.dart';
@@ -37,6 +44,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(pushNotificationBootstrapProvider);
     final flavor = ref.watch(flavorConfigProvider);
     final brandConfig = flavor.values.brandConfig;
     final title = brandConfig.appTitle;
@@ -61,12 +69,38 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         return Stack(
           children: [
             if (child != null) child,
-            Positioned.fill(
-              child: const LoginOverlay(),
-            ),
+            // Cold-start deep links: processes getInitialLink() and getInitialMessage()
+            // once on launch. See lib/core/deep_link/README.md.
+            const Positioned.fill(child: _DeepLinkHandler()),
+            const Positioned.fill(child: LoginOverlay()),
           ],
         );
       },
     );
+  }
+}
+
+/// Processes initial Universal/App Link and FCM message on cold start.
+/// Feeds getInitialLink and getInitialMessage into [DeepLinkNotifier].
+class _DeepLinkHandler extends HookConsumerWidget {
+  const _DeepLinkHandler();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    useEffect(() {
+      Future<void> runInitial() async {
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        final notifier = ref.read(deepLinkNotifierProvider.notifier);
+        final Uri? uri = await AppLinks().getInitialLink();
+        notifier.setPendingFromInitialLink(uri);
+        final RemoteMessage? message =
+            await FirebaseMessaging.instance.getInitialMessage();
+        notifier.setPendingFromInitialMessage(message);
+      }
+      runInitial();
+      return null;
+    }, const []);
+
+    return const SizedBox.shrink();
   }
 }

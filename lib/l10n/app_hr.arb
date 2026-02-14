@@ -264,7 +264,7 @@
   "searchCountryOrCode": "Pretraži državu ili pozivni broj",
 
   "switchBrand": "Promijeni salon",
-  "discoverBrand": "Otkrij salon",
+  "discoverBrand": "Pronađi salon",
   "switchBrandConfirmTitle": "Promijeni salon",
   "switchBrandConfirmMessage": "Prebaciti na {brandName}?",
   "@switchBrandConfirmMessage": {
@@ -275,6 +275,7 @@
     }
   },
   "switchBrandButton": "Prebaci",
+  "currentBrand": "Trenutni",
   "noBrandsFound": "Nema pronađenih salona",
   "discoverBrandsHint": "Dodirnite ikonu skeniranja iznad za otkrivanje salona",
 

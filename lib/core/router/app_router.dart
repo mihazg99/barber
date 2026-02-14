@@ -2,8 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:barber/core/deep_link/app_path.dart';
+import 'package:barber/core/deep_link/deep_link_di.dart';
+import 'package:barber/core/deep_link/deep_link_notifier.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/features/auth/di.dart';
+import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/auth/domain/entities/auth_step.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 import 'package:barber/features/booking/presentation/pages/booking_page.dart';
@@ -26,7 +30,6 @@ import 'package:barber/features/loyalty/presentation/pages/loyalty_page.dart';
 import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:barber/features/brand_selection/di.dart';
-import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 import 'package:barber/features/brand_selection/presentation/pages/video_portal_page.dart';
 import 'package:barber/features/brand_selection/presentation/pages/brand_switcher_page.dart';
@@ -148,7 +151,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     }
   });
 
-  return GoRouter(
+  final goRouter = GoRouter(
     initialLocation: AppRoute.auth.path,
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
@@ -461,9 +464,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         name: AppRoute.brandOnboarding.name,
         path: AppRoute.brandOnboarding.path,
-        pageBuilder:
-            (context, state) =>
-                NoTransitionPage(child: const VideoPortalPage()),
+        pageBuilder: (context, state) {
+          final openScanner =
+              state.uri.queryParameters['openScanner'] == 'true';
+          return NoTransitionPage(
+            child: VideoPortalPage(initialOpenScanner: openScanner),
+          );
+        },
       ),
       GoRoute(
         name: AppRoute.brandSwitcher.name,
@@ -598,4 +605,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  // Unified Entry Point: deep links (Universal/App Links + FCM) → single routing stream
+  ref.listen<BaseState<DeepLinkState>>(deepLinkNotifierProvider, (prev, next) {
+    final path = next is BaseData<DeepLinkState> ? next.data.pendingPath : null;
+    if (path == null) return;
+    if (path.brandId != null && path.brandId!.isNotEmpty) {
+      ref.read(lockedBrandIdProvider.notifier).state = path.brandId;
+    }
+    goRouter.go(path.location);
+    ref.read(deepLinkNotifierProvider.notifier).consumePending();
+  });
+
+  return goRouter;
 });
