@@ -91,7 +91,10 @@ class _CalendarHeader extends HookWidget {
     final locale = Localizations.localeOf(context).languageCode;
 
     return Container(
-      padding: EdgeInsets.all(context.appSizes.paddingMedium),
+      padding: EdgeInsets.symmetric(
+        horizontal: context.appSizes.paddingMedium,
+        vertical: 8,
+      ),
       decoration: BoxDecoration(
         color: colors.menuBackgroundColor,
         border: Border(
@@ -111,15 +114,15 @@ class _CalendarHeader extends HookWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: colors.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
               '$appointmentCount',
               style: context.appTextStyles.medium.copyWith(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: colors.primaryColor,
               ),
@@ -156,9 +159,15 @@ class _DateSelector extends HookConsumerWidget {
           onPressed: () {
             onDateChanged(selectedDate.subtract(const Duration(days: 1)));
           },
+          style: IconButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(44, 44),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
           icon: Icon(
             Icons.chevron_left,
             color: colors.primaryTextColor,
+            size: 24,
           ),
         ),
         Expanded(
@@ -174,7 +183,9 @@ class _DateSelector extends HookConsumerWidget {
               }
             },
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   dateStr,
@@ -184,6 +195,8 @@ class _DateSelector extends HookConsumerWidget {
                     color: colors.primaryTextColor,
                   ),
                   textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 if (isToday)
                   Container(
@@ -194,7 +207,7 @@ class _DateSelector extends HookConsumerWidget {
                     ),
                     decoration: BoxDecoration(
                       color: colors.primaryColor,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       context.l10n.calendarToday,
@@ -213,9 +226,15 @@ class _DateSelector extends HookConsumerWidget {
           onPressed: () {
             onDateChanged(selectedDate.add(const Duration(days: 1)));
           },
+          style: IconButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(44, 44),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
           icon: Icon(
             Icons.chevron_right,
             color: colors.primaryTextColor,
+            size: 24,
           ),
         ),
       ],
