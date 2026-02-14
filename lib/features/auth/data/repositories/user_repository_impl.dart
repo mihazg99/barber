@@ -82,4 +82,22 @@ class UserRepositoryImpl implements UserRepository {
       return Left(FirestoreFailure('Failed to add loyalty points: $e'));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> updateFcmToken(String userId, String token) async {
+    if (token.isEmpty) return const Right(null);
+    try {
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.users}/$userId',
+        'updateFcmToken',
+        () => _col.doc(userId).set(
+          {'fcm_token': token},
+          SetOptions(merge: true),
+        ),
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(FirestoreFailure('Failed to update FCM token: $e'));
+    }
+  }
 }

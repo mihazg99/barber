@@ -15,6 +15,9 @@ import 'package:barber/features/auth/data/repositories/user_repository_impl.dart
 import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 import 'package:barber/features/auth/presentation/bloc/auth_notifier.dart';
 import 'package:barber/features/auth/presentation/bloc/login_overlay_notifier.dart';
+import 'package:barber/core/push/push_notification_notifier.dart';
+import 'package:barber/core/push/push_notification_data.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 /// Effective role for navigation and client-side access control.
 /// This is derived from the raw [UserRole] and the locked brand context.
@@ -203,4 +206,36 @@ final loginOverlayNotifierProvider = StateNotifierProvider.autoDispose<
   ref,
 ) {
   return LoginOverlayNotifier();
+});
+
+/// FCM push notifications: permission, token, foreground/initial message.
+/// Token is synced to the current user document when signed in.
+final pushNotificationNotifierProvider = StateNotifierProvider.autoDispose<
+  PushNotificationNotifier,
+  BaseState<PushNotificationData>
+>((ref) {
+  return PushNotificationNotifier(
+    FirebaseMessaging.instance,
+    ref.watch(userRepositoryProvider),
+    () => ref.read(currentUserIdProvider).valueOrNull,
+  );
+});
+
+/// Keeps push notifier alive and syncs FCM token to user when both are available.
+/// Watch this in the app root so FCM is initialized and token is saved on sign-in.
+final pushNotificationBootstrapProvider = Provider<void>((ref) {
+  ref.watch(pushNotificationNotifierProvider);
+  final userId = ref.watch(currentUserIdProvider).valueOrNull;
+  final pushState = ref.watch(pushNotificationNotifierProvider);
+  final pushData =
+      pushState is BaseData<PushNotificationData>
+          ? pushState.data
+          : null;
+  final token = pushData?.fcmToken;
+  if (userId != null &&
+      userId.isNotEmpty &&
+      token != null &&
+      token.isNotEmpty) {
+    ref.read(userRepositoryProvider).updateFcmToken(userId, token);
+  }
 });

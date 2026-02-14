@@ -581,7 +581,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get switchBrand => 'Promijeni salon';
 
   @override
-  String get discoverBrand => 'Otkrij salon';
+  String get discoverBrand => 'Pronađi salon';
 
   @override
   String get switchBrandConfirmTitle => 'Promijeni salon';
@@ -593,6 +593,9 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get switchBrandButton => 'Prebaci';
+
+  @override
+  String get currentBrand => 'Trenutni';
 
   @override
   String get noBrandsFound => 'Nema pronađenih salona';

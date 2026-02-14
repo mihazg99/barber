@@ -48,7 +48,9 @@ class BrandSwitcherPage extends HookConsumerWidget {
           IconButton(
             onPressed: isLoadingBrand.value
                 ? null
-                : () => context.push(AppRoute.brandOnboarding.path),
+                : () => context.push(
+                      '${AppRoute.brandOnboarding.path}?openScanner=true',
+                    ),
             icon: Icon(
               Icons.qr_code_scanner_rounded,
               color: context.appColors.primaryTextColor,
@@ -57,18 +59,30 @@ class BrandSwitcherPage extends HookConsumerWidget {
           ),
         ],
       ),
-      body: Stack(
+      body: Column(
         children: [
-          isGuest
-              ? _GuestBrandList(
-                  selectedBrandId: selectedBrandId,
-                  isLoadingBrand: isLoadingBrand,
-                )
-              : _AuthenticatedUserBrandList(
-                  selectedBrandId: selectedBrandId,
-                  isLoadingBrand: isLoadingBrand,
-                ),
-          if (isLoadingBrand.value) _BrandLoadingOverlay(),
+          Expanded(
+            child: Stack(
+              children: [
+                isGuest
+                    ? _GuestBrandList(
+                        selectedBrandId: selectedBrandId,
+                        isLoadingBrand: isLoadingBrand,
+                        extraBottomPadding: _DiscoveryCTABar.height,
+                      )
+                    : _AuthenticatedUserBrandList(
+                        selectedBrandId: selectedBrandId,
+                        isLoadingBrand: isLoadingBrand,
+                        extraBottomPadding: _DiscoveryCTABar.height,
+                      ),
+                if (isLoadingBrand.value) _BrandLoadingOverlay(),
+              ],
+            ),
+          ),
+          _DiscoveryCTABar(
+            onDiscover: () => context.push(AppRoute.brandOnboarding.path),
+            enabled: !isLoadingBrand.value,
+          ),
         ],
       ),
     );
@@ -80,10 +94,12 @@ class _AuthenticatedUserBrandList extends HookConsumerWidget {
   const _AuthenticatedUserBrandList({
     required this.selectedBrandId,
     required this.isLoadingBrand,
+    this.extraBottomPadding = 0,
   });
 
   final String? selectedBrandId;
   final ValueNotifier<bool> isLoadingBrand;
+  final double extraBottomPadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -99,6 +115,7 @@ class _AuthenticatedUserBrandList extends HookConsumerWidget {
           brandIds: userBrands.map((ub) => ub.brandId).toList(),
           selectedBrandId: selectedBrandId,
           isLoadingBrand: isLoadingBrand,
+          extraBottomPadding: extraBottomPadding,
         );
       },
       loading: () => const _LoadingState(),
@@ -112,10 +129,12 @@ class _GuestBrandList extends HookConsumerWidget {
   const _GuestBrandList({
     required this.selectedBrandId,
     required this.isLoadingBrand,
+    this.extraBottomPadding = 0,
   });
 
   final String? selectedBrandId;
   final ValueNotifier<bool> isLoadingBrand;
+  final double extraBottomPadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -129,6 +148,7 @@ class _GuestBrandList extends HookConsumerWidget {
       brandIds: guestBrandIds,
       selectedBrandId: selectedBrandId,
       isLoadingBrand: isLoadingBrand,
+      extraBottomPadding: extraBottomPadding,
     );
   }
 }
@@ -138,16 +158,27 @@ class _BrandList extends HookConsumerWidget {
     required this.brandIds,
     required this.selectedBrandId,
     required this.isLoadingBrand,
+    this.extraBottomPadding = 0,
   });
 
   final List<String> brandIds;
   final String? selectedBrandId;
   final ValueNotifier<bool> isLoadingBrand;
+  final double extraBottomPadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final padding = context.appSizes.paddingMedium;
+    final bottomInset = extraBottomPadding > 0
+        ? MediaQuery.paddingOf(context).bottom
+        : 0.0;
     return ListView.separated(
-      padding: EdgeInsets.all(context.appSizes.paddingMedium),
+      padding: EdgeInsets.fromLTRB(
+        padding,
+        padding,
+        padding,
+        padding + extraBottomPadding + bottomInset,
+      ),
       itemCount: brandIds.length,
       separatorBuilder: (_, __) => Gap(context.appSizes.paddingSmall),
       itemBuilder: (context, index) {
@@ -344,7 +375,7 @@ class _BrandCardContent extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'Current',
+                          context.l10n.currentBrand,
                           style: context.appTextStyles.caption.copyWith(
                             color: context.appColors.primaryColor,
                             fontSize: 12,
@@ -432,6 +463,51 @@ class _SwitchConfirmDialog extends StatelessWidget {
           child: Text(context.l10n.switchBrandButton),
         ),
       ],
+    );
+  }
+}
+
+/// Fixed bottom CTA that navigates to discovery portal (normal flow, no scanner).
+class _DiscoveryCTABar extends StatelessWidget {
+  const _DiscoveryCTABar({
+    required this.onDiscover,
+    required this.enabled,
+  });
+
+  final VoidCallback onDiscover;
+  final bool enabled;
+
+  static double get height => 56 + 16 * 2; // button + vertical padding
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(
+          context.appSizes.paddingMedium,
+          context.appSizes.paddingMedium,
+          context.appSizes.paddingMedium,
+          context.appSizes.paddingMedium + MediaQuery.paddingOf(context).bottom,
+        ),
+        decoration: BoxDecoration(
+          color: context.appColors.backgroundColor,
+        ),
+        child: FilledButton.icon(
+          onPressed: enabled ? onDiscover : null,
+          icon: const Icon(Icons.add_business_rounded, size: 22),
+          label: Text(context.l10n.discoverBrand),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size.fromHeight(56),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                context.appSizes.borderRadius,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

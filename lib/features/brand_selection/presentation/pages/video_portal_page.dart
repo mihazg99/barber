@@ -62,12 +62,26 @@ final _brandOnboardingNotifierProvider = StateNotifierProvider.autoDispose<
 
 /// Cinematic Video Portal Page - Apple-grade premium glass effects
 class VideoPortalPage extends HookConsumerWidget {
-  const VideoPortalPage({super.key});
+  const VideoPortalPage({
+    super.key,
+    this.initialOpenScanner = false,
+  });
+
+  /// When true, the scanner is shown immediately (e.g. when entering from QR in switcher).
+  final bool initialOpenScanner;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final showScanner = useState(false);
     final showSearch = useState(false);
+
+    // Open scanner on mount when entering via QR entry point
+    useEffect(() {
+      if (initialOpenScanner) {
+        showScanner.value = true;
+      }
+      return null;
+    }, [initialOpenScanner]);
 
     // Animation controllers
     final morphController = useAnimationController(

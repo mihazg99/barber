@@ -275,6 +275,7 @@
     }
   },
   "switchBrandButton": "Switch",
+  "currentBrand": "Current",
   "noBrandsFound": "No businesses found",
   "discoverBrandsHint": "Tap the scan icon above to discover businesses",
 
