@@ -344,6 +344,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
         status: AppointmentStatus.scheduled,
         customerName: customerName,
         serviceName: bookingState.selectedService!.name,
+        barberName: bookingState.selectedBarber?.name,
       );
 
       // Create appointment + update availability in one transaction (prevents double booking)

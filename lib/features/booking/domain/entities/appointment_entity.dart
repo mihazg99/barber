@@ -23,6 +23,7 @@ class AppointmentEntity extends Equatable {
     required this.status,
     required this.customerName,
     required this.serviceName,
+    this.barberName,
     this.createdAt,
   });
 
@@ -44,6 +45,9 @@ class AppointmentEntity extends Equatable {
   /// Denormalized service name for display (comma-separated if multiple)
   final String serviceName;
 
+  /// Denormalized barber/professional name for display (e.g. on client's card)
+  final String? barberName;
+
   @override
   List<Object?> get props => [
     appointmentId,
@@ -59,5 +63,6 @@ class AppointmentEntity extends Equatable {
     createdAt,
     customerName,
     serviceName,
+    barberName,
   ];
 }

@@ -105,14 +105,14 @@ final barberUpcomingAppointmentsProvider = StreamProvider.autoDispose<
 });
 
 /// Manages the current date range window for the calendar.
-/// Starts with 10-day window (today - 2 to today + 7), expands when user navigates beyond range.
+/// Starts with 7-day window (today through today + 6), expands when user navigates beyond range.
 final calendarWindowProvider = StateProvider.autoDispose<DateTimeRange>((ref) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
 
   return DateTimeRange(
-    start: today.subtract(const Duration(days: 2)),
-    end: today.add(const Duration(days: 7)),
+    start: today,
+    end: today.add(const Duration(days: 6)),
   );
 });
 

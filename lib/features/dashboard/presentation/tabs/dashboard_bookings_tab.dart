@@ -44,6 +44,7 @@ class DashboardBookingsTab extends HookConsumerWidget {
                 appointment: a,
                 locationName: locationName,
                 isLocationsLoading: isLocationsLoading,
+                isProfessionalView: true,
               ),
             );
           },

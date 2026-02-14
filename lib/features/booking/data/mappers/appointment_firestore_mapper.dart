@@ -29,6 +29,7 @@ class AppointmentFirestoreMapper {
       status: data['status'] as String? ?? AppointmentStatus.scheduled,
       customerName: data['customer_name'] as String? ?? '',
       serviceName: data['service_name'] as String? ?? '',
+      barberName: data['barber_name'] as String?,
       createdAt: created?.toDate(),
     );
   }
@@ -45,5 +46,6 @@ class AppointmentFirestoreMapper {
     'status': entity.status,
     'customer_name': entity.customerName,
     'service_name': entity.serviceName,
+    if (entity.barberName != null) 'barber_name': entity.barberName,
   };
 }

@@ -130,6 +130,7 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
                               a.locationId,
                             ),
                             isLocationsLoading: isLocationsLoading,
+                            isProfessionalView: true,
                           ),
                         ),
                       ),

@@ -215,12 +215,14 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
         '${endTime.hour.toString().padLeft(2, '0')}:'
         '${endTime.minute.toString().padLeft(2, '0')}';
 
+    final effectiveBarberId = s.selectedTimeSlotBarberId ?? s.appointment.barberId;
+    final barberUnchanged = effectiveBarberId == s.appointment.barberId;
     final newAppointment = AppointmentEntity(
       appointmentId: newAppointmentId,
       brandId: s.appointment.brandId,
       locationId: s.appointment.locationId,
       userId: s.appointment.userId,
-      barberId: s.selectedTimeSlotBarberId ?? s.appointment.barberId,
+      barberId: effectiveBarberId,
       serviceIds: s.appointment.serviceIds,
       startTime: startTime,
       endTime: endTime,
@@ -228,6 +230,7 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
       status: AppointmentStatus.scheduled,
       customerName: s.appointment.customerName,
       serviceName: s.appointment.serviceName,
+      barberName: barberUnchanged ? (s.barberName ?? s.appointment.barberName) : null,
     );
 
     final bufferTime = brand?.bufferTime ?? 0;

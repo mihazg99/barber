@@ -18,18 +18,23 @@ import 'package:barber/features/home/domain/entities/home_data.dart';
 import 'package:barber/features/home/presentation/widgets/home_section_title.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 
-/// Upcoming appointment card: horizontal, location + date/time, accent CTA.
+/// Upcoming appointment card: horizontal, counterparty name + location + date/time, accent CTA.
+/// For professionals: shows client name. For clients: shows professional name.
 class UpcomingBookingCard extends StatelessWidget {
   const UpcomingBookingCard({
     super.key,
     required this.appointment,
     this.locationName,
     this.isLocationsLoading = false,
+    this.isProfessionalView = false,
   });
 
   final AppointmentEntity appointment;
   final String? locationName;
   final bool isLocationsLoading;
+
+  /// When true, viewer is the professional (barber) — show client name. When false, show professional name.
+  final bool isProfessionalView;
 
   static const _cardRadius = 16.0;
 
@@ -90,36 +95,55 @@ class UpcomingBookingCard extends StatelessWidget {
                 ),
                 Gap(context.appSizes.paddingMedium),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      locationName == null && isLocationsLoading
-                          ? ShimmerWrapper(
-                            child: ShimmerPlaceholder(
-                              width: 140,
-                              height: 15,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          )
-                          : Text(
-                            locationName ?? context.l10n.upcomingAppointment,
+                  child: Builder(
+                    builder: (context) {
+                      final title = isProfessionalView
+                          ? appointment.customerName
+                          : (appointment.barberName ?? locationName ?? context.l10n.upcomingAppointment);
+                      final showLocationLine = (locationName != null || isLocationsLoading) &&
+                          (isProfessionalView || appointment.barberName != null);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            title,
                             style: context.appTextStyles.h2.copyWith(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                               color: colors.primaryTextColor,
                             ),
                           ),
-                      Gap(2),
-                      Text(
-                        _formatDateTime(context, appointment.startTime),
-                        style: context.appTextStyles.caption.copyWith(
-                          fontSize: 13,
-                          color: colors.captionTextColor,
-                        ),
-                      ),
-                    ],
+                          if (showLocationLine) ...[
+                            Gap(2),
+                            locationName == null && isLocationsLoading
+                                ? ShimmerWrapper(
+                                  child: ShimmerPlaceholder(
+                                    width: 140,
+                                    height: 13,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                )
+                                : Text(
+                                  locationName ?? '',
+                                  style: context.appTextStyles.caption.copyWith(
+                                    fontSize: 13,
+                                    color: colors.captionTextColor,
+                                  ),
+                                ),
+                          ],
+                          Gap(2),
+                          Text(
+                            _formatDateTime(context, appointment.startTime),
+                            style: context.appTextStyles.caption.copyWith(
+                              fontSize: 13,
+                              color: colors.captionTextColor,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
                 _PillButton(
@@ -300,6 +324,7 @@ class UpcomingBooking extends ConsumerWidget {
                   appointment: data,
                   locationName: _locationNameFor(locations, data.locationId),
                   isLocationsLoading: isLocationsLoading,
+                  isProfessionalView: false,
                 ),
           _ => NoUpcomingBookingCTA(
             onTap: () => context.push(AppRoute.booking.path),
