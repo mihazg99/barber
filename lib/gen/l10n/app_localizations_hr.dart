@@ -57,6 +57,21 @@ class AppLocalizationsHr extends AppLocalizations {
   String get logoutConfirmMessage => 'Jeste li sigurni da želite se odjaviti?';
 
   @override
+  String logoutFailed(String error) {
+    return 'Odjava nije uspjela: $error';
+  }
+
+  @override
+  String get drawerGuestUser => 'Gost';
+
+  @override
+  String get drawerUser => 'Korisnik';
+
+  @override
+  String get drawerSignInToSaveBookings =>
+      'Prijavite se kako biste napravili rezervacije';
+
+  @override
   String get navHome => 'Početna';
 
   @override
@@ -85,6 +100,26 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get onboardingManageInventoryDescription =>
       'Pratite stavke i kutije na svim lokacijama.';
+
+  @override
+  String get onboardingLoyaltyTitle => 'Zarađuj bodove vjernosti';
+
+  @override
+  String get onboardingLoyaltyDescription =>
+      'Skupljaj bodove pri svakom posjetu i iskoristi nagrade na svojim omiljenim lokacijama.';
+
+  @override
+  String get onboardingNotificationsTitle => 'Ne propusti termin';
+
+  @override
+  String get onboardingNotificationsDescription =>
+      'Primi podsjetnik prije posjeta da uvijek stigneš na vrijeme.';
+
+  @override
+  String get enableReminders => 'Uključi podsjetnike';
+
+  @override
+  String get notNow => 'Ne sada';
 
   @override
   String get authEnterPhone => 'Unesite broj telefona';
@@ -322,6 +357,30 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get loyaltyViewRewards => 'Pogledaj nagrade';
+
+  @override
+  String get loyaltyClub => 'Club';
+
+  @override
+  String get loyaltyGuestLabel => 'GOST';
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String durationHours(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get scanQrCode => 'Skeniraj QR kod';
 
   @override
   String get loyaltyPageTitle => 'Nagrade i lojalnost';
@@ -595,6 +654,13 @@ class AppLocalizationsHr extends AppLocalizations {
   String get switchBrandButton => 'Prebaci';
 
   @override
+  String get settingsNotifications => 'Obavijesti';
+
+  @override
+  String get settingsNotificationsDescription =>
+      'Podsjetnici i ažuriranja termina';
+
+  @override
   String get currentBrand => 'Trenutni';
 
   @override
@@ -617,9 +683,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get selectBusinessFirst => 'Molimo prvo odaberite salon.';
-
-  @override
-  String get scanQrCode => 'Skeniraj QR kod';
 
   @override
   String get searchByTag => 'Pretraži po oznaci';

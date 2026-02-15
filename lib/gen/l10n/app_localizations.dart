@@ -194,6 +194,30 @@ abstract class AppLocalizations {
   /// **'Jeste li sigurni da želite se odjaviti?'**
   String get logoutConfirmMessage;
 
+  /// No description provided for @logoutFailed.
+  ///
+  /// In hr, this message translates to:
+  /// **'Odjava nije uspjela: {error}'**
+  String logoutFailed(String error);
+
+  /// No description provided for @drawerGuestUser.
+  ///
+  /// In hr, this message translates to:
+  /// **'Gost'**
+  String get drawerGuestUser;
+
+  /// No description provided for @drawerUser.
+  ///
+  /// In hr, this message translates to:
+  /// **'Korisnik'**
+  String get drawerUser;
+
+  /// No description provided for @drawerSignInToSaveBookings.
+  ///
+  /// In hr, this message translates to:
+  /// **'Prijavite se kako biste napravili rezervacije'**
+  String get drawerSignInToSaveBookings;
+
   /// No description provided for @navHome.
   ///
   /// In hr, this message translates to:
@@ -247,6 +271,42 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Pratite stavke i kutije na svim lokacijama.'**
   String get onboardingManageInventoryDescription;
+
+  /// No description provided for @onboardingLoyaltyTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Zarađuj bodove vjernosti'**
+  String get onboardingLoyaltyTitle;
+
+  /// No description provided for @onboardingLoyaltyDescription.
+  ///
+  /// In hr, this message translates to:
+  /// **'Skupljaj bodove pri svakom posjetu i iskoristi nagrade na svojim omiljenim lokacijama.'**
+  String get onboardingLoyaltyDescription;
+
+  /// No description provided for @onboardingNotificationsTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Ne propusti termin'**
+  String get onboardingNotificationsTitle;
+
+  /// No description provided for @onboardingNotificationsDescription.
+  ///
+  /// In hr, this message translates to:
+  /// **'Primi podsjetnik prije posjeta da uvijek stigneš na vrijeme.'**
+  String get onboardingNotificationsDescription;
+
+  /// No description provided for @enableReminders.
+  ///
+  /// In hr, this message translates to:
+  /// **'Uključi podsjetnike'**
+  String get enableReminders;
+
+  /// No description provided for @notNow.
+  ///
+  /// In hr, this message translates to:
+  /// **'Ne sada'**
+  String get notNow;
 
   /// No description provided for @authEnterPhone.
   ///
@@ -697,6 +757,42 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Pogledaj nagrade'**
   String get loyaltyViewRewards;
+
+  /// No description provided for @loyaltyClub.
+  ///
+  /// In hr, this message translates to:
+  /// **'Club'**
+  String get loyaltyClub;
+
+  /// No description provided for @loyaltyGuestLabel.
+  ///
+  /// In hr, this message translates to:
+  /// **'GOST'**
+  String get loyaltyGuestLabel;
+
+  /// No description provided for @durationMinutes.
+  ///
+  /// In hr, this message translates to:
+  /// **'{minutes} min'**
+  String durationMinutes(int minutes);
+
+  /// No description provided for @durationHours.
+  ///
+  /// In hr, this message translates to:
+  /// **'{hours} h'**
+  String durationHours(int hours);
+
+  /// No description provided for @durationHoursMinutes.
+  ///
+  /// In hr, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String durationHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @scanQrCode.
+  ///
+  /// In hr, this message translates to:
+  /// **'Skeniraj QR kod'**
+  String get scanQrCode;
 
   /// No description provided for @loyaltyPageTitle.
   ///
@@ -1208,6 +1304,18 @@ abstract class AppLocalizations {
   /// **'Prebaci'**
   String get switchBrandButton;
 
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In hr, this message translates to:
+  /// **'Obavijesti'**
+  String get settingsNotifications;
+
+  /// No description provided for @settingsNotificationsDescription.
+  ///
+  /// In hr, this message translates to:
+  /// **'Podsjetnici i ažuriranja termina'**
+  String get settingsNotificationsDescription;
+
   /// No description provided for @currentBrand.
   ///
   /// In hr, this message translates to:
@@ -1249,12 +1357,6 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Molimo prvo odaberite salon.'**
   String get selectBusinessFirst;
-
-  /// No description provided for @scanQrCode.
-  ///
-  /// In hr, this message translates to:
-  /// **'Skeniraj QR kod'**
-  String get scanQrCode;
 
   /// No description provided for @searchByTag.
   ///

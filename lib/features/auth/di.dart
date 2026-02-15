@@ -17,6 +17,7 @@ import 'package:barber/features/auth/presentation/bloc/auth_notifier.dart';
 import 'package:barber/features/auth/presentation/bloc/login_overlay_notifier.dart';
 import 'package:barber/core/push/push_notification_notifier.dart';
 import 'package:barber/core/push/push_notification_data.dart';
+import 'package:barber/core/settings/notification_settings_notifier.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 /// Effective role for navigation and client-side access control.
@@ -221,21 +222,23 @@ final pushNotificationNotifierProvider = StateNotifierProvider.autoDispose<
   );
 });
 
-/// Keeps push notifier alive and syncs FCM token to user when both are available.
-/// Watch this in the app root so FCM is initialized and token is saved on sign-in.
+/// Keeps push notifier alive and syncs FCM token to user when notifications are
+/// enabled; clears token when disabled. Watch in app root.
 final pushNotificationBootstrapProvider = Provider<void>((ref) {
   ref.watch(pushNotificationNotifierProvider);
+  final settingsState = ref.watch(notificationSettingsNotifierProvider);
+  final notificationsEnabled =
+      settingsState is BaseData<bool> ? settingsState.data : true;
   final userId = ref.watch(currentUserIdProvider).valueOrNull;
   final pushState = ref.watch(pushNotificationNotifierProvider);
   final pushData =
-      pushState is BaseData<PushNotificationData>
-          ? pushState.data
-          : null;
+      pushState is BaseData<PushNotificationData> ? pushState.data : null;
   final token = pushData?.fcmToken;
-  if (userId != null &&
-      userId.isNotEmpty &&
-      token != null &&
-      token.isNotEmpty) {
-    ref.read(userRepositoryProvider).updateFcmToken(userId, token);
+  final userRepo = ref.read(userRepositoryProvider);
+  if (userId == null || userId.isEmpty) return;
+  if (notificationsEnabled && token != null && token.isNotEmpty) {
+    userRepo.updateFcmToken(userId, token);
+  } else if (!notificationsEnabled) {
+    userRepo.updateFcmToken(userId, '');
   }
 });

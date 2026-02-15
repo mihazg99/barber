@@ -28,6 +28,7 @@ import 'package:barber/features/inventory/presentation/pages/add_item_page.dart'
 import 'package:barber/features/inventory/presentation/pages/inventory_page.dart';
 import 'package:barber/features/loyalty/presentation/pages/loyalty_page.dart';
 import 'package:barber/features/onboarding/di.dart';
+import 'package:barber/features/onboarding/presentation/pages/onboarding_notification_page.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:barber/features/brand_selection/di.dart';
 import 'package:barber/features/brand/domain/entities/brand_entity.dart';
@@ -295,11 +296,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         }
         return AppRoute.auth.path;
       }
-      if (!onboardingCompleted && path != AppRoute.onboarding.path) {
+      if (!onboardingCompleted &&
+          path != AppRoute.onboarding.path &&
+          path != AppRoute.onboardingNotifications.path) {
         debugPrint('[Router] Not onboarded -> onboarding');
         return AppRoute.onboarding.path;
       }
-      if (onboardingCompleted && path == AppRoute.onboarding.path) {
+      if (onboardingCompleted &&
+          (path == AppRoute.onboarding.path ||
+              path == AppRoute.onboardingNotifications.path)) {
         debugPrint(
           '[Router] Onboarding complete but at onboarding page -> ${isAuthenticated ? "auth or home" : "auth"}',
         );
@@ -454,6 +459,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.onboarding.path,
         pageBuilder:
             (context, state) => NoTransitionPage(child: const OnboardingPage()),
+      ),
+      GoRoute(
+        name: AppRoute.onboardingNotifications.name,
+        path: AppRoute.onboardingNotifications.path,
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: const OnboardingNotificationPage(),
+        ),
       ),
       GoRoute(
         name: AppRoute.auth.name,

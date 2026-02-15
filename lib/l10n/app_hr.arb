@@ -16,6 +16,18 @@
   "logout": "Odjava",
   "logoutConfirmTitle": "Odjava",
   "logoutConfirmMessage": "Jeste li sigurni da želite se odjaviti?",
+  "logoutFailed": "Odjava nije uspjela: {error}",
+  "@logoutFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "drawerGuestUser": "Gost",
+  "drawerUser": "Korisnik",
+  "drawerSignInToSaveBookings": "Prijavite se kako biste napravili rezervacije",
 
   "navHome": "Početna",
   "navInventory": "Inventar",
@@ -27,6 +39,12 @@
   "onboardingScanQrDescription": "Brza prijava i pristup uslugama skeniranjem QR kodova na lokaciji.",
   "onboardingManageInventoryTitle": "Upravljaj inventarom",
   "onboardingManageInventoryDescription": "Pratite stavke i kutije na svim lokacijama.",
+  "onboardingLoyaltyTitle": "Zarađuj bodove vjernosti",
+  "onboardingLoyaltyDescription": "Skupljaj bodove pri svakom posjetu i iskoristi nagrade na svojim omiljenim lokacijama.",
+  "onboardingNotificationsTitle": "Ne propusti termin",
+  "onboardingNotificationsDescription": "Primi podsjetnik prije posjeta da uvijek stigneš na vrijeme.",
+  "enableReminders": "Uključi podsjetnike",
+  "notNow": "Ne sada",
 
   "authEnterPhone": "Unesite broj telefona",
   "authVerificationCodeSent": "Poslat ćemo vam verifikacijski kod",
@@ -130,6 +148,30 @@
   "loyaltyPointsAbbrev": "bod.",
   "loyaltyMember": "ČLAN",
   "loyaltyViewRewards": "Pogledaj nagrade",
+  "loyaltyClub": "Club",
+  "loyaltyGuestLabel": "GOST",
+
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "durationHours": "{hours} h",
+  "@durationHours": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "durationHoursMinutes": "{hours} h {minutes} min",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+
+  "scanQrCode": "Skeniraj QR kod",
 
   "loyaltyPageTitle": "Nagrade i lojalnost",
   "loyaltyRewardsComingSoon": "Nagrade uskoro",
@@ -275,6 +317,8 @@
     }
   },
   "switchBrandButton": "Prebaci",
+  "settingsNotifications": "Obavijesti",
+  "settingsNotificationsDescription": "Podsjetnici i ažuriranja termina",
   "currentBrand": "Trenutni",
   "noBrandsFound": "Nema pronađenih salona",
   "discoverBrandsHint": "Dodirnite ikonu skeniranja iznad za otkrivanje salona",

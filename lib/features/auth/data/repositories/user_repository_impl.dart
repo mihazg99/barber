@@ -85,7 +85,6 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<Either<Failure, void>> updateFcmToken(String userId, String token) async {
-    if (token.isEmpty) return const Right(null);
     try {
       await FirestoreLogger.logWrite(
         '${FirestoreCollections.users}/$userId',

@@ -1,7 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show Locale;
 import 'package:barber/core/errors/failure.dart';
-import 'package:barber/features/onboarding/domain/entities/onboarding_page_entity.dart';
+import 'package:barber/features/onboarding/domain/entities/onboarding_page_entity.dart'
+    show OnboardingIcon, OnboardingPageEntity;
 import 'package:barber/features/onboarding/domain/failures/onboarding_failures.dart';
 import 'package:barber/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:barber/features/onboarding/data/datasources/onboarding_local_data_source.dart';
@@ -43,17 +44,17 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
       OnboardingPageEntity(
         title: l10n.onboardingBookAppointmentsTitle,
         description: l10n.onboardingBookAppointmentsDescription,
-        iconCodePoint: Icons.event_available.codePoint,
+        icon: OnboardingIcon.eventAvailable,
       ),
       OnboardingPageEntity(
         title: l10n.onboardingScanQrTitle,
         description: l10n.onboardingScanQrDescription,
-        iconCodePoint: Icons.qr_code_scanner.codePoint,
+        icon: OnboardingIcon.qrCodeScanner,
       ),
       OnboardingPageEntity(
-        title: l10n.onboardingManageInventoryTitle,
-        description: l10n.onboardingManageInventoryDescription,
-        iconCodePoint: Icons.inventory_2.codePoint,
+        title: l10n.onboardingLoyaltyTitle,
+        description: l10n.onboardingLoyaltyDescription,
+        icon: OnboardingIcon.loyalty,
       ),
     ];
   }

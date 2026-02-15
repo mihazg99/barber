@@ -38,11 +38,8 @@ class PushNotificationNotifier extends BaseNotifier<PushNotificationData, dynami
         sound: true,
       );
 
-      final settings = await _messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+      // Do not request permission on startup; user is prompted in onboarding.
+      final settings = await _messaging.getNotificationSettings();
 
       final token = await _messaging.getToken();
       // ignore: avoid_print
