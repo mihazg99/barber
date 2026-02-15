@@ -57,6 +57,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logoutConfirmMessage => 'Are you sure you want to logout?';
 
   @override
+  String logoutFailed(String error) {
+    return 'Logout failed: $error';
+  }
+
+  @override
+  String get drawerGuestUser => 'Guest User';
+
+  @override
+  String get drawerUser => 'User';
+
+  @override
+  String get drawerSignInToSaveBookings => 'Sign in to save your bookings';
+
+  @override
   String get navHome => 'Home';
 
   @override
@@ -85,6 +99,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingManageInventoryDescription =>
       'Keep track of items and boxes across your locations.';
+
+  @override
+  String get onboardingLoyaltyTitle => 'Earn loyalty points';
+
+  @override
+  String get onboardingLoyaltyDescription =>
+      'Collect points with every visit and redeem rewards at your favorite locations.';
+
+  @override
+  String get onboardingNotificationsTitle => 'Never miss an appointment';
+
+  @override
+  String get onboardingNotificationsDescription =>
+      'Get a reminder before your visit so you’re always on time.';
+
+  @override
+  String get enableReminders => 'Turn on reminders';
+
+  @override
+  String get notNow => 'Not now';
 
   @override
   String get authEnterPhone => 'Enter your phone number';
@@ -322,6 +356,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loyaltyViewRewards => 'View rewards';
+
+  @override
+  String get loyaltyClub => 'Club';
+
+  @override
+  String get loyaltyGuestLabel => 'GUEST';
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String durationHours(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get scanQrCode => 'Scan QR Code';
 
   @override
   String get loyaltyPageTitle => 'Loyalty & Rewards';
@@ -594,6 +652,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get switchBrandButton => 'Switch';
 
   @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get settingsNotificationsDescription =>
+      'Reminders and appointment updates';
+
+  @override
   String get currentBrand => 'Current';
 
   @override
@@ -616,9 +681,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectBusinessFirst => 'Please select a business first.';
-
-  @override
-  String get scanQrCode => 'Scan QR Code';
 
   @override
   String get searchByTag => 'Search by Tag';

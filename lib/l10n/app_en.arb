@@ -16,6 +16,18 @@
   "logout": "Log out",
   "logoutConfirmTitle": "Logout",
   "logoutConfirmMessage": "Are you sure you want to logout?",
+  "logoutFailed": "Logout failed: {error}",
+  "@logoutFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "drawerGuestUser": "Guest User",
+  "drawerUser": "User",
+  "drawerSignInToSaveBookings": "Sign in to save your bookings",
 
   "navHome": "Home",
   "navInventory": "Inventory",
@@ -27,6 +39,12 @@
   "onboardingScanQrDescription": "Quick check-in and access to services by scanning QR codes at the location.",
   "onboardingManageInventoryTitle": "Manage inventory",
   "onboardingManageInventoryDescription": "Keep track of items and boxes across your locations.",
+  "onboardingLoyaltyTitle": "Earn loyalty points",
+  "onboardingLoyaltyDescription": "Collect points with every visit and redeem rewards at your favorite locations.",
+  "onboardingNotificationsTitle": "Never miss an appointment",
+  "onboardingNotificationsDescription": "Get a reminder before your visit so you’re always on time.",
+  "enableReminders": "Turn on reminders",
+  "notNow": "Not now",
 
   "authEnterPhone": "Enter your phone number",
   "authVerificationCodeSent": "We'll send you a verification code",
@@ -130,6 +148,30 @@
   "loyaltyPointsAbbrev": "pts",
   "loyaltyMember": "MEMBER",
   "loyaltyViewRewards": "View rewards",
+  "loyaltyClub": "Club",
+  "loyaltyGuestLabel": "GUEST",
+
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "durationHours": "{hours} h",
+  "@durationHours": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "durationHoursMinutes": "{hours} h {minutes} min",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+
+  "scanQrCode": "Scan QR Code",
 
   "loyaltyPageTitle": "Loyalty & Rewards",
   "loyaltyRewardsComingSoon": "Rewards coming soon",
@@ -275,6 +317,8 @@
     }
   },
   "switchBrandButton": "Switch",
+  "settingsNotifications": "Notifications",
+  "settingsNotificationsDescription": "Reminders and appointment updates",
   "currentBrand": "Current",
   "noBrandsFound": "No businesses found",
   "discoverBrandsHint": "Tap the scan icon above to discover businesses",

@@ -55,7 +55,7 @@ class ServicesSection extends ConsumerWidget {
 class _ServicesContent extends StatelessWidget {
   const _ServicesContent({
     required this.services,
-    this.title = 'Services',
+    required this.title,
   });
 
   final List<ServiceEntity> services;
@@ -167,12 +167,12 @@ class _ServiceCard extends StatelessWidget {
   String _formatPrice(BuildContext context, num price) =>
       context.formatPriceWithCurrency(price);
 
-  static String _formatDuration(int minutes) {
-    if (minutes < 60) return '${minutes}min';
+  String _formatDuration(BuildContext context, int minutes) {
+    if (minutes < 60) return context.l10n.durationMinutes(minutes);
     final h = minutes ~/ 60;
     final m = minutes % 60;
-    if (m == 0) return '${h}h';
-    return '${h}h ${m}min';
+    if (m == 0) return context.l10n.durationHours(h);
+    return context.l10n.durationHoursMinutes(h, m);
   }
 
   @override
@@ -220,7 +220,7 @@ class _ServiceCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    _formatDuration(service.durationMinutes),
+                    _formatDuration(context, service.durationMinutes),
                     style: context.appTextStyles.caption.copyWith(
                       fontSize: 11,
                       color: context.appColors.secondaryTextColor,

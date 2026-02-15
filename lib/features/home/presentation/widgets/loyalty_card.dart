@@ -794,7 +794,7 @@ class _LoyaltyCardBackFace extends HookWidget {
                     const Gap(14),
                     Text(
                       brandName?.trim().isNotEmpty == true
-                          ? '${brandName!.trim()} Club'.toUpperCase()
+                          ? '${brandName!.trim()} ${context.l10n.loyaltyClub}'.toUpperCase()
                           : '',
                       style: styles.caption.copyWith(
                         fontSize: 10,
@@ -1064,7 +1064,7 @@ class _GuestLoyaltyCard extends HookConsumerWidget {
                           const Gap(6),
                           // Name "Guest" in bottom left, matching signed-in typography (all caps)
                           Text(
-                            'GUEST',
+                            context.l10n.loyaltyGuestLabel,
                             style: styles.caption.copyWith(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,

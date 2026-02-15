@@ -165,9 +165,8 @@ class _OnboardingContent extends ConsumerWidget {
               curve: Curves.easeInOut,
             );
           },
-          onGetStarted: () async {
-            onCompletingChanged(true);
-            await notifier.complete();
+          onGetStarted: () {
+            context.go(AppRoute.onboardingNotifications.path);
           },
           isCompleting: isCompleting,
         ),

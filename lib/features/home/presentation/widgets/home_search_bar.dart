@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -9,11 +10,11 @@ class HomeSearchBar extends StatelessWidget {
   const HomeSearchBar({
     super.key,
     this.onTap,
-    this.hint = 'Search',
+    this.hint,
   });
 
   final VoidCallback? onTap;
-  final String hint;
+  final String? hint;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +45,7 @@ class HomeSearchBar extends StatelessWidget {
               SizedBox(width: context.appSizes.paddingSmall),
               Expanded(
                 child: Text(
-                  hint,
+                  hint ?? context.l10n.search,
                   style: context.appTextStyles.body.copyWith(
                     color: context.appColors.hintTextColor,
                     fontSize: 15,

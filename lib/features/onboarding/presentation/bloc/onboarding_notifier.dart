@@ -40,11 +40,18 @@ class OnboardingNotifier extends BaseNotifier<OnboardingData, dynamic> {
   }
 
   /// Marks onboarding as completed (persists and keeps current state).
-  Future<void> complete() async {
+  /// Returns true if completion was persisted successfully.
+  Future<bool> complete() async {
     final result = await _repository.completeOnboarding();
-    result.fold(
-      (failure) => setError(failure.message, failure),
-      (_) => setData(data!),
+    return result.fold(
+      (failure) {
+        setError(failure.message, failure);
+        return false;
+      },
+      (_) {
+        setData(data!);
+        return true;
+      },
     );
   }
 }
