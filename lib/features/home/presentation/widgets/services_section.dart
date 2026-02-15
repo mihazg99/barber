@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:barber/core/utils/price_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -8,10 +7,10 @@ import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
-import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/widgets/shimmer_placeholder.dart';
 import 'package:barber/features/home/di.dart';
 import 'package:barber/features/home/presentation/widgets/home_section_title.dart';
+import 'package:barber/features/home/presentation/widgets/premium_service_card.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
 
 const _servicesSectionSpacing = 28.0;
@@ -69,7 +68,7 @@ class _ServicesContent extends StatelessWidget {
         HomeSectionTitle(title: title),
         Gap(context.appSizes.paddingSmall),
         SizedBox(
-          height: 124,
+          height: 120, // Matches actual content height
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.only(right: context.appSizes.paddingMedium),
@@ -77,7 +76,7 @@ class _ServicesContent extends StatelessWidget {
             separatorBuilder: (_, __) => Gap(context.appSizes.paddingSmall),
             itemBuilder: (context, index) {
               final service = services[index];
-              return _ServiceCard(
+              return PremiumServiceCard(
                 service: service,
                 onTap:
                     () => _openBookingWithService(context, service.serviceId),
@@ -100,7 +99,7 @@ class _ServicesSectionShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const cardWidth = 160.0;
-    const cardHeight = 124.0;
+    const cardHeight = 120.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -148,109 +147,6 @@ class _ServicesSectionShimmer extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-const _cardRadius = 16.0;
-const _cardWidth = 160.0;
-
-class _ServiceCard extends StatelessWidget {
-  const _ServiceCard({
-    required this.service,
-    required this.onTap,
-  });
-
-  final ServiceEntity service;
-  final VoidCallback onTap;
-
-  String _formatPrice(BuildContext context, num price) =>
-      context.formatPriceWithCurrency(price);
-
-  String _formatDuration(BuildContext context, int minutes) {
-    if (minutes < 60) return context.l10n.durationMinutes(minutes);
-    final h = minutes ~/ 60;
-    final m = minutes % 60;
-    if (m == 0) return context.l10n.durationHours(h);
-    return context.l10n.durationHoursMinutes(h, m);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(_cardRadius),
-        child: Container(
-          width: _cardWidth,
-          padding: EdgeInsets.all(context.appSizes.paddingMedium),
-          decoration: BoxDecoration(
-            color: context.appColors.menuBackgroundColor,
-            borderRadius: BorderRadius.circular(_cardRadius),
-            border: Border.all(
-              color: context.appColors.borderColor.withValues(alpha: 0.1),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                service.name,
-                style: context.appTextStyles.h2.copyWith(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: context.appColors.primaryTextColor,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Gap(4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _formatPrice(context, service.price),
-                    style: context.appTextStyles.h2.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: context.appColors.primaryColorOnDark,
-                    ),
-                  ),
-                  Text(
-                    _formatDuration(context, service.durationMinutes),
-                    style: context.appTextStyles.caption.copyWith(
-                      fontSize: 11,
-                      color: context.appColors.secondaryTextColor,
-                    ),
-                  ),
-                ],
-              ),
-              Gap(6),
-              Row(
-                children: [
-                  Text(
-                    context.l10n.book,
-                    style: context.appTextStyles.caption.copyWith(
-                      fontSize: 12,
-                      color: context.appColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Gap(4),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 10,
-                    color: context.appColors.primaryColor,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

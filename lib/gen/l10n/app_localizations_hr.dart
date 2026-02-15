@@ -774,6 +774,12 @@ class AppLocalizationsHr extends AppLocalizations {
   String get dashboardLocationPhoneHint => '+385 1 234 5678';
 
   @override
+  String get dashboardLocationPhoneRequired => 'Broj telefona je obavezan';
+
+  @override
+  String get dashboardLocationAddressRequired => 'Adresa je obavezna';
+
+  @override
   String get dashboardLocationCoordinates => 'Koordinate';
 
   @override
@@ -814,7 +820,17 @@ class AppLocalizationsHr extends AppLocalizations {
   String get dashboardLocationEmpty => 'Još nema lokacija. Dodajte novu.';
 
   @override
+  String get dashboardLocationNoWorkingHours =>
+      'Radno vrijeme nije postavljeno. Dodirnite za dodavanje.';
+
+  @override
   String get dashboardNoBrand => 'Nije konfiguriran brend';
+
+  @override
+  String get add => 'Dodaj';
+
+  @override
+  String get edit => 'Uredi';
 
   @override
   String get dashboardServiceAdd => 'Dodaj uslugu';
@@ -849,6 +865,12 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get dashboardServiceDurationInvalid =>
       'Unesite valjano trajanje (min 1)';
+
+  @override
+  String get dashboardServiceDurationRequired => 'Trajanje je obavezno';
+
+  @override
+  String get dashboardServicePriceRequired => 'Cijena je obavezna';
 
   @override
   String get dashboardServiceDescription => 'Opis';
@@ -907,6 +929,9 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get dashboardBarberPhotoUrlHint => 'https://...';
+
+  @override
+  String get dashboardBarberPhotoUrlRequired => 'URL fotografije je obavezan';
 
   @override
   String get dashboardBarberLocation => 'Lokacija';
@@ -973,6 +998,9 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get dashboardRewardDescriptionHint => 'Opcionalni opis';
+
+  @override
+  String get dashboardRewardDescriptionRequired => 'Opis je obavezan';
 
   @override
   String get dashboardRewardPointsCostLabel => 'Cijena u bodovima';

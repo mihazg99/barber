@@ -86,13 +86,16 @@ class LoginOverlay extends HookConsumerWidget {
           child: Stack(
             children: [
               // Backdrop - transparent (blur is applied only to the card itself)
+              // Disable tap to dismiss when profile completion is required
               Positioned.fill(
                 child: GestureDetector(
                   onTap:
-                      () =>
-                          ref
-                              .read(loginOverlayNotifierProvider.notifier)
-                              .hide(),
+                      needsProfileCompletion
+                          ? null
+                          : () =>
+                              ref
+                                  .read(loginOverlayNotifierProvider.notifier)
+                                  .hide(),
                   child: Container(
                     color: Colors.transparent,
                   ),
@@ -292,10 +295,12 @@ class _LoginModalCard extends HookConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             // Close button - very thin, top-right, 50% opacity
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: _CloseButton(onClose: onClose),
-                            ),
+                            // Hide close button when profile completion is required
+                            if (!needsProfileCompletion)
+                              Align(
+                                alignment: Alignment.topRight,
+                                child: _CloseButton(onClose: onClose),
+                              ),
                             Gap(sizes.paddingSmall),
                             // Brand logo
                             if (brandConfig.logoPath.isNotEmpty) ...[

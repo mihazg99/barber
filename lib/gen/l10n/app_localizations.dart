@@ -1532,6 +1532,18 @@ abstract class AppLocalizations {
   /// **'+385 1 234 5678'**
   String get dashboardLocationPhoneHint;
 
+  /// No description provided for @dashboardLocationPhoneRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'Broj telefona je obavezan'**
+  String get dashboardLocationPhoneRequired;
+
+  /// No description provided for @dashboardLocationAddressRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'Adresa je obavezna'**
+  String get dashboardLocationAddressRequired;
+
   /// No description provided for @dashboardLocationCoordinates.
   ///
   /// In hr, this message translates to:
@@ -1610,11 +1622,29 @@ abstract class AppLocalizations {
   /// **'Još nema lokacija. Dodajte novu.'**
   String get dashboardLocationEmpty;
 
+  /// No description provided for @dashboardLocationNoWorkingHours.
+  ///
+  /// In hr, this message translates to:
+  /// **'Radno vrijeme nije postavljeno. Dodirnite za dodavanje.'**
+  String get dashboardLocationNoWorkingHours;
+
   /// No description provided for @dashboardNoBrand.
   ///
   /// In hr, this message translates to:
   /// **'Nije konfiguriran brend'**
   String get dashboardNoBrand;
+
+  /// No description provided for @add.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dodaj'**
+  String get add;
+
+  /// No description provided for @edit.
+  ///
+  /// In hr, this message translates to:
+  /// **'Uredi'**
+  String get edit;
 
   /// No description provided for @dashboardServiceAdd.
   ///
@@ -1681,6 +1711,18 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Unesite valjano trajanje (min 1)'**
   String get dashboardServiceDurationInvalid;
+
+  /// No description provided for @dashboardServiceDurationRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'Trajanje je obavezno'**
+  String get dashboardServiceDurationRequired;
+
+  /// No description provided for @dashboardServicePriceRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'Cijena je obavezna'**
+  String get dashboardServicePriceRequired;
 
   /// No description provided for @dashboardServiceDescription.
   ///
@@ -1795,6 +1837,12 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'https://...'**
   String get dashboardBarberPhotoUrlHint;
+
+  /// No description provided for @dashboardBarberPhotoUrlRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'URL fotografije je obavezan'**
+  String get dashboardBarberPhotoUrlRequired;
 
   /// No description provided for @dashboardBarberLocation.
   ///
@@ -1921,6 +1969,12 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Opcionalni opis'**
   String get dashboardRewardDescriptionHint;
+
+  /// No description provided for @dashboardRewardDescriptionRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'Opis je obavezan'**
+  String get dashboardRewardDescriptionRequired;
 
   /// No description provided for @dashboardRewardPointsCostLabel.
   ///

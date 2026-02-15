@@ -52,7 +52,9 @@ class BarberFormPage extends HookConsumerWidget {
       final targetDate = baseDate.add(Duration(days: weekday - 1));
       final formatted = DateFormat('EEE', locale).format(targetDate);
       // Capitalize first letter
-      return formatted.isEmpty ? formatted : formatted[0].toUpperCase() + formatted.substring(1);
+      return formatted.isEmpty
+          ? formatted
+          : formatted[0].toUpperCase() + formatted.substring(1);
     });
 
     final locations = useState<List<LocationEntity>>([]);
@@ -283,6 +285,11 @@ class BarberFormPage extends HookConsumerWidget {
                 title: context.l10n.dashboardBarberPhotoUrl,
                 hint: context.l10n.dashboardBarberPhotoUrlHint,
                 controller: photoUrlController,
+                validator:
+                    (v) =>
+                        (v?.trim().isEmpty ?? true)
+                            ? context.l10n.dashboardBarberPhotoUrlRequired
+                            : null,
               ),
               Gap(context.appSizes.paddingMedium),
               Text(

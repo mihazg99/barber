@@ -772,6 +772,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardLocationPhoneHint => '+385 1 234 5678';
 
   @override
+  String get dashboardLocationPhoneRequired => 'Phone number is required';
+
+  @override
+  String get dashboardLocationAddressRequired => 'Address is required';
+
+  @override
   String get dashboardLocationCoordinates => 'Coordinates';
 
   @override
@@ -811,7 +817,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardLocationEmpty => 'No locations yet. Tap + to add one.';
 
   @override
+  String get dashboardLocationNoWorkingHours =>
+      'No working hours set. Tap to add.';
+
+  @override
   String get dashboardNoBrand => 'No brand configured';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get edit => 'Edit';
 
   @override
   String get dashboardServiceAdd => 'Add Service';
@@ -846,6 +862,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardServiceDurationInvalid =>
       'Enter a valid duration (min 1)';
+
+  @override
+  String get dashboardServiceDurationRequired => 'Duration is required';
+
+  @override
+  String get dashboardServicePriceRequired => 'Price is required';
 
   @override
   String get dashboardServiceDescription => 'Description';
@@ -903,6 +925,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardBarberPhotoUrlHint => 'https://...';
+
+  @override
+  String get dashboardBarberPhotoUrlRequired => 'Photo URL is required';
 
   @override
   String get dashboardBarberLocation => 'Location';
@@ -968,6 +993,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardRewardDescriptionHint => 'Optional description';
+
+  @override
+  String get dashboardRewardDescriptionRequired => 'Description is required';
 
   @override
   String get dashboardRewardPointsCostLabel => 'Points cost';

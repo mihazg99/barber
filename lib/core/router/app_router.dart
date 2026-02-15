@@ -9,6 +9,7 @@ import 'package:barber/core/state/base_state.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/auth/domain/entities/auth_step.dart';
+import 'package:barber/features/auth/presentation/bloc/login_overlay_notifier.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 import 'package:barber/features/booking/presentation/pages/booking_page.dart';
 import 'package:barber/features/booking/presentation/pages/edit_booking_page.dart';
@@ -82,7 +83,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       if (!ref.read(isInBrandSelectionFlowProvider)) {
         Future.microtask(() => refreshNotifier.notify());
       } else {
-        debugPrint('[Router Listener] Skipping refresh - brand selection in progress');
+        debugPrint(
+          '[Router Listener] Skipping refresh - brand selection in progress',
+        );
       }
     }
   });
@@ -109,7 +112,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         debugPrint('[Router Listener] userBrandsProvider triggering refresh');
         refreshNotifier.notify();
       } else {
-        debugPrint('[Router Listener] Skipping refresh - brand selection in progress');
+        debugPrint(
+          '[Router Listener] Skipping refresh - brand selection in progress',
+        );
       }
     }
   }, fireImmediately: false);
@@ -122,7 +127,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     if (!ref.read(isInBrandSelectionFlowProvider)) {
       refreshNotifier.notify();
     } else {
-      debugPrint('[Router Listener] Skipping refresh - brand selection in progress');
+      debugPrint(
+        '[Router Listener] Skipping refresh - brand selection in progress',
+      );
     }
   });
 
@@ -147,7 +154,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     // This triggers redirect logic to re-run when brand config finishes loading
     // The redirect logic will check if we're on splash and navigate accordingly
     if (!next.isLoading && !ref.read(isInBrandSelectionFlowProvider)) {
-      debugPrint('[Router Listener] Brand config finished loading, triggering router refresh');
+      debugPrint(
+        '[Router Listener] Brand config finished loading, triggering router refresh',
+      );
       Future.microtask(() => refreshNotifier.notify());
     }
   });
@@ -198,10 +207,28 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         '[Router $timestamp] isAuth=$isAuthenticated, role=$effectiveRole, brand=$lockedBrandId, profileComplete=$isProfileComplete, onboardingDone=$onboardingCompleted',
       );
 
+      // Check if login overlay is visible and handling profile completion
+      final overlayState = container.read(loginOverlayNotifierProvider);
+      final isOverlayVisible =
+          overlayState is BaseData<LoginOverlayState> &&
+          overlayState.data.isVisible;
+      final isOverlayHandlingProfile =
+          isOverlayVisible && isAuthenticated && !isProfileComplete;
+
+      if (isOverlayHandlingProfile) {
+        debugPrint(
+          '[Router $timestamp] ⛔ Login overlay handling profile completion - staying on current page',
+        );
+        // Stay on current page - overlay will handle profile completion
+        return null;
+      }
+
       // CRITICAL: Never redirect away from portal/switcher during brand selection
       // Check both the path AND the brand selection flow flag
       // (portal can be pushed as modal on top of home, so path might still be /)
-      final isInBrandSelectionFlow = container.read(isInBrandSelectionFlowProvider);
+      final isInBrandSelectionFlow = container.read(
+        isInBrandSelectionFlowProvider,
+      );
       if (path == AppRoute.brandOnboarding.path ||
           path == AppRoute.brandSwitcher.path ||
           isInBrandSelectionFlow) {
@@ -233,7 +260,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           // Wait for brand config when a brand is locked, but don't block forever.
           // If brand config fails to load, we still allow navigation (brand ID is locked).
           final brandAsync = container.read(defaultBrandProvider);
-          
+
           // CRITICAL: Wait until brand has completed loading (has value or error).
           // This ensures we don't proceed before the brand is loaded.
           // The splash page watches this provider, which triggers the load, but we need to
@@ -244,7 +271,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             );
             return null;
           }
-          
+
           // If brand config has error, log but proceed (brand ID is still locked)
           if (brandAsync.hasError) {
             debugPrint(
@@ -416,7 +443,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         // navigates them to home. Don't redirect them away!
         if (path == AppRoute.brandOnboarding.path ||
             path == AppRoute.brandSwitcher.path) {
-          debugPrint('[Router] Authenticated user on portal/switcher - allowing access for animation');
+          debugPrint(
+            '[Router] Authenticated user on portal/switcher - allowing access for animation',
+          );
           return null;
         }
 
@@ -463,9 +492,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         name: AppRoute.onboardingNotifications.name,
         path: AppRoute.onboardingNotifications.path,
-        pageBuilder: (context, state) => NoTransitionPage(
-          child: const OnboardingNotificationPage(),
-        ),
+        pageBuilder:
+            (context, state) => NoTransitionPage(
+              child: const OnboardingNotificationPage(),
+            ),
       ),
       GoRoute(
         name: AppRoute.auth.name,
