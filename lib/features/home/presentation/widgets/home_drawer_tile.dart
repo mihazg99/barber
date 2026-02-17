@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+import 'package:barber/core/push/push_notification_data.dart';
 
 import 'package:barber/core/di.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
@@ -27,16 +30,20 @@ class HomeDrawerTile extends HookConsumerWidget {
   final _HomeDrawerTileVariant _variant;
 
   /// Notifications on/off toggle. Persists to SharedPreferences and syncs FCM token.
-  const HomeDrawerTile.notifications({Key? key}) : this._(_HomeDrawerTileVariant.notifications, key: key);
+  const HomeDrawerTile.notifications({Key? key})
+    : this._(_HomeDrawerTileVariant.notifications, key: key);
 
   /// Navigate to brand switcher.
-  const HomeDrawerTile.switchBrand({Key? key}) : this._(_HomeDrawerTileVariant.switchBrand, key: key);
+  const HomeDrawerTile.switchBrand({Key? key})
+    : this._(_HomeDrawerTileVariant.switchBrand, key: key);
 
   /// Open login overlay (guest only).
-  const HomeDrawerTile.login({Key? key}) : this._(_HomeDrawerTileVariant.login, key: key);
+  const HomeDrawerTile.login({Key? key})
+    : this._(_HomeDrawerTileVariant.login, key: key);
 
   /// Logout with confirmation (authenticated only).
-  const HomeDrawerTile.logout({Key? key}) : this._(_HomeDrawerTileVariant.logout, key: key);
+  const HomeDrawerTile.logout({Key? key})
+    : this._(_HomeDrawerTileVariant.logout, key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,8 +61,22 @@ class HomeDrawerTile extends HookConsumerWidget {
 
   Widget _buildNotificationsTile(BuildContext context, WidgetRef ref) {
     final settingsState = ref.watch(notificationSettingsNotifierProvider);
-    final enabled = settingsState is BaseData<bool> ? settingsState.data : true;
+    final prefEnabled =
+        settingsState is BaseData<bool> ? settingsState.data : true;
     final isLoading = settingsState is BaseLoading<bool>;
+
+    final pushState = ref.watch(pushNotificationNotifierProvider);
+    final pushData =
+        pushState is BaseData<PushNotificationData> ? pushState.data : null;
+    final authStatus =
+        pushData?.authorizationStatus ?? AuthorizationStatus.notDetermined;
+
+    // Enabled only if preference is true AND permission is granted/provisional.
+    // If notDetermined (skipped onboarding), it shows as OFF so user can toggle ON to request.
+    final bool isActuallyEnabled =
+        prefEnabled &&
+        (authStatus == AuthorizationStatus.authorized ||
+            authStatus == AuthorizationStatus.provisional);
 
     return ListTile(
       leading: Icon(
@@ -76,21 +97,28 @@ class HomeDrawerTile extends HookConsumerWidget {
           color: context.appColors.secondaryTextColor,
         ),
       ),
-      trailing: isLoading
-          ? SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  context.appColors.primaryTextColor,
+      trailing:
+          isLoading
+              ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    context.appColors.primaryTextColor,
+                  ),
                 ),
+              )
+              : Switch(
+                value: isActuallyEnabled,
+                onChanged:
+                    (value) => _handleNotificationsToggle(
+                      context,
+                      ref,
+                      value,
+                      authStatus,
+                    ),
               ),
-            )
-          : Switch(
-              value: enabled,
-              onChanged: (value) => _handleNotificationsToggle(context, ref, value),
-            ),
     );
   }
 
@@ -98,7 +126,19 @@ class HomeDrawerTile extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     bool enabled,
+    AuthorizationStatus currentStatus,
   ) async {
+    // If user is trying to enable but system permissions are denied, warn them.
+    if (enabled && currentStatus == AuthorizationStatus.denied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.notificationsDisabledInSettings),
+          backgroundColor: context.appColors.errorColor,
+        ),
+      );
+      // We can attempt to refresh anyway in case they just changed it
+    }
+
     final notifier = ref.read(notificationSettingsNotifierProvider.notifier);
     await notifier.setEnabled(enabled);
 

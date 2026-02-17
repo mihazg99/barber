@@ -612,7 +612,7 @@ class _SearchView extends HookConsumerWidget {
                       color: Colors.white,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'brand-tag',
+                      hintText: context.l10n.brandTagHint,
                       hintStyle: context.appTextStyles.body.copyWith(
                         color: Colors.white.withValues(alpha: 0.5),
                       ),
@@ -753,7 +753,7 @@ class _BrandResultCard extends ConsumerWidget {
           width: double.infinity,
           child: GlassPrimaryButton(
             icon: Icons.check_circle,
-            label: 'Join ${brand.name}',
+            label: context.l10n.joinBrand(brand.name),
             onTap: () {
               final currentUserId = ref.read(currentUserIdProvider).valueOrNull;
               final notifier = ref.read(

@@ -244,6 +244,24 @@ class VideoPortalPage extends HookConsumerWidget {
                         onSearchTap: () => showSearch.value = true,
                       ),
             ),
+
+            // Back button - only show when on main portal (not scanner/search)
+            if (!showScanner.value && !showSearch.value)
+              SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.all(context.appSizes.paddingMedium),
+                  child: _GlassIconButton(
+                    icon: Icons.arrow_back,
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go(AppRoute.home.path);
+                      }
+                    },
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -1052,112 +1070,113 @@ class _SearchView extends HookConsumerWidget {
     final isLoading = data?.isLoading ?? false;
     final searchResult = data?.searchResult;
 
-    return Column(
-      children: [
-        const Gap(24),
-        Padding(
-          padding: EdgeInsets.all(context.appSizes.paddingMedium),
-          child: Row(
-            children: [
-              _GlassIconButton(
-                icon: Icons.arrow_back,
-                onPressed: onClose,
-              ),
-              Gap(context.appSizes.paddingSmall),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: TextField(
-                    controller: searchController,
-                    autofocus: true,
-                    style: context.appTextStyles.body.copyWith(
-                      color: Colors.white,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'brand-tag',
-                      hintStyle: context.appTextStyles.body.copyWith(
-                        color: Colors.white.withValues(alpha: 0.5),
+    return SafeArea(
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(context.appSizes.paddingMedium),
+            child: Row(
+              children: [
+                _GlassIconButton(
+                  icon: Icons.arrow_back,
+                  onPressed: onClose,
+                ),
+                Gap(context.appSizes.paddingSmall),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
                       ),
-                      border: InputBorder.none,
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.white.withValues(alpha: 0.7),
-                      ),
-                      prefixText: '@',
-                      prefixStyle: context.appTextStyles.body.copyWith(
+                    ),
+                    child: TextField(
+                      controller: searchController,
+                      autofocus: true,
+                      style: context.appTextStyles.body.copyWith(
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+                      decoration: InputDecoration(
+                        hintText: 'brand-tag',
+                        hintStyle: context.appTextStyles.body.copyWith(
+                          color: Colors.white.withValues(alpha: 0.5),
+                        ),
+                        border: InputBorder.none,
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                        prefixText: '@',
+                        prefixStyle: context.appTextStyles.body.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
+                      onSubmitted: (value) {
+                        if (value.isNotEmpty) {
+                          ref
+                              .read(_brandOnboardingNotifierProvider.notifier)
+                              .searchByTag(value);
+                        }
+                      },
                     ),
-                    onSubmitted: (value) {
-                      if (value.isNotEmpty) {
-                        ref
-                            .read(_brandOnboardingNotifierProvider.notifier)
-                            .searchByTag(value);
-                      }
-                    },
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-
-        if (isLoading)
-          LinearProgressIndicator(
-            color: Colors.white,
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
+              ],
+            ),
           ),
 
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.all(context.appSizes.paddingLarge),
-            child:
-                searchResult != null
-                    ? _BrandResultCard(brand: searchResult)
-                    : data?.errorMessage != null
-                    ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 48,
-                            color: Colors.white.withValues(alpha: 0.7),
-                          ),
-                          Gap(context.appSizes.paddingMedium),
-                          Text(
-                            data?.errorMessage ?? '',
-                            style: context.appTextStyles.body.copyWith(
-                              color: Colors.white.withValues(alpha: 0.9),
+          if (isLoading)
+            LinearProgressIndicator(
+              color: Colors.white,
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
+            ),
+
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(context.appSizes.paddingLarge),
+              child:
+                  searchResult != null
+                      ? _BrandResultCard(brand: searchResult)
+                      : data?.errorMessage != null
+                      ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 48,
+                              color: Colors.white.withValues(alpha: 0.7),
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    )
-                    : Center(
-                      child: Text(
-                        context.l10n.searchBusinessByTag,
-                        style: context.appTextStyles.body.copyWith(
-                          color: Colors.white.withValues(alpha: 0.6),
+                            Gap(context.appSizes.paddingMedium),
+                            Text(
+                              data?.errorMessage ?? '',
+                              style: context.appTextStyles.body.copyWith(
+                                color: Colors.white.withValues(alpha: 0.9),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
-                        textAlign: TextAlign.center,
+                      )
+                      : Center(
+                        child: Text(
+                          context.l10n.searchBusinessByTag,
+                          style: context.appTextStyles.body.copyWith(
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

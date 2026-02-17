@@ -63,24 +63,15 @@ class AuthRepositoryImpl implements AuthRepository {
         role: UserRole.user,
       );
 
-      final existingResult = await _userRepository.getById(user.uid);
-      final toSave = existingResult.fold(
-        (_) => entity,
-        (existing) =>
-            existing != null
-                ? existing.copyWith(
-                  phone:
-                      existing.phone.isNotEmpty
-                          ? existing.phone
-                          : (user.phoneNumber ?? entity.phone),
-                )
-                : entity,
-      );
+      final mergeResult = await _userRepository.mergeOnLogin(entity);
 
-      _onUserLoaded?.call(toSave);
-      final setResult = await _userRepository.set(toSave);
-      // Always return user so profile step can show; if set failed, user can retry on submit.
-      return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
+      return mergeResult.fold(
+        (failure) => Left(failure),
+        (user) {
+          _onUserLoaded?.call(user);
+          return Right(user);
+        },
+      );
     } on FirebaseAuthException catch (e) {
       return Left(AuthSignInFailedFailure(e.message ?? e.code));
     } catch (e) {
@@ -119,32 +110,15 @@ class AuthRepositoryImpl implements AuthRepository {
         role: _determineRole(email),
       );
 
-      final existingResult = await _userRepository.getById(user.uid);
-      final toSave = existingResult.fold(
-        (_) => entity,
-        (existing) {
-          final determinedRole = _determineRole(email);
-          return existing != null
-              ? existing.copyWith(
-                fullName:
-                    existing.fullName.isNotEmpty
-                        ? existing.fullName
-                        : displayName,
-                phone: existing.phone.isNotEmpty ? existing.phone : phone,
-                // Upgrade to superadmin if email matches, otherwise keep existing role
-                role:
-                    determinedRole == UserRole.superadmin
-                        ? UserRole.superadmin
-                        : existing.role,
-              )
-              : entity;
+      final mergeResult = await _userRepository.mergeOnLogin(entity);
+
+      return mergeResult.fold(
+        (failure) => Left(failure),
+        (user) {
+          _onUserLoaded?.call(user);
+          return Right(user);
         },
       );
-
-      _onUserLoaded?.call(toSave);
-      final setResult = await _userRepository.set(toSave);
-      // Always return user so profile step can show; if set failed, user can retry on submit.
-      return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'sign-in-cancelled') {
         return Left(AuthSignInCancelledFailure());
@@ -172,32 +146,15 @@ class AuthRepositoryImpl implements AuthRepository {
         role: _determineRole(email),
       );
 
-      final existingResult = await _userRepository.getById(user.uid);
-      final toSave = existingResult.fold(
-        (_) => entity,
-        (existing) {
-          final determinedRole = _determineRole(email);
-          return existing != null
-              ? existing.copyWith(
-                fullName:
-                    existing.fullName.isNotEmpty
-                        ? existing.fullName
-                        : displayName,
-                phone: existing.phone.isNotEmpty ? existing.phone : phone,
-                // Upgrade to superadmin if email matches, otherwise keep existing role
-                role:
-                    determinedRole == UserRole.superadmin
-                        ? UserRole.superadmin
-                        : existing.role,
-              )
-              : entity;
+      final mergeResult = await _userRepository.mergeOnLogin(entity);
+
+      return mergeResult.fold(
+        (failure) => Left(failure),
+        (user) {
+          _onUserLoaded?.call(user);
+          return Right(user);
         },
       );
-
-      final setResult = await _userRepository.set(toSave);
-      _onUserLoaded?.call(toSave);
-      // Always return user so profile step can show; if set failed, user can retry on submit.
-      return setResult.fold((_) => Right(toSave), (_) => Right(toSave));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'sign-in-cancelled') {
         return Left(AuthSignInCancelledFailure());

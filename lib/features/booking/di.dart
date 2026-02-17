@@ -109,6 +109,14 @@ final availableTimeSlotsForEditProvider =
       );
       if (location == null || location.workingHours.isEmpty) return [];
 
+      // Check if date is today -> if so, we need to filter out past times
+      final now = DateTime.now();
+      final isToday =
+          editState.selectedDate!.year == now.year &&
+          editState.selectedDate!.month == now.month &&
+          editState.selectedDate!.day == now.day;
+      final minStartTime = isToday ? now : null;
+
       return calculateFreeSlots.getFreeSlotsForBarber(
         barber: barber,
         location: location,
@@ -117,6 +125,7 @@ final availableTimeSlotsForEditProvider =
         serviceDurationMinutes: editState.serviceDurationMinutes,
         bufferTimeMinutes: brand.bufferTime,
         excludeAppointmentId: editState.appointment.appointmentId,
+        minStartTime: minStartTime,
       );
     });
 
@@ -176,6 +185,12 @@ final availableTimeSlotsProvider = FutureProvider.autoDispose<List<TimeSlot>>((
 
   final bufferTime = brand.bufferTime;
 
+  // Check if date is today -> if so, we need to filter out past times
+  final now = DateTime.now();
+  final isToday =
+      date.year == now.year && date.month == now.month && date.day == now.day;
+  final minStartTime = isToday ? now : null;
+
   if (selectedBarber != null) {
     return calculateFreeSlots.getFreeSlotsForBarber(
       barber: selectedBarber,
@@ -184,6 +199,7 @@ final availableTimeSlotsProvider = FutureProvider.autoDispose<List<TimeSlot>>((
       slotIntervalMinutes: slotInterval,
       serviceDurationMinutes: serviceDuration,
       bufferTimeMinutes: bufferTime,
+      minStartTime: minStartTime,
     );
   } else {
     final barbersResult = await ref
@@ -236,6 +252,7 @@ final availableTimeSlotsProvider = FutureProvider.autoDispose<List<TimeSlot>>((
       slotIntervalMinutes: slotInterval,
       serviceDurationMinutes: serviceDuration,
       bufferTimeMinutes: bufferTime,
+      minStartTime: minStartTime,
     );
   }
 });

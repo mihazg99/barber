@@ -21,6 +21,7 @@ class AuthPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
     final notifier = ref.read(authNotifierProvider.notifier);
+    print('[AuthPage] Building AuthPage');
 
     // From app config to avoid Firestore reads on auth screen (unauthenticated).
     final requireSmsVerification =
@@ -147,7 +148,13 @@ class _AuthStepContent extends ConsumerWidget {
             fullName: fullName,
             phone: phone,
           );
-          ref.read(routerRefreshNotifierProvider).notify();
+          // Invalidate currentUserProvider to ensure isProfileComplete updates
+          // before router redirect logic runs
+          ref.invalidate(currentUserProvider);
+          // Delay router refresh to allow currentUserProvider to update
+          Future.delayed(const Duration(milliseconds: 100), () {
+            ref.read(routerRefreshNotifierProvider).notify();
+          });
         },
         isLoading: data.isLoading,
         errorMessage: data.errorMessage,

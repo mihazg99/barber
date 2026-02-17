@@ -287,4 +287,38 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           ),
     );
   }
+
+  @override
+  Future<Either<Failure, AppointmentEntity?>>
+  getLastCompletableAppointmentForUser(
+    String userId,
+    String brandId,
+  ) async {
+    try {
+      // Look back only 24 hours to avoid scanning very old appointments
+      final since = DateTime.now().subtract(const Duration(hours: 24));
+
+      final snapshot = await FirestoreLogger.logRead(
+        '${FirestoreCollections.appointments}?user_id=$userId&brand_id=$brandId&completable=true',
+        () => _col
+            .where('user_id', isEqualTo: userId)
+            .where('brand_id', isEqualTo: brandId)
+            .where('status', isEqualTo: AppointmentStatus.completed)
+            .where('loyalty_points_awarded', isEqualTo: false)
+            .where('end_time', isGreaterThan: Timestamp.fromDate(since))
+            .orderBy('end_time', descending: true)
+            .limit(1)
+            .get(_serverOnly),
+      );
+
+      if (snapshot.docs.isEmpty) return const Right(null);
+      return Right(
+        AppointmentFirestoreMapper.fromFirestore(snapshot.docs.first),
+      );
+    } catch (e) {
+      return Left(
+        FirestoreFailure('Failed to get completable appointment: $e'),
+      );
+    }
+  }
 }

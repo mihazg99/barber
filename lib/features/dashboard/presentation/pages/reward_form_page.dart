@@ -146,6 +146,11 @@ class RewardFormPage extends HookConsumerWidget {
                 hint: context.l10n.dashboardRewardDescriptionHint,
                 controller: descriptionController,
                 maxLines: 3,
+                validator:
+                    (v) =>
+                        (v?.trim().isEmpty ?? true)
+                            ? context.l10n.dashboardRewardDescriptionRequired
+                            : null,
               ),
               Gap(context.appSizes.paddingMedium),
               CustomTextField.withTitle(

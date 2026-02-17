@@ -22,6 +22,7 @@ import 'package:barber/features/dashboard/presentation/bloc/dashboard_barbers_no
 import 'package:barber/features/dashboard/presentation/bloc/dashboard_locations_notifier.dart';
 import 'package:barber/features/dashboard/presentation/bloc/dashboard_rewards_notifier.dart';
 import 'package:barber/features/dashboard/presentation/bloc/dashboard_services_notifier.dart';
+import 'package:barber/features/dashboard/presentation/bloc/dashboard_manual_booking_notifier.dart';
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/barbers/di.dart' as barbers_di;
 import 'package:barber/features/home/domain/entities/home_data.dart';
@@ -352,6 +353,26 @@ final dashboardBarbersNotifierProvider = StateNotifierProvider.autoDispose<
   final brandId = ref.watch(dashboardBrandIdProvider);
   return DashboardBarbersNotifier(barberRepo, brandId);
 });
+
+final dashboardManualBookingNotifierProvider =
+    StateNotifierProvider.autoDispose<
+      DashboardManualBookingNotifier,
+      BaseState<DashboardManualBookingData>
+    >((ref) {
+      final brandId = ref.watch(dashboardBrandIdProvider);
+      final user = ref.watch(currentUserProvider).valueOrNull;
+
+      return DashboardManualBookingNotifier(
+        brandId,
+        ref.watch(services_di.serviceRepositoryProvider),
+        ref.watch(barbers_di.barberRepositoryProvider),
+        ref.watch(locationRepositoryProvider),
+        ref.watch(brandRepositoryProvider),
+        ref.watch(booking_di.calculateFreeSlotsProvider),
+        ref.watch(booking_di.bookingTransactionProvider),
+        user?.barberId,
+      );
+    });
 
 /// Provider for current barber's effective working hours.
 /// Returns workingHoursOverride if set, otherwise location's default hours.

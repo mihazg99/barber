@@ -76,26 +76,8 @@ class ServiceFormPage extends HookConsumerWidget {
         return;
       }
 
-      final price = num.tryParse(priceController.text.trim());
-      final duration = int.tryParse(durationController.text.trim());
-      if (price == null || price < 0) {
-        rootScaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.dashboardServicePriceInvalid),
-            backgroundColor: context.appColors.errorColor,
-          ),
-        );
-        return;
-      }
-      if (duration == null || duration <= 0) {
-        rootScaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.dashboardServiceDurationInvalid),
-            backgroundColor: context.appColors.errorColor,
-          ),
-        );
-        return;
-      }
+      final price = num.tryParse(priceController.text.trim()) ?? 0;
+      final duration = int.tryParse(durationController.text.trim()) ?? 0;
 
       final availableAtLocations =
           availableAtAll.value
@@ -188,6 +170,16 @@ class ServiceFormPage extends HookConsumerWidget {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                validator: (v) {
+                  if (v?.trim().isEmpty ?? true) {
+                    return context.l10n.dashboardServicePriceRequired;
+                  }
+                  final price = num.tryParse(v!.trim());
+                  if (price == null || price < 0) {
+                    return context.l10n.dashboardServicePriceInvalid;
+                  }
+                  return null;
+                },
               ),
               Gap(context.appSizes.paddingMedium),
               CustomTextField.withTitle(
@@ -195,6 +187,16 @@ class ServiceFormPage extends HookConsumerWidget {
                 hint: context.l10n.dashboardServiceDurationHint,
                 controller: durationController,
                 keyboardType: TextInputType.number,
+                validator: (v) {
+                  if (v?.trim().isEmpty ?? true) {
+                    return context.l10n.dashboardServiceDurationRequired;
+                  }
+                  final duration = int.tryParse(v!.trim());
+                  if (duration == null || duration <= 0) {
+                    return context.l10n.dashboardServiceDurationInvalid;
+                  }
+                  return null;
+                },
               ),
               Gap(context.appSizes.paddingMedium),
               CustomTextField.withTitle(

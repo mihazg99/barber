@@ -11,6 +11,7 @@ import 'package:barber/features/home/domain/entities/home_data.dart';
 import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/home/presentation/widgets/upcoming_booking_card.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
+import 'package:barber/features/dashboard/presentation/pages/dashboard_manual_booking_page.dart';
 
 /// Barber bookings tab: shows a full list of upcoming appointments.
 class DashboardBookingsTab extends HookConsumerWidget {
@@ -26,32 +27,46 @@ class DashboardBookingsTab extends HookConsumerWidget {
             : <LocationEntity>[];
     final isLocationsLoading = homeState is BaseLoading;
 
-    return appointmentsAsync.when(
-      data: (appointments) {
-        if (appointments.isEmpty) {
-          return _EmptyBookingsView();
-        }
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const DashboardManualBookingPage(),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
+        backgroundColor: context.appColors.primaryColor,
+      ),
+      body: appointmentsAsync.when(
+        data: (appointments) {
+          if (appointments.isEmpty) {
+            return _EmptyBookingsView();
+          }
 
-        return ListView.builder(
-          padding: EdgeInsets.all(context.appSizes.paddingMedium),
-          itemCount: appointments.length,
-          itemBuilder: (context, index) {
-            final a = appointments[index];
-            final locationName = _locationNameFor(locations, a.locationId);
-            return Padding(
-              padding: EdgeInsets.only(bottom: context.appSizes.paddingSmall),
-              child: UpcomingBookingCard(
-                appointment: a,
-                locationName: locationName,
-                isLocationsLoading: isLocationsLoading,
-                isProfessionalView: true,
-              ),
-            );
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text(error.toString())),
+          return ListView.builder(
+            padding: EdgeInsets.all(context.appSizes.paddingMedium),
+            itemCount: appointments.length,
+            itemBuilder: (context, index) {
+              final a = appointments[index];
+              final locationName = _locationNameFor(locations, a.locationId);
+              return Padding(
+                padding: EdgeInsets.only(bottom: context.appSizes.paddingSmall),
+                child: UpcomingBookingCard(
+                  appointment: a,
+                  locationName: locationName,
+                  isLocationsLoading: isLocationsLoading,
+                  isProfessionalView: true,
+                ),
+              );
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text(error.toString())),
+      ),
     );
   }
 

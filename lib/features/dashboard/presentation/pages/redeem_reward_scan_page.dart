@@ -21,6 +21,8 @@ import 'package:barber/features/rewards/domain/entities/redemption_entity.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/rewards/domain/repositories/redemption_repository.dart';
 import 'package:barber/features/dashboard/di.dart' as dashboard_di;
+import 'package:dartz/dartz.dart';
+import 'package:barber/core/errors/failure.dart';
 
 final _log = Logger(printer: PrettyPrinter(methodCount: 0));
 
@@ -120,6 +122,8 @@ Future<void> _handleLoyaltyPoints(
   final activeApptResult = await appointmentRepo
       .getActiveScheduledAppointmentForUser(userId, brandId);
   AppointmentEntity? appointment;
+
+  // First try to find an active scheduled appointment
   activeApptResult.fold(
     (f) {
       _log.w(
@@ -130,13 +134,29 @@ Future<void> _handleLoyaltyPoints(
     (a) => appointment = a,
   );
 
+  // If no active scheduled appointment, check for a recent completed one that hasn't been awarded points
+  if (appointment == null) {
+    final completableResult = await appointmentRepo
+        .getLastCompletableAppointmentForUser(userId, brandId);
+
+    completableResult.fold(
+      (f) {
+        _log.w(
+          'Loyalty: getLastCompletableAppointmentForUser failed',
+          error: f.message,
+        );
+      },
+      (a) => appointment = a,
+    );
+  }
+
   if (appointment == null || !context.mounted) {
     lastScannedId.value = null;
     lastFailedScanTime.value = DateTime.now();
     if (context.mounted) {
       showErrorSnackBar(
         context,
-        message: 'No active appointment for this customer',
+        message: 'No active or recent completable appointment found',
       );
     }
     return;
@@ -153,12 +173,24 @@ Future<void> _handleLoyaltyPoints(
       .round()
       .clamp(0, 0x7fffffff);
 
-  final result = await bookingTransaction.completeVisitAndAwardLoyaltyPoints(
-    userId: userId,
-    brandId: brandId,
-    appointmentId: appointment!.appointmentId,
-    pointsToAdd: pointsToAdd,
-  );
+  final Either<Failure, void> result;
+  // If the appointment is already completed (found via fallback), allow awarding points without changing status
+  if (appointment!.status == AppointmentStatus.completed) {
+    result = await bookingTransaction.awardLoyaltyPointsToCompletedAppointment(
+      userId: userId,
+      brandId: brandId,
+      appointmentId: appointment!.appointmentId,
+      pointsToAdd: pointsToAdd,
+    );
+  } else {
+    // Standard flow: complete the appointment AND award points
+    result = await bookingTransaction.completeVisitAndAwardLoyaltyPoints(
+      userId: userId,
+      brandId: brandId,
+      appointmentId: appointment!.appointmentId,
+      pointsToAdd: pointsToAdd,
+    );
+  }
 
   if (!context.mounted) return;
   await result.fold(

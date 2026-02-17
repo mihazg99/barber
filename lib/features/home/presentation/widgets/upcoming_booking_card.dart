@@ -97,11 +97,16 @@ class UpcomingBookingCard extends StatelessWidget {
                 Expanded(
                   child: Builder(
                     builder: (context) {
-                      final title = isProfessionalView
-                          ? appointment.customerName
-                          : (appointment.barberName ?? locationName ?? context.l10n.upcomingAppointment);
-                      final showLocationLine = (locationName != null || isLocationsLoading) &&
-                          (isProfessionalView || appointment.barberName != null);
+                      final title =
+                          isProfessionalView
+                              ? appointment.customerName
+                              : (appointment.barberName ??
+                                  locationName ??
+                                  context.l10n.upcomingAppointment);
+                      final showLocationLine =
+                          (locationName != null || isLocationsLoading) &&
+                          (isProfessionalView ||
+                              appointment.barberName != null);
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
@@ -146,6 +151,7 @@ class UpcomingBookingCard extends StatelessWidget {
                     },
                   ),
                 ),
+                Gap(context.appSizes.paddingMedium),
                 _PillButton(
                   label: context.l10n.manage,
                   onPressed:

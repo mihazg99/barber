@@ -28,9 +28,11 @@ class AppointmentFirestoreMapper {
       totalPrice: (data['total_price'] as num?) ?? 0,
       status: data['status'] as String? ?? AppointmentStatus.scheduled,
       customerName: data['customer_name'] as String? ?? '',
+      customerPhone: data['customer_phone'] as String? ?? '',
       serviceName: data['service_name'] as String? ?? '',
       barberName: data['barber_name'] as String?,
       createdAt: created?.toDate(),
+      loyaltyPointsAwarded: data['loyalty_points_awarded'] as bool? ?? false,
     );
   }
 
@@ -45,7 +47,9 @@ class AppointmentFirestoreMapper {
     'total_price': entity.totalPrice,
     'status': entity.status,
     'customer_name': entity.customerName,
+    'customer_phone': entity.customerPhone,
     'service_name': entity.serviceName,
     if (entity.barberName != null) 'barber_name': entity.barberName,
+    'loyalty_points_awarded': entity.loyaltyPointsAwarded,
   };
 }

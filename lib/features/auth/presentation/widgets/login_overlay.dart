@@ -38,7 +38,17 @@ class LoginOverlay extends HookConsumerWidget {
     final needsProfileCompletion = authData?.isProfileInfo ?? false;
     final profileUser = authData?.user;
 
-    if (overlayData == null || !overlayData.isVisible) {
+    // Force visibility if authenticated but profile incomplete
+    // This ensures the overlay blocks usage until profile is done.
+    final isAuthenticated =
+        ref.watch(isAuthenticatedProvider).valueOrNull ?? false;
+    final isProfileComplete = ref.watch(isProfileCompleteProvider);
+
+    // If profile is incomplete, we MUST show the overlay and force profile step
+    final forceProfileCompletion = isAuthenticated && !isProfileComplete;
+
+    if (!forceProfileCompletion &&
+        (overlayData == null || !overlayData.isVisible)) {
       return const SizedBox.shrink();
     }
 
@@ -49,13 +59,15 @@ class LoginOverlay extends HookConsumerWidget {
 
     // Start animation when overlay becomes visible
     useEffect(() {
-      if (overlayData.isVisible) {
+      final isVisible =
+          forceProfileCompletion || (overlayData?.isVisible ?? false);
+      if (isVisible) {
         animationController.forward();
       } else {
         animationController.reverse();
       }
       return null;
-    }, [overlayData.isVisible]);
+    }, [overlayData?.isVisible, forceProfileCompletion]);
 
     // Fade animation
     final fadeAnimation = useAnimation(
@@ -78,7 +90,7 @@ class LoginOverlay extends HookConsumerWidget {
     );
 
     return IgnorePointer(
-      ignoring: !overlayData.isVisible,
+      ignoring: !(forceProfileCompletion || (overlayData?.isVisible ?? false)),
       child: FadeTransition(
         opacity: AlwaysStoppedAnimation(fadeAnimation),
         child: Material(
@@ -86,13 +98,16 @@ class LoginOverlay extends HookConsumerWidget {
           child: Stack(
             children: [
               // Backdrop - transparent (blur is applied only to the card itself)
+              // Disable tap to dismiss when profile completion is required
               Positioned.fill(
                 child: GestureDetector(
                   onTap:
-                      () =>
-                          ref
-                              .read(loginOverlayNotifierProvider.notifier)
-                              .hide(),
+                      needsProfileCompletion || forceProfileCompletion
+                          ? null
+                          : () =>
+                              ref
+                                  .read(loginOverlayNotifierProvider.notifier)
+                                  .hide(),
                   child: Container(
                     color: Colors.transparent,
                   ),
@@ -103,13 +118,15 @@ class LoginOverlay extends HookConsumerWidget {
                 child: Transform.translate(
                   offset: Offset(0, slideAnimation * 100),
                   child: _LoginModalCard(
-                    isLoading: overlayData.isLoading,
-                    errorMessage: overlayData.errorMessage,
-                    needsProfileCompletion: needsProfileCompletion,
+                    isLoading: overlayData?.isLoading ?? false,
+                    errorMessage: overlayData?.errorMessage,
+                    needsProfileCompletion:
+                        needsProfileCompletion || forceProfileCompletion,
                     profileUser: profileUser,
                     onGoogleSignIn: () => _handleGoogleSignIn(context, ref),
                     onProfileSubmit:
-                        needsProfileCompletion && profileUser != null
+                        (needsProfileCompletion || forceProfileCompletion) &&
+                                profileUser != null
                             ? (fullName, phone) => _handleProfileSubmit(
                               context,
                               ref,
@@ -188,9 +205,15 @@ class LoginOverlay extends HookConsumerWidget {
       if (authData.errorMessage != null && authData.errorMessage!.isNotEmpty) {
         overlayNotifier.setErrorMessage(authData.errorMessage!);
       } else {
-        // Success - hide overlay
+        // Success - hide overlay and refresh user data
         overlayNotifier.hide();
-        ref.read(routerRefreshNotifierProvider).notify();
+        // Invalidate currentUserProvider to ensure isProfileComplete updates
+        // before router redirect logic runs
+        ref.invalidate(currentUserProvider);
+        // Delay router refresh to allow currentUserProvider to update
+        Future.delayed(const Duration(milliseconds: 100), () {
+          ref.read(routerRefreshNotifierProvider).notify();
+        });
       }
     } else if (authState case BaseError<AuthFlowData>(:final message)) {
       overlayNotifier.setErrorMessage(message);
@@ -292,10 +315,12 @@ class _LoginModalCard extends HookConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             // Close button - very thin, top-right, 50% opacity
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: _CloseButton(onClose: onClose),
-                            ),
+                            // Hide close button when profile completion is required
+                            if (!needsProfileCompletion)
+                              Align(
+                                alignment: Alignment.topRight,
+                                child: _CloseButton(onClose: onClose),
+                              ),
                             Gap(sizes.paddingSmall),
                             // Brand logo
                             if (brandConfig.logoPath.isNotEmpty) ...[

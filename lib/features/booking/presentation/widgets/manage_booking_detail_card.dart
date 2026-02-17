@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/utils/price_formatter.dart';
@@ -14,9 +15,11 @@ class ManageBookingDetailCard extends StatelessWidget {
   const ManageBookingDetailCard({
     super.key,
     required this.data,
+    this.isProfessionalView = false,
   });
 
   final ManageBookingData data;
+  final bool isProfessionalView;
 
   static const _cardRadius = 16.0;
 
@@ -53,7 +56,10 @@ class ManageBookingDetailCard extends StatelessWidget {
           Gap(context.appSizes.paddingSmall),
           _DetailRow(
             icon: Icons.person_outline_rounded,
-            label: data.barberName ?? '-',
+            label:
+                isProfessionalView
+                    ? data.appointment.customerName
+                    : data.barberName ?? '-',
           ),
           Gap(context.appSizes.paddingSmall),
           if (data.serviceNames.isNotEmpty) ...[
@@ -177,6 +183,30 @@ class _PriceRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CallClientButton extends StatelessWidget {
+  const _CallClientButton({required this.phone});
+
+  final String phone;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: () async {
+        final uri = Uri(scheme: 'tel', path: phone);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        }
+      },
+      style: IconButton.styleFrom(
+        backgroundColor: context.appColors.primaryColor.withValues(alpha: 0.1),
+        foregroundColor: context.appColors.primaryColor,
+        visualDensity: VisualDensity.compact,
+      ),
+      icon: const Icon(Icons.phone_rounded, size: 20),
     );
   }
 }

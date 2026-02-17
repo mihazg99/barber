@@ -38,7 +38,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     ref.watch(flavorConfigProvider);
     // Ensure app colors provider is initialized with brand config
     ref.watch(appColorsProvider);
-    
+
     // Prefetch brand so home/dashboard get cached data when we navigate.
     // Only do this when a brand is actually locked to avoid unnecessary reads.
     final lockedBrandId = ref.watch(brand_di.lockedBrandIdProvider);

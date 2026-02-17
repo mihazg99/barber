@@ -143,3 +143,33 @@ final headerBrandNameProvider = FutureProvider<String?>((ref) async {
   final brand = await ref.watch(defaultBrandProvider.future);
   return brand?.name;
 });
+
+/// Selected/Locked brand document.
+/// Used to guard routing and ensuring we have the proper brand configuration loaded.
+/// STRICTLY uses [lockedBrandIdProvider] and avoids flavor defaults if they differ.
+final selectedBrandProvider = FutureProvider<BrandEntity?>((ref) async {
+  final targetBrandId = ref.watch(lockedBrandIdProvider);
+
+  if (targetBrandId == null || targetBrandId.isEmpty) return null;
+
+  // Fast path: if we already have a cached brand for this id, reuse it.
+  final cached = ref.read(lastLockedBrandProvider);
+  if (cached != null && cached.brandId == targetBrandId) {
+    return cached;
+  }
+
+  // Fetch from repo
+  final result = await ref
+      .watch(brandRepositoryProvider)
+      .getById(targetBrandId);
+
+  final brand = result.fold<BrandEntity?>((_) => null, (b) => b);
+
+  // Cache the brand in memory so subsequent reads for the same id avoid
+  // another Firestore get().
+  if (brand != null) {
+    ref.read(lastLockedBrandProvider.notifier).state = brand;
+  }
+
+  return brand;
+});

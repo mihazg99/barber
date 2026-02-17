@@ -188,10 +188,54 @@ class _LocationCard extends StatelessWidget {
   ];
 
   String _todayHours(BuildContext context, WorkingHoursMap hours) {
-    final today = DateTime.now().weekday;
+    final now = DateTime.now();
+    final today = now.weekday;
     final key = _dayKeys[today - 1];
     final day = hours[key];
+
     if (day == null) return context.l10n.closed;
+
+    // Parse working hours
+    final openParts = day.open.split(':');
+    final closeParts = day.close.split(':');
+
+    if (openParts.length != 2 || closeParts.length != 2) {
+      return context.l10n.openNow(day.open, day.close);
+    }
+
+    final openHour = int.tryParse(openParts[0]);
+    final openMinute = int.tryParse(openParts[1]);
+    final closeHour = int.tryParse(closeParts[0]);
+    final closeMinute = int.tryParse(closeParts[1]);
+
+    if (openHour == null ||
+        openMinute == null ||
+        closeHour == null ||
+        closeMinute == null) {
+      return context.l10n.openNow(day.open, day.close);
+    }
+
+    // Create DateTime objects for comparison
+    final openTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      openHour,
+      openMinute,
+    );
+    final closeTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      closeHour,
+      closeMinute,
+    );
+
+    // Check if currently open
+    if (now.isBefore(openTime) || now.isAfter(closeTime)) {
+      return context.l10n.closed;
+    }
+
     return context.l10n.openNow(day.open, day.close);
   }
 

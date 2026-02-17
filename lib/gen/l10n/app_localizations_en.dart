@@ -48,6 +48,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get back => 'Back';
 
   @override
+  String get generalBack => 'Back';
+
+  @override
   String get logout => 'Log out';
 
   @override
@@ -267,6 +270,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookingStepBarber => 'Staff';
+
+  @override
+  String get bookingStepDate => 'Date';
 
   @override
   String get bookingStepTime => 'Time';
@@ -772,6 +778,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardLocationPhoneHint => '+385 1 234 5678';
 
   @override
+  String get dashboardLocationPhoneRequired => 'Phone number is required';
+
+  @override
+  String get dashboardLocationAddressRequired => 'Address is required';
+
+  @override
   String get dashboardLocationCoordinates => 'Coordinates';
 
   @override
@@ -811,7 +823,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardLocationEmpty => 'No locations yet. Tap + to add one.';
 
   @override
+  String get dashboardLocationNoWorkingHours =>
+      'No working hours set. Tap to add.';
+
+  @override
   String get dashboardNoBrand => 'No brand configured';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get edit => 'Edit';
 
   @override
   String get dashboardServiceAdd => 'Add Service';
@@ -846,6 +868,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardServiceDurationInvalid =>
       'Enter a valid duration (min 1)';
+
+  @override
+  String get dashboardServiceDurationRequired => 'Duration is required';
+
+  @override
+  String get dashboardServicePriceRequired => 'Price is required';
 
   @override
   String get dashboardServiceDescription => 'Description';
@@ -903,6 +931,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardBarberPhotoUrlHint => 'https://...';
+
+  @override
+  String get dashboardBarberPhotoUrlRequired => 'Photo URL is required';
 
   @override
   String get dashboardBarberLocation => 'Location';
@@ -968,6 +999,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardRewardDescriptionHint => 'Optional description';
+
+  @override
+  String get dashboardRewardDescriptionRequired => 'Description is required';
 
   @override
   String get dashboardRewardPointsCostLabel => 'Points cost';
@@ -1164,4 +1198,111 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shiftWorkingHoursSaved => 'Working hours updated successfully';
+
+  @override
+  String get dashboardManualBookingTitle => 'Add appointment';
+
+  @override
+  String get dashboardManualBookingSelectService => 'Select service';
+
+  @override
+  String get dashboardManualBookingSelectBarber => 'Select barber';
+
+  @override
+  String get dashboardManualBookingSelectDate => 'Select date';
+
+  @override
+  String get dashboardManualBookingSelectTime => 'Select time';
+
+  @override
+  String get dashboardManualBookingCustomerInfo => 'Customer Info';
+
+  @override
+  String get dashboardManualBookingCustomerName => 'Name';
+
+  @override
+  String get dashboardManualBookingCustomerNameHint => 'e.g. John Doe';
+
+  @override
+  String get dashboardManualBookingCustomerNameRequired => 'Name is required';
+
+  @override
+  String get dashboardManualBookingCustomerPhone => 'Phone';
+
+  @override
+  String get dashboardManualBookingCustomerPhoneHint => '+385...';
+
+  @override
+  String get dashboardManualBookingCustomerPhoneRequired => 'Phone is required';
+
+  @override
+  String get dashboardManualBookingSuccess => 'Appointment created';
+
+  @override
+  String get dashboardManualBookingSlotTaken => 'Slot taken';
+
+  @override
+  String get dashboardManualBookingNoSlots => 'No available slots';
+
+  @override
+  String get completeAppointmentTitle => 'Complete appointment?';
+
+  @override
+  String get completeAppointmentMessage =>
+      'Are you sure you want to mark this appointment as completed?';
+
+  @override
+  String get complete => 'Complete';
+
+  @override
+  String get appointmentCompleted => 'Appointment marked as completed';
+
+  @override
+  String get notificationsDisabledInSettings =>
+      'Please enable notifications in system settings';
+
+  @override
+  String get brandTagHint => 'brand-tag';
+
+  @override
+  String joinBrand(String brandName) {
+    return 'Join $brandName';
+  }
+
+  @override
+  String get markAsNoShowTitle => 'Mark as No-Show?';
+
+  @override
+  String get markAsNoShowMessage =>
+      'Are you sure you want to mark this appointment as a no-show?';
+
+  @override
+  String get noShow => 'No-Show';
+
+  @override
+  String get appointmentMarkedAsNoShow => 'Appointment marked as no-show';
+
+  @override
+  String get downloadAppCta => 'Download STYL';
+
+  @override
+  String get webBannerGreetingMorning => 'Good morning';
+
+  @override
+  String get webBannerGreetingAfternoon => 'Good afternoon';
+
+  @override
+  String get webBannerGreetingEvening => 'Good evening';
+
+  @override
+  String webBannerWelcome(String brandName) {
+    return 'Welcome to $brandName';
+  }
+
+  @override
+  String get webBannerLoyaltyTitle => 'Earn Loyalty Points';
+
+  @override
+  String get webBannerLoyaltyBody =>
+      'Download STYL to track your visits, earn points, and unlock exclusive rewards.';
 }

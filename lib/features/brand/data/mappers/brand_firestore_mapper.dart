@@ -28,6 +28,16 @@ class BrandFirestoreMapper {
             (key, value) => MapEntry(key, value.toString()),
           ) ??
           const {},
+      subscriptionStatus:
+          data['subscription_status'] as String? ?? 'incomplete',
+      subscriptionStart: (data['subscription_start'] as Timestamp?)?.toDate(),
+      subscriptionEnd: (data['subscription_end'] as Timestamp?)?.toDate(),
+      subscriptionTrialEnd:
+          (data['subscription_trial_end'] as Timestamp?)?.toDate(),
+      planId: data['plan_id'] as String?,
+      stripeCustomerId: data['stripe_customer_id'] as String?,
+      stripeSubscriptionId: data['stripe_subscription_id'] as String?,
+      freeTrialDays: (data['free_trial_days'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -47,5 +57,22 @@ class BrandFirestoreMapper {
     'font_family': entity.fontFamily,
     'locale': entity.locale,
     'colors': entity.themeColors,
+    'subscription_status': entity.subscriptionStatus,
+    'subscription_start':
+        entity.subscriptionStart != null
+            ? Timestamp.fromDate(entity.subscriptionStart!)
+            : null,
+    'subscription_end':
+        entity.subscriptionEnd != null
+            ? Timestamp.fromDate(entity.subscriptionEnd!)
+            : null,
+    'subscription_trial_end':
+        entity.subscriptionTrialEnd != null
+            ? Timestamp.fromDate(entity.subscriptionTrialEnd!)
+            : null,
+    'plan_id': entity.planId,
+    'stripe_customer_id': entity.stripeCustomerId,
+    'stripe_subscription_id': entity.stripeSubscriptionId,
+    'free_trial_days': entity.freeTrialDays,
   };
 }

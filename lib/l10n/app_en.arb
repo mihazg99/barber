@@ -13,6 +13,7 @@
   "selected": "Selected",
   "continueButton": "Continue",
   "back": "Back",
+  "generalBack": "Back",
   "logout": "Log out",
   "logoutConfirmTitle": "Logout",
   "logoutConfirmMessage": "Are you sure you want to logout?",
@@ -108,6 +109,7 @@
   "bookingSelectLocation": "Select Location",
   "bookingStepService": "Service",
   "bookingStepBarber": "Staff",
+  "bookingStepDate": "Date",
   "bookingStepTime": "Time",
 
   "manageBookingTitle": "Manage booking",
@@ -359,6 +361,8 @@
   "dashboardLocationAddressHint": "Street, city",
   "dashboardLocationPhone": "Phone",
   "dashboardLocationPhoneHint": "+385 1 234 5678",
+  "dashboardLocationPhoneRequired": "Phone number is required",
+  "dashboardLocationAddressRequired": "Address is required",
   "dashboardLocationCoordinates": "Coordinates",
   "dashboardLocationLatHint": "Latitude (e.g. 45.81)",
   "dashboardLocationLngHint": "Longitude (e.g. 15.98)",
@@ -372,7 +376,10 @@
   "dashboardLocationDeleteConfirmMessage": "This cannot be undone.",
   "dashboardLocationDeleteButton": "Delete",
   "dashboardLocationEmpty": "No locations yet. Tap + to add one.",
+  "dashboardLocationNoWorkingHours": "No working hours set. Tap to add.",
   "dashboardNoBrand": "No brand configured",
+  "add": "Add",
+  "edit": "Edit",
 
   "dashboardServiceAdd": "Add Service",
   "dashboardServiceEdit": "Edit Service",
@@ -385,6 +392,8 @@
   "dashboardServiceDuration": "Duration (minutes)",
   "dashboardServiceDurationHint": "30",
   "dashboardServiceDurationInvalid": "Enter a valid duration (min 1)",
+  "dashboardServiceDurationRequired": "Duration is required",
+  "dashboardServicePriceRequired": "Price is required",
   "dashboardServiceDescription": "Description",
   "dashboardServiceDescriptionHint": "Optional description",
   "dashboardServiceAvailableAt": "Available at",
@@ -405,6 +414,7 @@
   "dashboardBarberNameRequired": "Name is required",
   "dashboardBarberPhotoUrl": "Photo URL",
   "dashboardBarberPhotoUrlHint": "https://...",
+  "dashboardBarberPhotoUrlRequired": "Photo URL is required",
   "dashboardBarberLocation": "Location",
   "dashboardBarberLocationRequired": "Select a location",
   "dashboardBarberNoLocations": "Add locations first in the Locations tab.",
@@ -427,6 +437,7 @@
   "dashboardRewardNameRequired": "Name is required",
   "dashboardRewardDescription": "Description",
   "dashboardRewardDescriptionHint": "Optional description",
+  "dashboardRewardDescriptionRequired": "Description is required",
   "dashboardRewardPointsCostLabel": "Points cost",
   "dashboardRewardPointsCostHint": "100",
   "dashboardRewardPointsInvalid": "Enter a valid points value (0 or more)",
@@ -525,5 +536,52 @@
   "shiftEditWorkingHours": "Edit",
   "shiftNoWorkingHours": "No working hours set",
   "shiftClosed": "Closed",
-  "shiftWorkingHoursSaved": "Working hours updated successfully"
+  "shiftWorkingHoursSaved": "Working hours updated successfully",
+  "dashboardManualBookingTitle": "Add appointment",
+  "dashboardManualBookingSelectService": "Select service",
+  "dashboardManualBookingSelectBarber": "Select barber",
+  "dashboardManualBookingSelectDate": "Select date",
+  "dashboardManualBookingSelectTime": "Select time",
+  "dashboardManualBookingCustomerInfo": "Customer Info",
+  "dashboardManualBookingCustomerName": "Name",
+  "dashboardManualBookingCustomerNameHint": "e.g. John Doe",
+  "dashboardManualBookingCustomerNameRequired": "Name is required",
+  "dashboardManualBookingCustomerPhone": "Phone",
+  "dashboardManualBookingCustomerPhoneHint": "+385...",
+  "dashboardManualBookingCustomerPhoneRequired": "Phone is required",
+  "dashboardManualBookingSuccess": "Appointment created",
+  "dashboardManualBookingSlotTaken": "Slot taken",
+  "dashboardManualBookingNoSlots": "No available slots",
+  "completeAppointmentTitle": "Complete appointment?",
+  "completeAppointmentMessage": "Are you sure you want to mark this appointment as completed?",
+  "complete": "Complete",
+  "appointmentCompleted": "Appointment marked as completed",
+  "notificationsDisabledInSettings": "Please enable notifications in system settings",
+  "brandTagHint": "brand-tag",
+  "joinBrand": "Join {brandName}",
+  "@joinBrand": {
+    "placeholders": {
+      "brandName": {
+        "type": "String"
+      }
+    }
+  },
+  "markAsNoShowTitle": "Mark as No-Show?",
+  "markAsNoShowMessage": "Are you sure you want to mark this appointment as a no-show?",
+  "noShow": "No-Show",
+  "appointmentMarkedAsNoShow": "Appointment marked as no-show",
+  "downloadAppCta": "Download STYL",
+  "webBannerGreetingMorning": "Good morning",
+  "webBannerGreetingAfternoon": "Good afternoon",
+  "webBannerGreetingEvening": "Good evening",
+  "webBannerWelcome": "Welcome to {brandName}",
+  "@webBannerWelcome": {
+    "placeholders": {
+      "brandName": {
+        "type": "String"
+      }
+    }
+  },
+  "webBannerLoyaltyTitle": "Earn Loyalty Points",
+  "webBannerLoyaltyBody": "Download STYL to track your visits, earn points, and unlock exclusive rewards."
 }
