@@ -18,6 +18,7 @@ import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/home/di.dart';
 import 'package:barber/features/home/domain/entities/home_data.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
+import 'package:barber/features/dashboard/presentation/pages/dashboard_manual_booking_page.dart';
 
 /// Modern day-view calendar tab optimized for barber appointments.
 class DashboardCalendarTab extends HookConsumerWidget {
@@ -37,38 +38,52 @@ class DashboardCalendarTab extends HookConsumerWidget {
             : <LocationEntity>[];
     final brand = homeState is BaseData<HomeData> ? homeState.data.brand : null;
 
-    return dayAppointmentsAsync.when(
-      data: (dayAppointments) {
-        return Column(
-          children: [
-            _CalendarHeader(
-              selectedDate: selectedDate.value,
-              onDateChanged: (date) {
-                // Expand window if needed before changing date
-                expandCalendarWindowIfNeeded(ref, date);
-                selectedDate.value = date;
-              },
-              appointmentCount: dayAppointments.length,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const DashboardManualBookingPage(),
             ),
-            Expanded(
-              child: _DayTimelineView(
+          );
+        },
+        child: const Icon(Icons.add),
+        backgroundColor: context.appColors.primaryColor,
+      ),
+      body: dayAppointmentsAsync.when(
+        data: (dayAppointments) {
+          return Column(
+            children: [
+              _CalendarHeader(
                 selectedDate: selectedDate.value,
-                appointments: dayAppointments,
-                locations: locations,
-                slotInterval: brand?.slotInterval ?? 15,
+                onDateChanged: (date) {
+                  // Expand window if needed before changing date
+                  expandCalendarWindowIfNeeded(ref, date);
+                  selectedDate.value = date;
+                },
+                appointmentCount: dayAppointments.length,
+              ),
+              Expanded(
+                child: _DayTimelineView(
+                  selectedDate: selectedDate.value,
+                  appointments: dayAppointments,
+                  locations: locations,
+                  slotInterval: brand?.slotInterval ?? 15,
+                ),
+              ),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error:
+            (error, stack) => Center(
+              child: Text(
+                context.l10n.errorLoadingAppointments,
+                style: context.appTextStyles.medium,
               ),
             ),
-          ],
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error:
-          (error, stack) => Center(
-            child: Text(
-              context.l10n.errorLoadingAppointments,
-              style: context.appTextStyles.medium,
-            ),
-          ),
+      ),
     );
   }
 }

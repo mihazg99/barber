@@ -20,6 +20,14 @@ class BrandEntity extends Equatable {
     this.fontFamily = 'Inter',
     this.locale = 'hr',
     this.themeColors = const {},
+    this.subscriptionStatus = 'incomplete',
+    this.subscriptionStart,
+    this.subscriptionEnd,
+    this.subscriptionTrialEnd,
+    this.planId,
+    this.stripeCustomerId,
+    this.stripeSubscriptionId,
+    this.freeTrialDays = 0,
   });
 
   final String brandId;
@@ -47,6 +55,30 @@ class BrandEntity extends Equatable {
   final String locale;
   final Map<String, String> themeColors;
 
+  // Subscription Configuration
+  final String
+  subscriptionStatus; // active, trialing, past_due, canceled, unpaid, incomplete
+  final DateTime? subscriptionStart;
+  final DateTime? subscriptionEnd;
+  final DateTime? subscriptionTrialEnd;
+  final String? planId;
+  final String? stripeCustomerId;
+  final String? stripeSubscriptionId;
+  final int freeTrialDays;
+
+  /// Returns true if the subscription is active, trialing, or within the 3-day grace period.
+  bool get isSubscriptionActive {
+    if (subscriptionStatus == 'active' || subscriptionStatus == 'trialing') {
+      return true;
+    }
+    // Grace period for past_due
+    if (subscriptionStatus == 'past_due' && subscriptionEnd != null) {
+      final gracePeriodEnd = subscriptionEnd!.add(const Duration(days: 3));
+      return DateTime.now().isBefore(gracePeriodEnd);
+    }
+    return false;
+  }
+
   BrandEntity copyWith({
     String? brandId,
     String? name,
@@ -64,6 +96,14 @@ class BrandEntity extends Equatable {
     String? fontFamily,
     String? locale,
     Map<String, String>? themeColors,
+    String? subscriptionStatus,
+    DateTime? subscriptionStart,
+    DateTime? subscriptionEnd,
+    DateTime? subscriptionTrialEnd,
+    String? planId,
+    String? stripeCustomerId,
+    String? stripeSubscriptionId,
+    int? freeTrialDays,
   }) => BrandEntity(
     brandId: brandId ?? this.brandId,
     name: name ?? this.name,
@@ -83,6 +123,14 @@ class BrandEntity extends Equatable {
     fontFamily: fontFamily ?? this.fontFamily,
     locale: locale ?? this.locale,
     themeColors: themeColors ?? this.themeColors,
+    subscriptionStatus: subscriptionStatus ?? this.subscriptionStatus,
+    subscriptionStart: subscriptionStart ?? this.subscriptionStart,
+    subscriptionEnd: subscriptionEnd ?? this.subscriptionEnd,
+    subscriptionTrialEnd: subscriptionTrialEnd ?? this.subscriptionTrialEnd,
+    planId: planId ?? this.planId,
+    stripeCustomerId: stripeCustomerId ?? this.stripeCustomerId,
+    stripeSubscriptionId: stripeSubscriptionId ?? this.stripeSubscriptionId,
+    freeTrialDays: freeTrialDays ?? this.freeTrialDays,
   );
 
   @override
@@ -103,5 +151,13 @@ class BrandEntity extends Equatable {
     fontFamily,
     locale,
     themeColors,
+    subscriptionStatus,
+    subscriptionStart,
+    subscriptionEnd,
+    subscriptionTrialEnd,
+    planId,
+    stripeCustomerId,
+    stripeSubscriptionId,
+    freeTrialDays,
   ];
 }

@@ -20,6 +20,8 @@ import 'package:barber/features/home/presentation/widgets/nearby_locations_secti
 import 'package:barber/features/home/presentation/widgets/services_section.dart';
 import 'package:barber/features/home/presentation/widgets/home_drawer.dart';
 import 'package:barber/features/home/presentation/widgets/upcoming_booking_card.dart';
+import 'package:barber/features/home/presentation/widgets/web_home_banner.dart';
+import 'package:flutter/foundation.dart'; // for kIsWeb
 
 class HomePage extends HookConsumerWidget {
   const HomePage({super.key});
@@ -31,10 +33,11 @@ class HomePage extends HookConsumerWidget {
     ref.watch(flavorConfigProvider);
     // Ensure app colors provider is initialized with brand config
     ref.watch(appColorsProvider);
-    
+
+    final homeNotifier = ref.watch(homeNotifierProvider.notifier);
+
     useEffect(() {
       var cancelled = false;
-      final notifier = ref.read(homeNotifierProvider.notifier);
       final brandFuture = ref.read(brand_di.defaultBrandProvider.future);
 
       // Ensure video is disposed after navigation transition completes
@@ -50,10 +53,10 @@ class HomePage extends HookConsumerWidget {
 
       Future.microtask(() async {
         final cachedBrand = await brandFuture;
-        if (!cancelled) notifier.load(cachedBrand: cachedBrand);
+        if (!cancelled) homeNotifier.load(cachedBrand: cachedBrand);
       });
       return () => cancelled = true;
-    }, []);
+    }, [homeNotifier]);
 
     final homeState = ref.watch(homeNotifierProvider);
     final isStaff = ref.watch(isStaffProvider);
@@ -97,25 +100,32 @@ class _HomeBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const AppHeader(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const LoyaltyCard(),
-                const UpcomingBooking(),
-                const BarbersSection(),
-                const ServicesSection(),
-                const NearbyLocationsSection(),
-                Gap(context.appSizes.paddingXxl),
-              ],
-            ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const AppHeader(),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: _horizontalPadding,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (kIsWeb) const WebHomeBanner() else const LoyaltyCard(),
+                    const UpcomingBooking(),
+                    const BarbersSection(),
+                    const ServicesSection(),
+                    const NearbyLocationsSection(),
+                    Gap(context.appSizes.paddingXxl),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

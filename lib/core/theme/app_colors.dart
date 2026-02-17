@@ -24,6 +24,7 @@ class AppColors {
   Color get menuBackgroundColor => _colors.menuBackground;
   Color get borderColor => _colors.border;
   Color get errorColor => _colors.error;
+  Color get successColor => const Color(0xFF00C853);
 
   /// Brand primary lightened for use on dark backgrounds (e.g. cards). Keeps brand hue, improves readability.
   Color get primaryColorOnDark =>

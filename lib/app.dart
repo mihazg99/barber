@@ -97,6 +97,7 @@ class _DeepLinkHandler extends HookConsumerWidget {
             await FirebaseMessaging.instance.getInitialMessage();
         notifier.setPendingFromInitialMessage(message);
       }
+
       runInitial();
       return null;
     }, const []);

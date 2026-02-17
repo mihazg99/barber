@@ -61,4 +61,12 @@ abstract class AppointmentRepository {
     String appointmentId,
     String status,
   );
+
+  /// Fetches the most recent completed appointment for a user that hasn't been awarded points yet.
+  /// Used for loyalty scanning when the appointment is already completed.
+  Future<Either<Failure, AppointmentEntity?>>
+  getLastCompletableAppointmentForUser(
+    String userId,
+    String brandId,
+  );
 }

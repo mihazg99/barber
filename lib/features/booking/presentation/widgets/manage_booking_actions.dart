@@ -23,6 +23,7 @@ class ManageBookingActions extends StatelessWidget {
   final String appointmentId;
   final bool isCancelling;
   final bool canCancel;
+
   /// When false (e.g. barber view), reschedule button is hidden.
   final bool canEdit;
 
@@ -38,11 +39,11 @@ class ManageBookingActions extends StatelessWidget {
                 isCancelling || !canCancel
                     ? null
                     : () => context.push(
-                          AppRoute.editBooking.path.replaceFirst(
-                            ':appointmentId',
-                            appointmentId,
-                          ),
-                        ),
+                      AppRoute.editBooking.path.replaceFirst(
+                        ':appointmentId',
+                        appointmentId,
+                      ),
+                    ),
           ),
           Gap(context.appSizes.paddingSmall),
         ],

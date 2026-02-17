@@ -154,9 +154,8 @@ class _OnboardingContent extends ConsumerWidget {
         Gap(context.appSizes.paddingLarge),
         OnboardingActions(
           data: data,
-          onSkip: () async {
-            onCompletingChanged(true);
-            await notifier.complete();
+          onSkip: () {
+            context.go(AppRoute.onboardingNotifications.path);
           },
           onNext: () {
             notifier.nextPage();

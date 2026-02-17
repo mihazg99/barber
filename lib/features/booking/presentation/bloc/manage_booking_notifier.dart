@@ -16,6 +16,9 @@ class ManageBookingData {
     this.serviceNames = const [],
     this.canCancel = true,
     this.cancelHoursRequired,
+    this.clientPhone,
+    this.clientName,
+    this.clientAvatar,
   });
 
   final AppointmentEntity appointment;
@@ -28,6 +31,11 @@ class ManageBookingData {
 
   /// When [canCancel] is false: minimum hours before appointment required to cancel.
   final int? cancelHoursRequired;
+
+  final String? clientPhone;
+  final String?
+  clientName; // Full name from user profile (may differ from appointment.customerName)
+  final String? clientAvatar;
 }
 
 class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
@@ -98,6 +106,19 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
                 ? (true, null)
                 : _computeCancelPolicy(appt.startTime, cancelHoursMinimum);
 
+        // Optimization: Use denormalized data instead of fetching user profile.
+        // The customerPhone is now stored directly on the appointment.
+        String? clientPhone = appt.customerPhone;
+        String? clientName = appt.customerName; // Already available
+        String?
+        clientAvatar; // Avatar still requires profile fetch if needed, but we can skip for now
+
+        // If phone is missing on appointment (legacy data), we could fallback to fetch,
+        // but per request "Don't fetch profile", we stick to using what is on the appointment.
+        if (clientPhone.isEmpty) {
+          clientPhone = null;
+        }
+
         setData(
           ManageBookingData(
             appointment: appt,
@@ -106,6 +127,9 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
             serviceNames: serviceNames,
             canCancel: canCancel,
             cancelHoursRequired: cancelHoursRequired,
+            clientPhone: clientPhone,
+            clientName: clientName,
+            clientAvatar: clientAvatar,
           ),
         );
       },

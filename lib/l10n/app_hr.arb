@@ -13,6 +13,7 @@
   "selected": "Odabrano",
   "continueButton": "Nastavi",
   "back": "Natrag",
+  "generalBack": "Natrag",
   "logout": "Odjava",
   "logoutConfirmTitle": "Odjava",
   "logoutConfirmMessage": "Jeste li sigurni da želite se odjaviti?",
@@ -40,7 +41,7 @@
   "onboardingManageInventoryTitle": "Upravljaj inventarom",
   "onboardingManageInventoryDescription": "Pratite stavke i kutije na svim lokacijama.",
   "onboardingLoyaltyTitle": "Zarađuj bodove vjernosti",
-  "onboardingLoyaltyDescription": "Skupljaj bodove pri svakom posjetu i iskoristi nagrade na svojim omiljenim lokacijama.",
+  "onboardingLoyaltyDescription": "Skupljaj bodove pri svakom posjetu i iskoristi nagrade u svojim omiljenim salonima.",
   "onboardingNotificationsTitle": "Ne propusti termin",
   "onboardingNotificationsDescription": "Primi podsjetnik prije posjeta da uvijek stigneš na vrijeme.",
   "enableReminders": "Uključi podsjetnike",
@@ -108,6 +109,7 @@
   "bookingSelectLocation": "Odaberi lokaciju",
   "bookingStepService": "Usluga",
   "bookingStepBarber": "Tim",
+  "bookingStepDate": "Datum",
   "bookingStepTime": "Vrijeme",
 
   "manageBookingTitle": "Upravljanje rezervacijom",
@@ -534,5 +536,52 @@
   "shiftEditWorkingHours": "Uredi",
   "shiftNoWorkingHours": "Radno vrijeme nije postavljeno",
   "shiftClosed": "Zatvoreno",
-  "shiftWorkingHoursSaved": "Radno vrijeme uspješno ažurirano"
+  "shiftWorkingHoursSaved": "Radno vrijeme uspješno ažurirano",
+  "dashboardManualBookingTitle": "Dodaj termin",
+  "dashboardManualBookingSelectService": "Odaberi uslugu",
+  "dashboardManualBookingSelectBarber": "Odaberi profesionalca",
+  "dashboardManualBookingSelectDate": "Odaberi datum",
+  "dashboardManualBookingSelectTime": "Odaberi vrijeme",
+  "dashboardManualBookingCustomerInfo": "Podaci o klijentu",
+  "dashboardManualBookingCustomerName": "Ime",
+  "dashboardManualBookingCustomerNameHint": "npr. Ivan Horvat",
+  "dashboardManualBookingCustomerNameRequired": "Ime je obavezno",
+  "dashboardManualBookingCustomerPhone": "Telefon",
+  "dashboardManualBookingCustomerPhoneHint": "+385...",
+  "dashboardManualBookingCustomerPhoneRequired": "Telefon je obavezan",
+  "dashboardManualBookingSuccess": "Termin kreiran",
+  "dashboardManualBookingSlotTaken": "Termin zauzet",
+  "dashboardManualBookingNoSlots": "Nema slobodnih termina",
+  "completeAppointmentTitle": "Završiti termin?",
+  "completeAppointmentMessage": "Jeste li sigurni da želite označiti ovaj termin kao dovršen?",
+  "complete": "Dovrši",
+  "appointmentCompleted": "Termin označen kao dovršen",
+  "notificationsDisabledInSettings": "Molimo uključite obavijesti u postavkama sustava",
+  "brandTagHint": "oznaka-salona",
+  "joinBrand": "Pridruži salonu {brandName}",
+  "@joinBrand": {
+    "placeholders": {
+      "brandName": {
+        "type": "String"
+      }
+    }
+  },
+  "markAsNoShowTitle": "Označi kao nedolazak?",
+  "markAsNoShowMessage": "Jeste li sigurni da želite označiti ovaj termin kao nedolazak?",
+  "noShow": "Nedolazak",
+  "appointmentMarkedAsNoShow": "Termin označen kao nedolazak",
+  "downloadAppCta": "Preuzmi STYL",
+  "webBannerGreetingMorning": "Dobro jutro",
+  "webBannerGreetingAfternoon": "Dobar dan",
+  "webBannerGreetingEvening": "Dobra večer",
+  "webBannerWelcome": "Dobrodošli u {brandName}",
+  "@webBannerWelcome": {
+    "placeholders": {
+      "brandName": {
+        "type": "String"
+      }
+    }
+  },
+  "webBannerLoyaltyTitle": "Skupljaj bodove vjernosti",
+  "webBannerLoyaltyBody": "Preuzmi STYL aplikaciju za praćenje posjeta, skupljanje bodova i otključavanje ekskluzivnih nagrada."
 }

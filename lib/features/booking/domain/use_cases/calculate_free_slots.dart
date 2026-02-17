@@ -20,6 +20,7 @@ class CalculateFreeSlots {
   /// Get free slots for a single barber on a date.
   /// [bufferTimeMinutes] is the gap after each appointment before the next can start.
   /// [excludeAppointmentId] when set (e.g. for reschedule) treats that slot as free.
+  /// [minStartTime] if provided, filters out slots that start before this time (e.g. for "today").
   Future<List<TimeSlot>> getFreeSlotsForBarber({
     required BarberEntity barber,
     required LocationEntity location,
@@ -28,6 +29,7 @@ class CalculateFreeSlots {
     required int serviceDurationMinutes,
     required int bufferTimeMinutes,
     String? excludeAppointmentId,
+    DateTime? minStartTime,
   }) async {
     final dateStr = _formatDate(date);
     final docId = '${barber.barberId}_$dateStr';
@@ -98,7 +100,7 @@ class CalculateFreeSlots {
       bookedSlots: bookedSlots,
     );
 
-    // Filter out slots that overlap existing bookings or don't fit
+    // Filter out slots that overlap existing bookings, don't fit, or are in the past
     final freeSlots = <TimeSlot>[];
     for (final slotTime in allSlots) {
       if (_isSlotAvailable(
@@ -107,6 +109,7 @@ class CalculateFreeSlots {
         bufferTimeMinutes,
         dayHours.close,
         bookedSlots,
+        minStartTime: minStartTime,
       )) {
         freeSlots.add(TimeSlot(time: slotTime, barberId: barber.barberId));
       }
@@ -117,7 +120,9 @@ class CalculateFreeSlots {
         '  📊 Slots: ${allSlots.length} candidates, ${bookedSlots.length} booked, ${freeSlots.length} free',
       );
       if (freeSlots.isEmpty && allSlots.isNotEmpty) {
-        print('  ⚠️  All slots filtered out (service too long or all booked)');
+        print(
+          '  ⚠️  All slots filtered out (service too long, all booked, or past time)',
+        );
       }
     }
 
@@ -133,6 +138,7 @@ class CalculateFreeSlots {
     required int serviceDurationMinutes,
     required int bufferTimeMinutes,
     String? excludeAppointmentId,
+    DateTime? minStartTime,
   }) async {
     final allSlots = <String, String>{}; // time -> first barberId
 
@@ -145,6 +151,7 @@ class CalculateFreeSlots {
         serviceDurationMinutes: serviceDurationMinutes,
         bufferTimeMinutes: bufferTimeMinutes,
         excludeAppointmentId: excludeAppointmentId,
+        minStartTime: minStartTime,
       );
 
       for (final slot in barberSlots) {
@@ -198,18 +205,27 @@ class CalculateFreeSlots {
     return list.map(_minutesToTime).toList();
   }
 
-  /// Check if a slot is available (not booked, fits service duration, respects buffer).
+  /// Check if a slot is available (not booked, fits service duration, respects buffer, in future).
   /// Each booked slot blocks until [booked.end + bufferTimeMinutes] so the next appointment cannot start until after the buffer.
   bool _isSlotAvailable(
     String slotTime,
     int serviceDurationMinutes,
     int bufferTimeMinutes,
     String closeTime,
-    List<BookedSlot> bookedSlots,
-  ) {
+    List<BookedSlot> bookedSlots, {
+    DateTime? minStartTime,
+  }) {
     final slotStart = _timeToMinutes(slotTime);
     final slotEnd = slotStart + serviceDurationMinutes;
     final closeMinutes = _timeToMinutes(closeTime);
+
+    // Check if slot starts after minStartTime
+    if (minStartTime != null) {
+      final minStartMinutes = minStartTime.hour * 60 + minStartTime.minute;
+      if (slotStart < minStartMinutes) {
+        return false;
+      }
+    }
 
     // Check if service fits before closing
     if (slotEnd > closeMinutes) return false;

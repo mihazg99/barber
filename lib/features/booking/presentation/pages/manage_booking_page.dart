@@ -16,7 +16,10 @@ import 'package:barber/features/barbers/di.dart';
 import 'package:barber/features/booking/presentation/widgets/manage_booking_actions.dart';
 import 'package:barber/features/booking/presentation/widgets/manage_booking_detail_card.dart';
 import 'package:barber/features/booking/presentation/widgets/manage_booking_shimmer.dart';
+import 'package:barber/features/booking/presentation/bloc/appointment_action_notifier.dart';
+import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
 import 'package:barber/features/home/di.dart';
+import 'package:barber/features/auth/di.dart';
 
 class ManageBookingPage extends ConsumerWidget {
   const ManageBookingPage({
@@ -31,8 +34,7 @@ class ManageBookingPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(manageBookingNotifierProvider(appointmentId));
-    final currentBarber = ref.watch(currentBarberProvider).valueOrNull;
-    final isBarberView = currentBarber != null;
+    final isBarberView = ref.watch(isStaffProvider);
     final notifier = ref.read(
       manageBookingNotifierProvider(appointmentId).notifier,
     );
@@ -113,24 +115,177 @@ class _ManageBookingBodyState extends ConsumerState<_ManageBookingBody> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(
-        horizontal: ManageBookingPage._horizontalPadding,
-        vertical: 20,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: ManageBookingPage._horizontalPadding,
+            vertical: 20,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ManageBookingDetailCard(
+                data: widget.data,
+                isProfessionalView: !widget.canEdit,
+              ),
+              Gap(context.appSizes.paddingLarge),
+              ManageBookingActions(
+                onCancel: _handleCancelTap,
+                appointmentId: widget.data.appointment.appointmentId,
+                isCancelling: _isCancelling,
+                canCancel: widget.data.canCancel || !widget.canEdit,
+                canEdit: widget.canEdit,
+              ),
+              if (!widget.canEdit) ...[
+                Gap(context.appSizes.paddingLarge),
+                _BarberActionButtons(appointment: widget.data.appointment),
+              ],
+              Gap(context.appSizes.paddingXxl),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+}
+
+class _BarberActionButtons extends ConsumerWidget {
+  const _BarberActionButtons({required this.appointment});
+
+  final AppointmentEntity appointment;
+
+  Future<void> _handleComplete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(ctx.l10n.completeAppointmentTitle),
+            content: Text(ctx.l10n.completeAppointmentMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(ctx.l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text(ctx.l10n.complete),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final success = await ref
+          .read(appointmentActionNotifierProvider.notifier)
+          .markAsComplete(appointment.appointmentId, appointment.userId);
+
+      if (success && context.mounted) {
+        ref.invalidate(upcomingAppointmentProvider);
+        ref.invalidate(
+          manageBookingNotifierProvider(appointment.appointmentId),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.appointmentCompleted)),
+        );
+
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go(AppRoute.home.path);
+        }
+      }
+    }
+  }
+
+  Future<void> _handleNoShow(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(ctx.l10n.markAsNoShowTitle),
+            content: Text(ctx.l10n.markAsNoShowMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(ctx.l10n.cancel),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: ctx.appColors.errorColor,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text(ctx.l10n.noShow),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final success = await ref
+          .read(appointmentActionNotifierProvider.notifier)
+          .markAsNoShow(appointment.appointmentId, appointment.userId);
+
+      if (success && context.mounted) {
+        ref.invalidate(upcomingAppointmentProvider);
+        ref.invalidate(
+          manageBookingNotifierProvider(appointment.appointmentId),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.appointmentMarkedAsNoShow)),
+        );
+
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go(AppRoute.home.path);
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (appointment.status != AppointmentStatus.scheduled) {
+      return const SizedBox.shrink();
+    }
+    final colors = context.appColors;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ManageBookingDetailCard(data: widget.data),
-          Gap(context.appSizes.paddingLarge),
-          ManageBookingActions(
-            onCancel: _handleCancelTap,
-            appointmentId: widget.data.appointment.appointmentId,
-            isCancelling: _isCancelling,
-            canCancel: widget.data.canCancel,
-            canEdit: widget.canEdit,
+          FilledButton.icon(
+            onPressed: () => _handleComplete(context, ref),
+            style: FilledButton.styleFrom(
+              backgroundColor: colors.successColor,
+              foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            icon: const Icon(Icons.check),
+            label: Text(context.l10n.complete),
           ),
-          Gap(context.appSizes.paddingXxl),
+          Gap(context.appSizes.paddingMedium),
+          OutlinedButton.icon(
+            onPressed: () => _handleNoShow(context, ref),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: colors.errorColor,
+              side: BorderSide(color: colors.errorColor),
+              minimumSize: const Size.fromHeight(50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            icon: const Icon(Icons.person_off_rounded),
+            label: Text(context.l10n.noShow),
+          ),
         ],
       ),
     );
@@ -219,33 +374,36 @@ class _ManageBookingError extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.all(context.appSizes.paddingMedium),
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: colors.errorColor,
-            ),
-            Gap(context.appSizes.paddingMedium),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: colors.secondaryTextColor,
-                fontSize: 14,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: colors.errorColor,
               ),
-            ),
-            Gap(context.appSizes.paddingMedium),
-            TextButton.icon(
-              onPressed: () => context.go(AppRoute.home.path),
-              icon: Icon(Icons.home_rounded, color: colors.primaryColor),
-              label: Text(
-                context.l10n.navHome,
-                style: TextStyle(color: colors.primaryColor),
+              Gap(context.appSizes.paddingMedium),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: colors.secondaryTextColor,
+                  fontSize: 14,
+                ),
               ),
-            ),
-          ],
+              Gap(context.appSizes.paddingMedium),
+              TextButton.icon(
+                onPressed: () => context.go(AppRoute.home.path),
+                icon: Icon(Icons.home_rounded, color: colors.primaryColor),
+                label: Text(
+                  context.l10n.navHome,
+                  style: TextStyle(color: colors.primaryColor),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

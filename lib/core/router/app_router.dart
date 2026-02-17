@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,10 +9,10 @@ import 'package:barber/core/deep_link/deep_link_notifier.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/brand/di.dart';
-import 'package:barber/features/auth/domain/entities/auth_step.dart';
-import 'package:barber/features/auth/presentation/bloc/login_overlay_notifier.dart';
+import 'package:barber/features/home/di.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 import 'package:barber/features/booking/presentation/pages/booking_page.dart';
+import 'package:barber/features/booking/presentation/pages/web_booking_success_page.dart';
 import 'package:barber/features/booking/presentation/pages/edit_booking_page.dart';
 import 'package:barber/features/booking/presentation/pages/manage_booking_page.dart';
 import 'package:barber/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -23,117 +24,58 @@ import 'package:barber/features/dashboard/presentation/pages/redeem_reward_scan_
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/rewards/domain/entities/reward_entity.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
-import 'package:barber/features/home/di.dart';
 import 'package:barber/features/home/presentation/pages/home_page.dart';
 import 'package:barber/features/inventory/presentation/pages/add_item_page.dart';
 import 'package:barber/features/inventory/presentation/pages/inventory_page.dart';
 import 'package:barber/features/loyalty/presentation/pages/loyalty_page.dart';
-import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_notification_page.dart';
 import 'package:barber/features/onboarding/presentation/pages/onboarding_page.dart';
-import 'package:barber/features/brand_selection/di.dart';
-import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 import 'package:barber/features/brand_selection/presentation/pages/video_portal_page.dart';
 import 'package:barber/features/brand_selection/presentation/pages/brand_switcher_page.dart';
-
-import 'package:barber/core/di.dart';
-import 'package:barber/features/auth/presentation/pages/auth_page.dart';
+import 'package:barber/features/auth/presentation/pages/auth_page.dart'; // Kept for consistency
 import 'package:barber/features/splash/presentation/pages/splash_page.dart';
+import 'package:barber/core/presentation/pages/site_not_found_page.dart';
+import 'package:barber/core/presentation/pages/subscription_locked_page.dart';
 
+import 'package:barber/core/router/app_stage.dart';
+import 'package:barber/core/router/app_stage_notifier.dart';
 import 'app_routes.dart';
-
-// Track first run globally to persist across provider rebuilds (e.g. on logout)
-bool _isFirstRun = true;
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   // Initialize persistence listener for selected brand override
   initSelectedBrandPersistence(ref);
 
-  final refreshNotifier = ref.watch(routerRefreshNotifierProvider);
+  // Restore Side Effects Handling
+  // ===========================================================================
 
+  // 1. Auth State Changes -> Invalidate User Cache
   ref.listen(isAuthenticatedProvider, (prev, next) {
-    debugPrint(
-      '[Router Listener] isAuthenticatedProvider changed: ${next.valueOrNull}',
-    );
     if (next.valueOrNull == true) {
       // Clear guest login intent flag on successful authentication
       ref.read(isGuestLoginIntentProvider.notifier).state = false;
       ref.invalidate(currentUserProvider);
       ref.invalidate(upcomingAppointmentProvider);
-      // Delay so verifyOtp's setData(profile step) runs first for new users; then redirect
-      // sends returning users (profile complete) to home and keeps new users on auth for profile step.
-      Future.delayed(const Duration(milliseconds: 200), () {
-        refreshNotifier.notify();
-      });
-    } else if (next.valueOrNull == false) {
-      refreshNotifier.notify();
+      // We don't need to manually trigger refresh here as AppStageNotifier watches auth state
+      // and will trigger router refresh automatically via appStageProvider.
     }
   });
 
-  // When currentUser loads after sign-in, redirect again so isProfileComplete is up to date
-  // (returning users with profile complete can then navigate to home).
+  // 2. User Loaded -> Invalidate Appointment Cache (ensure fresh data)
   ref.listen(currentUserProvider, (prev, next) {
-    debugPrint(
-      '[Router Listener] currentUserProvider changed: ${next.valueOrNull?.userId}',
-    );
-    // Only refresh if NOT in brand selection flow (to avoid interrupting animation)
-    if (ref.read(isAuthenticatedProvider).valueOrNull == true &&
-        next.valueOrNull != null) {
+    if (next.valueOrNull != null) {
       ref.invalidate(upcomingAppointmentProvider);
-      if (!ref.read(isInBrandSelectionFlowProvider)) {
-        Future.microtask(() => refreshNotifier.notify());
-      } else {
-        debugPrint(
-          '[Router Listener] Skipping refresh - brand selection in progress',
-        );
-      }
+      // Any other user-dependent invalidations
     }
   });
 
-  // When repo sets lastSignedInUser (Google/Apple/OTP sign-in), invalidate currentUser so stream emits cache and router can redirect to home (not profile setup).
+  // 3. Last Signed In User -> Invalidate Current User (Switching accounts?)
   ref.listen(lastSignedInUserProvider, (prev, next) {
-    debugPrint(
-      '[Router Listener] lastSignedInUserProvider changed: ${next?.userId}',
-    );
     if (next != null && ref.read(isAuthenticatedProvider).valueOrNull == true) {
       ref.invalidate(currentUserProvider);
-      Future.microtask(() => refreshNotifier.notify());
     }
   });
 
-  // Listen for brand state changes to trigger redirects (onboarding/switcher)
-  ref.listen(userBrandsProvider, (prev, next) {
-    debugPrint(
-      '[Router Listener] userBrandsProvider changed: ${next.valueOrNull?.length} brands, isLoading=${next.isLoading}',
-    );
-    // Only refresh if NOT in brand selection flow (to avoid interrupting animation)
-    if (!next.isLoading) {
-      if (!ref.read(isInBrandSelectionFlowProvider)) {
-        debugPrint('[Router Listener] userBrandsProvider triggering refresh');
-        refreshNotifier.notify();
-      } else {
-        debugPrint(
-          '[Router Listener] Skipping refresh - brand selection in progress',
-        );
-      }
-    }
-  }, fireImmediately: false);
-
-  ref.listen(lockedBrandIdProvider, (prev, next) {
-    debugPrint(
-      '[Router Listener] lockedBrandIdProvider changed: $prev -> $next',
-    );
-    // Only refresh if NOT in brand selection flow (to avoid interrupting animation)
-    if (!ref.read(isInBrandSelectionFlowProvider)) {
-      refreshNotifier.notify();
-    } else {
-      debugPrint(
-        '[Router Listener] Skipping refresh - brand selection in progress',
-      );
-    }
-  });
-
-  // Clear guest login intent when guest gets a brand (they selected one instead of logging in)
+  // 4. Guest Login Intent Cleanup
   ref.listen(lockedBrandIdProvider, (prev, next) {
     if (next != null && next.isNotEmpty) {
       final isGuest = ref.read(isGuestProvider);
@@ -143,338 +85,135 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     }
   });
 
-  // Listen for brand config loading completion to trigger redirect from splash
-  // This ensures that when defaultBrandProvider finishes loading (or errors),
-  // the router redirect logic runs again and navigates away from splash.
-  ref.listen<AsyncValue<BrandEntity?>>(defaultBrandProvider, (prev, next) {
-    debugPrint(
-      '[Router Listener] defaultBrandProvider changed: isLoading=${next.isLoading}, hasValue=${next.hasValue}, hasError=${next.hasError}',
-    );
-    // Only refresh if NOT in brand selection flow and NOT loading
-    // This triggers redirect logic to re-run when brand config finishes loading
-    // The redirect logic will check if we're on splash and navigate accordingly
-    if (!next.isLoading && !ref.read(isInBrandSelectionFlowProvider)) {
-      debugPrint(
-        '[Router Listener] Brand config finished loading, triggering router refresh',
-      );
-      Future.microtask(() => refreshNotifier.notify());
-    }
-  });
+  // ===========================================================================
+
+  final appStageAsync = ref.watch(appStageProvider);
 
   final goRouter = GoRouter(
-    initialLocation: AppRoute.auth.path,
-    refreshListenable: refreshNotifier,
+    initialLocation: AppRoute.splash.path,
+    debugLogDiagnostics: kDebugMode,
+    refreshListenable: _RiverpodListenable(ref, appStageProvider),
     redirect: (context, state) {
-      // Debug logging
-      final timestamp = DateTime.now().millisecondsSinceEpoch % 100000;
-      debugPrint('[Router $timestamp] redirect: path=${state.uri.path}');
-      // Force splash screen on first run (app startup) when landing on default route,
-      // but allow Auth as fallback for future refreshes to avoid splash flash.
-      if (_isFirstRun && state.uri.path == AppRoute.auth.path) {
-        _isFirstRun = false;
-        debugPrint('[Router $timestamp] First run -> redirecting to splash');
-        return AppRoute.splash.path;
-      }
-      // Reset _isFirstRun flag after first redirect is handled
-      if (_isFirstRun) {
-        _isFirstRun = false;
-      }
-
-      // Use container from context so we don't use ref during "dependency changed"
-      // (e.g. when refreshNotifier.notify() runs from ref.listen), which would throw.
-      final container = ProviderScope.containerOf(context);
-      final onboardingCompleted = container.read(
-        onboardingHasCompletedProvider,
-      );
-      final isAuthAsync = container.read(isAuthenticatedProvider);
-      final isAuthenticated = isAuthAsync.valueOrNull ?? false;
-      final isProfileComplete = container.read(isProfileCompleteProvider);
-      final authState = container.read(authNotifierProvider);
-      final authData =
-          authState is BaseData ? (authState as BaseData).data : null;
-      final isInProfileStep =
-          authData is AuthFlowData && authData.isProfileInfo;
-
-      final effectiveRole = container.read(effectiveUserRoleProvider);
-      final isStaff =
-          effectiveRole == EffectiveUserRole.barber ||
-          effectiveRole == EffectiveUserRole.superadmin;
-      final lockedBrandId = container.read(lockedBrandIdProvider);
-      final path = state.uri.path;
-      final location = state.uri.toString();
-
-      debugPrint(
-        '[Router $timestamp] isAuth=$isAuthenticated, role=$effectiveRole, brand=$lockedBrandId, profileComplete=$isProfileComplete, onboardingDone=$onboardingCompleted',
-      );
-
-      // Check if login overlay is visible and handling profile completion
-      final overlayState = container.read(loginOverlayNotifierProvider);
-      final isOverlayVisible =
-          overlayState is BaseData<LoginOverlayState> &&
-          overlayState.data.isVisible;
-      final isOverlayHandlingProfile =
-          isOverlayVisible && isAuthenticated && !isProfileComplete;
-
-      if (isOverlayHandlingProfile) {
-        debugPrint(
-          '[Router $timestamp] ⛔ Login overlay handling profile completion - staying on current page',
-        );
-        // Stay on current page - overlay will handle profile completion
-        return null;
-      }
-
-      // CRITICAL: Never redirect away from portal/switcher during brand selection
-      // Check both the path AND the brand selection flow flag
-      // (portal can be pushed as modal on top of home, so path might still be /)
-      final isInBrandSelectionFlow = container.read(
-        isInBrandSelectionFlowProvider,
-      );
-      if (path == AppRoute.brandOnboarding.path ||
-          path == AppRoute.brandSwitcher.path ||
-          isInBrandSelectionFlow) {
-        debugPrint(
-          '[Router $timestamp] ⛔ BLOCKING REDIRECT - Brand selection in progress (path=$path, flag=$isInBrandSelectionFlow)',
-        );
-        return null;
-      }
-
-      // Splash: stay until we know destination, then redirect
-      if (path == AppRoute.splash.path) {
-        debugPrint('[Router] At splash');
-        if (!onboardingCompleted) {
-          debugPrint('[Router] Splash -> onboarding');
-          return AppRoute.onboarding.path;
-        }
-
-        // Wait for auth state to resolve.
-        if (isAuthAsync.isLoading) {
-          debugPrint('[Router] Splash -> waiting for auth state');
+      // 1. Loading Handling
+      if (appStageAsync.isLoading || appStageAsync.hasError) {
+        // Allow web booking (brand tag) bypass to preserve URL
+        // Explicitly check if path is NOT root, to allow resolution
+        if (state.uri.path != '/' && _isPotentialBrandTag(state.uri.path)) {
           return null;
         }
 
-        // Brand + auth resolution:
-        final hasLockedBrand =
-            lockedBrandId != null && lockedBrandId.isNotEmpty;
+        if (state.uri.path == AppRoute.splash.path) return null;
+        return AppRoute.splash.path;
+      }
 
-        if (hasLockedBrand) {
-          // Wait for brand config when a brand is locked, but don't block forever.
-          // If brand config fails to load, we still allow navigation (brand ID is locked).
-          final brandAsync = container.read(defaultBrandProvider);
+      final stage = appStageAsync.valueOrNull;
+      if (stage == null) return AppRoute.splash.path;
 
-          // CRITICAL: Wait until brand has completed loading (has value or error).
-          // This ensures we don't proceed before the brand is loaded.
-          // The splash page watches this provider, which triggers the load, but we need to
-          // wait here to ensure the load completes before navigating away.
-          if (!brandAsync.hasValue && !brandAsync.hasError) {
-            debugPrint(
-              '[Router] Splash -> waiting for brand config (isLoading=${brandAsync.isLoading}, hasValue=${brandAsync.hasValue}, hasError=${brandAsync.hasError})',
-            );
+      final path = state.uri.path;
+
+      // 2. State-Driven Redirects
+      // WEB: Strict Routing
+      if (kIsWeb) {
+        // Always allow brand tag resolution
+        if (_isPotentialBrandTag(path)) return null;
+
+        // Allow success page
+        if (state.uri.path == AppRoute.webBookingSuccess.path) return null;
+
+        // Allow Home
+        if (path == AppRoute.home.path) return null;
+
+        // Allow Site Not Found explicitly if needed, but matched above or below?
+        // Actually, siteNotFound is '/' which matches path.
+        // Allow Site Not Found explicitly if needed
+        if (path == AppRoute.siteNotFound.path) return null;
+
+        // Block Onboarding, Notification, App Auth (use overlay)
+        if (path.startsWith(AppRoute.onboarding.path) ||
+            path == AppRoute.auth.path) {
+          // If accessing auth directly, redirect to home if locked brand exists
+          // Otherwise, if we have a locked brand, go home.
+          // If no locked brand, and path is strictly auth, we can't do much on web entry without context.
+          final lockedBrandId = ref.read(lockedBrandIdProvider);
+          if (lockedBrandId != null) {
+            return AppRoute.home.path;
+          }
+          // If no brand, maybe fall through or let it show auth?
+          // But user wants "Site Not Found" for root. Auth is not root.
+          // Let's redirect to SiteNotFound if no context.
+          return AppRoute.siteNotFound.path;
+        }
+
+        // Allow Booking & Sub-routes
+        if (path.startsWith(AppRoute.booking.path)) return null;
+
+        // Default fallback for Web
+        // Only redirect to SiteNotFound if we genuinely have nowhere else to go
+        // AND we are not on a potential brand tag path.
+        if (_isPotentialBrandTag(path)) return null;
+
+        return AppRoute.siteNotFound.path;
+      }
+
+      switch (stage) {
+        case OnboardingStage():
+          // Allow web booking (brand tag) bypass
+          if (_isPotentialBrandTag(path)) return null;
+
+          if (path == AppRoute.onboarding.path ||
+              path == AppRoute.onboardingNotifications.path) {
+            return null;
+          }
+          return AppRoute.onboarding.path;
+
+        case BrandSelectionStage():
+          // Allow web booking (brand tag) bypass
+          if (_isPotentialBrandTag(path)) return null;
+
+          if (path == AppRoute.brandOnboarding.path ||
+              path == AppRoute.brandSwitcher.path) {
+            return null;
+          }
+          return AppRoute.brandOnboarding.path;
+
+        case MainAppStage(isStaff: final isStaff):
+          // Role Check
+          // (isStaff passed from stage matches ref.read(isStaffProvider) at calculation time)
+          // We can also double check ref.read(isStaffProvider) here if we want current sync value,
+          // but strict state-driven prefers using the 'stage' properties.
+
+          final defaultPath =
+              isStaff ? AppRoute.dashboard.path : AppRoute.home.path;
+
+          // Prevent Guest/User from accessing Dashboard
+          if (!isStaff && path.startsWith(AppRoute.dashboard.path)) {
+            return AppRoute.home.path;
+          }
+
+          // Prevent Staff from accessing Home (Strict Mode)
+          if (isStaff && path == AppRoute.home.path) {
+            return AppRoute.dashboard.path;
+          }
+
+          // Blocking Routes (Auth, Onboarding, BrandPortal if they shouldn't be valid anymore)
+          if (path == AppRoute.onboarding.path ||
+              path == AppRoute.splash.path ||
+              path == AppRoute.auth.path) {
+            return defaultPath;
+          }
+
+          // Allow Brand Portal for switching brands
+          if (path == AppRoute.brandOnboarding.path ||
+              path == AppRoute.brandSwitcher.path) {
             return null;
           }
 
-          // If brand config has error, log but proceed (brand ID is still locked)
-          if (brandAsync.hasError) {
-            debugPrint(
-              '[Router] Splash -> brand config error, but proceeding (brand ID locked): ${brandAsync.error}',
-            );
-          } else {
-            // Brand loaded successfully - proceed with navigation
-            debugPrint(
-              '[Router] Splash -> brand config loaded successfully: ${brandAsync.valueOrNull?.name ?? "null"}',
-            );
-          }
-        }
-
-        // Decision tree from Splash once everything is resolved.
-        if (!hasLockedBrand) {
-          debugPrint('[Router] Splash -> brandOnboarding (no brand)');
-          return AppRoute.brandOnboarding.path;
-        }
-
-        // If we have a locked brand and onboarding is complete, we should always navigate away.
-        if (effectiveRole == EffectiveUserRole.guest) {
-          debugPrint('[Router] Splash -> home (guest with brand)');
-          return AppRoute.home.path;
-        }
-
-        // Brand locked + authenticated → role-based dispatch.
-        switch (effectiveRole) {
-          case EffectiveUserRole.superadmin:
-          case EffectiveUserRole.barber:
-            debugPrint('[Router] Splash -> dashboard (staff)');
-            return AppRoute.dashboard.path;
-          case EffectiveUserRole.user:
-            debugPrint('[Router] Splash -> home (user)');
-            return AppRoute.home.path;
-          case EffectiveUserRole.guest:
-            // Already handled above, but included for completeness
-            debugPrint('[Router] Splash -> home (guest)');
-            return AppRoute.home.path;
-        }
-      }
-
-      // Firebase auth callback deep link (e.g. after login/verify) – not an app route; send to correct screen.
-      if (location.contains('firebaseauth') ||
-          location.contains('auth/callback')) {
-        debugPrint('[Router] Firebase callback detected');
-        if (!onboardingCompleted) return AppRoute.onboarding.path;
-        if (isAuthenticated && isProfileComplete) {
-          return isStaff ? AppRoute.dashboard.path : AppRoute.home.path;
-        }
-        return AppRoute.auth.path;
-      }
-      if (!onboardingCompleted &&
-          path != AppRoute.onboarding.path &&
-          path != AppRoute.onboardingNotifications.path) {
-        debugPrint('[Router] Not onboarded -> onboarding');
-        return AppRoute.onboarding.path;
-      }
-      if (onboardingCompleted &&
-          (path == AppRoute.onboarding.path ||
-              path == AppRoute.onboardingNotifications.path)) {
-        debugPrint(
-          '[Router] Onboarding complete but at onboarding page -> ${isAuthenticated ? "auth or home" : "auth"}',
-        );
-        if (isAuthenticated) {
-          return isProfileComplete
-              ? (isStaff ? AppRoute.dashboard.path : AppRoute.home.path)
-              : AppRoute.auth.path;
-        }
-        return AppRoute.auth.path;
-      }
-      if (onboardingCompleted &&
-          effectiveRole == EffectiveUserRole.guest &&
-          path != AppRoute.auth.path &&
-          path != AppRoute.brandOnboarding.path &&
-          path != AppRoute.brandSwitcher.path) {
-        // When onboarding is done but user is a guest (no profile/not fully signed in):
-        // - If a brand is locked, send them to client home for that brand.
-        // - If no brand is locked, send them to the brand onboarding portal.
-        final hasLockedBrand =
-            lockedBrandId != null && lockedBrandId.isNotEmpty;
-
-        // If at home but no brand, redirect to brand onboarding
-        if (path == AppRoute.home.path && !hasLockedBrand) {
-          debugPrint(
-            '[Router $timestamp] Guest at home but no brand -> brandOnboarding',
-          );
-          return AppRoute.brandOnboarding.path;
-        }
-
-        // If not at home/booking/loyalty and has brand, allow home
-        if (hasLockedBrand &&
-            path != AppRoute.home.path &&
-            path != AppRoute.booking.path &&
-            path != AppRoute.loyalty.path) {
-          debugPrint(
-            '[Router $timestamp] Guest with brand, redirecting to home',
-          );
-          return AppRoute.home.path;
-        }
-
-        // If no brand and not at brandOnboarding, redirect there
-        if (!hasLockedBrand) {
-          debugPrint(
-            '[Router $timestamp] Guest without brand -> brandOnboarding',
-          );
-          return AppRoute.brandOnboarding.path;
-        }
-      }
-
-      // Redirect guests with brands away from auth UNLESS they explicitly want to login
-      // (prevents getting stuck on auth after brand onboarding)
-      if (effectiveRole == EffectiveUserRole.guest &&
-          path == AppRoute.auth.path) {
-        final hasLockedBrand =
-            lockedBrandId != null && lockedBrandId.isNotEmpty;
-        final wantsToLogin = container.read(isGuestLoginIntentProvider);
-        if (hasLockedBrand && !wantsToLogin) {
-          debugPrint(
-            '[Router $timestamp] Guest with brand at auth (no intent) -> home',
-          );
-          return AppRoute.home.path;
-        }
-      }
-
-      if (isAuthenticated && path == AppRoute.auth.path) {
-        // Stay on auth when profile incomplete or when showing profile step (avoid redirect race).
-        if (isInProfileStep || !isProfileComplete) return null;
-        // After login from /auth, use effective role + brand context.
-        final hasLockedBrand =
-            lockedBrandId != null && lockedBrandId.isNotEmpty;
-        if (!hasLockedBrand) {
-          return AppRoute.brandOnboarding.path;
-        }
-        switch (effectiveRole) {
-          case EffectiveUserRole.superadmin:
-          case EffectiveUserRole.barber:
-            return AppRoute.dashboard.path;
-          case EffectiveUserRole.user:
-          case EffectiveUserRole.guest:
-            if (container.read(hasPendingBookingDraftProvider)) {
-              return AppRoute.booking.path;
-            }
-            return AppRoute.home.path;
-        }
-      }
-
-      // Brand container + role-based navigation after onboarding.
-      // Only applies when the user is authenticated; guests are handled above.
-      if (onboardingCompleted && isAuthenticated) {
-        debugPrint(
-          '[Router] Authenticated block: effectiveRole=$effectiveRole',
-        );
-        final hasLockedBrand =
-            lockedBrandId != null && lockedBrandId.isNotEmpty;
-
-        // No brand locked → always go to brand onboarding portal, except when already there.
-        if (!hasLockedBrand &&
-            path != AppRoute.brandOnboarding.path &&
-            path != AppRoute.onboarding.path) {
-          debugPrint(
-            '[Router] No brand locked, redirecting to brandOnboarding',
-          );
-          return AppRoute.brandOnboarding.path;
-        }
-
-        // CRITICAL: Allow authenticated users to stay on portal/switcher pages.
-        // When users switch brands, they need to remain on the portal page
-        // to see the complete cinematic animation before the portal itself
-        // navigates them to home. Don't redirect them away!
-        if (path == AppRoute.brandOnboarding.path ||
-            path == AppRoute.brandSwitcher.path) {
-          debugPrint(
-            '[Router] Authenticated user on portal/switcher - allowing access for animation',
-          );
+          // Allow all other routes (Booking, Loyalty, Inventory, etc.)
           return null;
-        }
 
-        if (hasLockedBrand) {
-          debugPrint('[Router] Brand locked in authenticated block');
-          // Brand locked:
-          if (effectiveRole == EffectiveUserRole.guest) {
-            // Guest user → client home for that brand (unless already on auth/home).
-            debugPrint(
-              '[Router] Auth block guest: path=$path, staying if auth/home',
-            );
-            if (path != AppRoute.auth.path && path != AppRoute.home.path) {
-              return AppRoute.home.path;
-            }
-          } else if (isProfileComplete) {
-            // Authenticated + profile complete → enforce dashboard vs home.
-            if (isStaff && path == AppRoute.home.path) {
-              return AppRoute.dashboard.path;
-            }
-            if (!isStaff && path == AppRoute.dashboard.path) {
-              return AppRoute.home.path;
-            }
-          }
-        }
+        case BillingLockedStage():
+          return AppRoute.subscriptionLocked.path;
       }
-      debugPrint(
-        '[Router $timestamp] End of redirect logic, returning null (allow navigation)',
-      );
-      return null;
     },
     routes: [
       GoRoute(
@@ -482,6 +221,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.splash.path,
         pageBuilder:
             (context, state) => NoTransitionPage(child: const SplashPage()),
+      ),
+      GoRoute(
+        name: AppRoute.subscriptionLocked.name,
+        path: AppRoute.subscriptionLocked.path,
+        pageBuilder:
+            (context, state) =>
+                NoTransitionPage(child: const SubscriptionLockedPage()),
       ),
       GoRoute(
         name: AppRoute.onboarding.name,
@@ -493,9 +239,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: AppRoute.onboardingNotifications.name,
         path: AppRoute.onboardingNotifications.path,
         pageBuilder:
-            (context, state) => NoTransitionPage(
-              child: const OnboardingNotificationPage(),
-            ),
+            (context, state) =>
+                NoTransitionPage(child: const OnboardingNotificationPage()),
       ),
       GoRoute(
         name: AppRoute.auth.name,
@@ -521,6 +266,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             (context, state) =>
                 NoTransitionPage(child: const BrandSwitcherPage()),
       ),
+
+      // Main App Routes
       GoRoute(
         name: AppRoute.home.name,
         path: AppRoute.home.path,
@@ -541,9 +288,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               state.extra is LocationEntity
                   ? state.extra as LocationEntity
                   : null;
-          return NoTransitionPage(
-            child: LocationFormPage(location: location),
-          );
+          return NoTransitionPage(child: LocationFormPage(location: location));
         },
       ),
       GoRoute(
@@ -554,9 +299,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               state.extra is ServiceEntity
                   ? state.extra as ServiceEntity
                   : null;
-          return NoTransitionPage(
-            child: ServiceFormPage(service: service),
-          );
+          return NoTransitionPage(child: ServiceFormPage(service: service));
         },
       ),
       GoRoute(
@@ -565,9 +308,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final barber =
               state.extra is BarberEntity ? state.extra as BarberEntity : null;
-          return NoTransitionPage(
-            child: BarberFormPage(barber: barber),
-          );
+          return NoTransitionPage(child: BarberFormPage(barber: barber));
         },
       ),
       GoRoute(
@@ -576,9 +317,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final reward =
               state.extra is RewardEntity ? state.extra as RewardEntity : null;
-          return NoTransitionPage(
-            child: RewardFormPage(reward: reward),
-          );
+          return NoTransitionPage(child: RewardFormPage(reward: reward));
         },
       ),
       GoRoute(
@@ -645,10 +384,37 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.addNewItem.path,
         pageBuilder: (context, state) => NoTransitionPage(child: AddItemPage()),
       ),
+      // Site Not Found (Root) - Moved to near end to ensure specific routes match first
+      GoRoute(
+        name: AppRoute.siteNotFound.name,
+        path: AppRoute.siteNotFound.path,
+        pageBuilder:
+            (context, state) =>
+                NoTransitionPage(child: const SiteNotFoundPage()),
+      ),
+      // Web Booking Route (Catch-all for brand tags)
+      GoRoute(
+        name: AppRoute.webBooking.name,
+        path: AppRoute.webBooking.path,
+        pageBuilder: (context, state) {
+          // This buffer page handles the async resolution of brand tag -> brandId
+          final brandTag = state.pathParameters['brandTag'] ?? '';
+          return NoTransitionPage(
+            child: _WebBookingResolverPage(brandTag: brandTag),
+          );
+        },
+      ),
+      GoRoute(
+        name: AppRoute.webBookingSuccess.name,
+        path: AppRoute.webBookingSuccess.path,
+        pageBuilder:
+            (context, state) =>
+                NoTransitionPage(child: const WebBookingSuccessPage()),
+      ),
     ],
   );
 
-  // Unified Entry Point: deep links (Universal/App Links + FCM) → single routing stream
+  // Unified Entry Point: deep links
   ref.listen<BaseState<DeepLinkState>>(deepLinkNotifierProvider, (prev, next) {
     final path = next is BaseData<DeepLinkState> ? next.data.pendingPath : null;
     if (path == null) return;
@@ -661,3 +427,134 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   return goRouter;
 });
+
+class _RiverpodListenable extends ChangeNotifier {
+  _RiverpodListenable(this.ref, this.provider) {
+    _subscription = ref.listen(provider, (_, __) => notifyListeners());
+  }
+
+  final Ref ref;
+  final ProviderListenable provider;
+  late final ProviderSubscription _subscription;
+
+  @override
+  void dispose() {
+    _subscription.close();
+    super.dispose();
+  }
+}
+
+class _WebBookingResolverPage extends ConsumerStatefulWidget {
+  const _WebBookingResolverPage({required this.brandTag});
+
+  final String brandTag;
+
+  @override
+  ConsumerState<_WebBookingResolverPage> createState() =>
+      _WebBookingResolverPageState();
+}
+
+class _WebBookingResolverPageState
+    extends ConsumerState<_WebBookingResolverPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _resolveBrand());
+  }
+
+  Future<void> _resolveBrand() async {
+    // 1. Check if we already have the correct brand loaded
+    // final currentBrandId = ref.read(lockedBrandIdProvider);
+    // If we implemented a way to store "lockedBrandTag", we could check that too.
+    // For now, we always fetch to be safe and ensure validity.
+
+    // 2. Resolve Tag -> ID
+    final result = await ref
+        .read(brandRepositoryProvider)
+        .getByTag(widget.brandTag);
+
+    if (!mounted) return;
+
+    result.fold(
+      (failure) {
+        if (!mounted) return;
+        setState(() {
+          _errorMessage = 'Error loading brand: ${failure.message}';
+        });
+      },
+      (brand) {
+        if (!mounted) return;
+        if (brand == null) {
+          setState(() {
+            _errorMessage = 'Brand not found for tag: ${widget.brandTag}';
+          });
+        } else {
+          // 3. Set Brand ID
+          ref.read(lockedBrandIdProvider.notifier).state = brand.brandId;
+
+          // 4. Render Booking Page
+          setState(() {
+            _resolved = true;
+          });
+        }
+      },
+    );
+  }
+
+  bool _resolved = false;
+  String? _errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_resolved) {
+      // 5. Show Booking Page
+      return const HomePage();
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              _errorMessage!,
+              style: const TextStyle(color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Show loading while resolving
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+}
+
+bool _isPotentialBrandTag(String path) {
+  if (path == '/' || path.isEmpty) return false;
+
+  final reservedPrefixes = [
+    '/splash',
+    '/onboarding',
+    '/auth',
+    '/home',
+    '/brand_', // brand_onboarding, brand_switcher
+    '/dashboard',
+    '/booking',
+    '/manage_booking',
+    '/edit_booking',
+    '/loyalty',
+    '/inventory',
+    '/statistics',
+    '/add_new_item',
+  ];
+
+  for (final prefix in reservedPrefixes) {
+    if (path.startsWith(prefix)) return false;
+  }
+
+  return true;
+}

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,6 +29,7 @@ import 'package:barber/features/booking/presentation/widgets/booking_date_sectio
 import 'package:barber/features/booking/presentation/widgets/booking_time_section.dart';
 import 'package:barber/features/booking/domain/entities/time_slot.dart';
 import 'package:barber/features/booking/presentation/widgets/booking_footer.dart';
+
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/home/di.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
@@ -343,6 +345,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
         totalPrice: bookingState.totalPrice,
         status: AppointmentStatus.scheduled,
         customerName: customerName,
+        customerPhone: userResult.fold((_) => '', (u) => u?.phone ?? ''),
         serviceName: bookingState.selectedService!.name,
         barberName: bookingState.selectedBarber?.name,
       );
@@ -395,7 +398,13 @@ class _BookingPageState extends ConsumerState<BookingPage> {
           ref.invalidate(upcomingAppointmentProvider);
           ref.invalidate(bookingNotifierProvider);
           _showSuccess();
-          if (mounted) context.go(AppRoute.home.path);
+          if (mounted) {
+            if (kIsWeb) {
+              context.go(AppRoute.webBookingSuccess.path);
+            } else {
+              context.go(AppRoute.home.path);
+            }
+          }
         },
       );
     } catch (e) {
@@ -457,12 +466,13 @@ class _BookingPageState extends ConsumerState<BookingPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch providers here to pass down
     final bookingState = ref.watch(bookingNotifierProvider);
     final servicesAsync = ref.watch(servicesForHomeProvider);
     final barbersAsync = ref.watch(barbersForHomeProvider);
     final timeSlotsAsync = ref.watch(availableTimeSlotsProvider);
 
-    // Keep last successful slots so we can show them while refetching (prevents scroll jump on date tap).
+    // Keep last successful slots logic
     ref.listen(availableTimeSlotsProvider, (prev, next) {
       next.whenData((slots) {
         if (mounted && slots.isNotEmpty) setState(() => _lastTimeSlots = slots);
@@ -476,7 +486,8 @@ class _BookingPageState extends ConsumerState<BookingPage> {
         homeState is BaseData<HomeData>
             ? homeState.data.locations
             : <LocationEntity>[];
-    // When a service is preselected (e.g. quick book), only show locations that offer that service
+
+    // Shared data preparation
     final locationsForStep =
         bookingState.selectedService != null
             ? locations
@@ -492,13 +503,11 @@ class _BookingPageState extends ConsumerState<BookingPage> {
     final showLocationStep = locations.isNotEmpty;
     final locationSelected = bookingState.locationId != null;
 
-    // Show only services available at the selected location (empty list = all locations)
     final services =
         allServices
             .where((s) => s.isAvailableAt(bookingState.locationId))
             .toList();
 
-    // Filter barbers by location if we have one
     final barbersFiltered =
         bookingState.locationId != null
             ? allBarbers
@@ -509,7 +518,7 @@ class _BookingPageState extends ConsumerState<BookingPage> {
                 )
                 .toList()
             : allBarbers;
-    // Sort so preselected barber (from quick book) is first after "Any Barber" for visibility
+
     final barbers =
         bookingState.preselectedBarberId == null ||
                 bookingState.preselectedBarberId!.isEmpty
@@ -523,139 +532,133 @@ class _BookingPageState extends ConsumerState<BookingPage> {
               ),
             ];
 
+    final timeSlots =
+        timeSlotsAsync.isLoading
+            ? (_lastTimeSlots ?? [])
+            : (timeSlotsAsync.valueOrNull ?? []);
+
     return Scaffold(
       backgroundColor: context.appColors.backgroundColor,
-      appBar: CustomAppBar.withTitleAndBackButton(
-        context.l10n.bookingTitle,
-        onBack: () => context.go(AppRoute.home.path),
-      ),
-      body: Column(
-        children: [
-          // Progress bar
-          BookingProgressBar(
-            showLocationStep: showLocationStep,
-            locationSelected: locationSelected,
-            serviceSelected: bookingState.selectedService != null,
-            barberSelected: bookingState.barberChoiceMade,
-            timeSelected: bookingState.selectedTimeSlot != null,
-          ),
-
-          // Scrollable body
-          Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              padding: EdgeInsets.symmetric(
-                vertical: context.appSizes.paddingMedium,
+      appBar:
+          kIsWeb
+              ? CustomAppBar.withTitle(context.l10n.bookingTitle)
+              : CustomAppBar.withTitleAndBackButton(
+                context.l10n.bookingTitle,
+                onBack: () => context.go(AppRoute.home.path),
               ),
-              child: Column(
-                children: [
-                  // Location selection (first step when brand has multiple locations).
-                  // Filtered by preselected service when quick book so only supporting locations are shown.
-                  if (showLocationStep) ...[
-                    BookingLocationSection(
-                      locations: locationsToShow,
-                      selectedLocationId: bookingState.locationId,
-                      onLocationSelected: (location) {
-                        ref
-                            .read(bookingNotifierProvider.notifier)
-                            .selectLocation(location.locationId);
-                      },
-                    ),
-                    Gap(context.appSizes.paddingLarge),
-                  ],
-
-                  // Service selection: show when location is selected, or when
-                  // quick book preselected a service (so user sees selection and can change it).
-                  // Services list is filtered by selected location when set.
-                  if (locationSelected ||
-                      bookingState.selectedService != null) ...[
-                    BookingServiceSection(
-                      services: services,
-                      selectedServiceId:
-                          bookingState.selectedService?.serviceId,
-                      onServiceSelected: (service) {
-                        ref
-                            .read(bookingNotifierProvider.notifier)
-                            .selectService(service);
-                      },
-                    ),
-                    Gap(context.appSizes.paddingLarge),
-                  ],
-
-                  // Barber selection
-                  if (bookingState.selectedService != null ||
-                      bookingState.barberChoiceMade) ...[
-                    BookingBarberSection(
-                      barbers: barbers,
-                      selectedBarberId: bookingState.selectedBarber?.barberId,
-                      isAnyBarber:
-                          bookingState.isAnyBarber &&
-                          bookingState.barberChoiceMade,
-                      onBarberSelected: (barber) {
-                        ref
-                            .read(bookingNotifierProvider.notifier)
-                            .selectBarber(barber);
-                      },
-                      onAnyBarberSelected: () {
-                        ref
-                            .read(bookingNotifierProvider.notifier)
-                            .selectAnyBarber();
-                      },
-                    ),
-                    Gap(context.appSizes.paddingLarge),
-                  ],
-
-                  // Date selection
-                  if (bookingState.selectedService != null &&
-                      bookingState.barberChoiceMade) ...[
-                    Container(
-                      key: _dateSectionKey,
-                      child: BookingDateSection(
-                        selectedDate: bookingState.selectedDate,
-                        onDateSelected: (date) {
-                          ref
-                              .read(bookingNotifierProvider.notifier)
-                              .selectDate(date);
-                          _scrollToDateSection();
-                        },
-                      ),
-                    ),
-                    Gap(context.appSizes.paddingLarge),
-                  ],
-
-                  // Time selection (show last slots while loading to avoid scroll jump on date tap)
-                  if (bookingState.selectedDate != null) ...[
-                    BookingTimeSection(
-                      timeSlots:
-                          timeSlotsAsync.isLoading
-                              ? (_lastTimeSlots ?? [])
-                              : (timeSlotsAsync.valueOrNull ?? []),
-                      selectedTimeSlot: bookingState.selectedTimeSlot,
-                      onTimeSlotSelected: (slot) {
-                        ref
-                            .read(bookingNotifierProvider.notifier)
-                            .selectTimeSlot(
-                              slot.time,
-                              barberId: slot.barberId,
-                            );
-                      },
-                      isLoading: timeSlotsAsync.isLoading,
-                    ),
-                  ],
-                ],
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            children: [
+              BookingProgressBar(
+                showLocationStep: showLocationStep,
+                locationSelected: locationSelected,
+                serviceSelected: bookingState.selectedService != null,
+                barberSelected: bookingState.barberChoiceMade,
+                timeSelected: bookingState.selectedTimeSlot != null,
               ),
-            ),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  padding: EdgeInsets.symmetric(
+                    vertical: context.appSizes.paddingMedium,
+                  ),
+                  child: Column(
+                    children: [
+                      if (showLocationStep) ...[
+                        BookingLocationSection(
+                          locations: locationsToShow,
+                          selectedLocationId: bookingState.locationId,
+                          onLocationSelected: (location) {
+                            ref
+                                .read(bookingNotifierProvider.notifier)
+                                .selectLocation(location.locationId);
+                          },
+                        ),
+                        Gap(context.appSizes.paddingLarge),
+                      ],
+                      if (locationSelected ||
+                          bookingState.selectedService != null) ...[
+                        BookingServiceSection(
+                          services: services,
+                          selectedServiceId:
+                              bookingState.selectedService?.serviceId,
+                          onServiceSelected: (service) {
+                            ref
+                                .read(bookingNotifierProvider.notifier)
+                                .selectService(service);
+                          },
+                        ),
+                        Gap(context.appSizes.paddingLarge),
+                      ],
+                      if (bookingState.selectedService != null ||
+                          bookingState.barberChoiceMade) ...[
+                        BookingBarberSection(
+                          barbers: barbers,
+                          selectedBarberId:
+                              bookingState.selectedBarber?.barberId,
+                          isAnyBarber:
+                              bookingState.isAnyBarber &&
+                              bookingState.barberChoiceMade,
+                          onBarberSelected: (barber) {
+                            ref
+                                .read(bookingNotifierProvider.notifier)
+                                .selectBarber(barber);
+                          },
+                          onAnyBarberSelected: () {
+                            ref
+                                .read(bookingNotifierProvider.notifier)
+                                .selectAnyBarber();
+                          },
+                        ),
+                        Gap(context.appSizes.paddingLarge),
+                      ],
+                      if (bookingState.selectedService != null &&
+                          bookingState.barberChoiceMade) ...[
+                        Container(
+                          key: _dateSectionKey,
+                          child: BookingDateSection(
+                            selectedDate: bookingState.selectedDate,
+                            onDateSelected: (date) {
+                              ref
+                                  .read(bookingNotifierProvider.notifier)
+                                  .selectDate(date);
+                              _scrollToDateSection();
+                            },
+                          ),
+                        ),
+                        Gap(context.appSizes.paddingLarge),
+                      ],
+                      if (bookingState.selectedDate != null) ...[
+                        BookingTimeSection(
+                          timeSlots: timeSlots,
+                          selectedTimeSlot: bookingState.selectedTimeSlot,
+                          onTimeSlotSelected: (slot) {
+                            ref
+                                .read(bookingNotifierProvider.notifier)
+                                .selectTimeSlot(
+                                  slot.time,
+                                  barberId: slot.barberId,
+                                );
+                          },
+                          isLoading: timeSlotsAsync.isLoading,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              BookingFooter(
+                totalPrice: bookingState.totalPrice,
+                totalDurationMinutes: bookingState.totalDurationMinutes,
+                canConfirm: bookingState.canConfirm,
+                onConfirm: _confirmBooking,
+                isConfirming: _isConfirming,
+              ),
+            ],
           ),
-
-          // Sticky footer
-          BookingFooter(
-            totalPrice: bookingState.totalPrice,
-            totalDurationMinutes: bookingState.totalDurationMinutes,
-            canConfirm: bookingState.canConfirm,
-            onConfirm: _confirmBooking,
-            isConfirming: _isConfirming,
-          ),
-        ],
+        ),
       ),
     );
   }

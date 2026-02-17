@@ -5,6 +5,7 @@ import 'package:barber/core/firebase/collections.dart';
 import 'package:barber/core/firebase/firestore_logger.dart';
 import 'package:barber/features/auth/data/mappers/user_firestore_mapper.dart';
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
+import 'package:barber/features/auth/domain/entities/user_role.dart';
 import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -15,6 +16,62 @@ class UserRepositoryImpl implements UserRepository {
 
   CollectionReference<Map<String, dynamic>> get _col =>
       _firestore.collection(FirestoreCollections.users);
+
+  @override
+  Future<Either<Failure, UserEntity>> mergeOnLogin(UserEntity newUser) async {
+    try {
+      final result = await _firestore.runTransaction((transaction) async {
+        final docRef = _col.doc(newUser.userId);
+        final snapshot = await transaction.get(docRef);
+
+        if (!snapshot.exists || snapshot.data() == null) {
+          // New user: create with provided data
+          transaction.set(docRef, UserFirestoreMapper.toFirestore(newUser));
+          return newUser;
+        }
+
+        // Existing user: merge responsibly
+        final existing = UserFirestoreMapper.fromFirestore(snapshot);
+
+        // Logic to determine which fields to keep vs update
+        final merged = existing.copyWith(
+          // Keep existing name if present, otherwise use new (e.g. from Google/Apple)
+          fullName:
+              existing.fullName.isNotEmpty
+                  ? existing.fullName
+                  : newUser.fullName,
+
+          // Keep existing phone if present, otherwise use new
+          phone: existing.phone.isNotEmpty ? existing.phone : newUser.phone,
+
+          // Role: Upgrade to superadmin if intent is superadmin, otherwise keep existing.
+          // NEVER downgrade a superadmin/barber to user via login.
+          role:
+              newUser.role == UserRole.superadmin
+                  ? UserRole.superadmin
+                  : existing.role,
+
+          // Always keep existing IDs/Settings unless specific logic dictates otherwise
+          barberId: existing.barberId,
+          brandId: existing.brandId,
+          preferredBarberId: existing.preferredBarberId,
+
+          // Update FCM token if new one is provided (usually empty on login initial step though)
+          fcmToken:
+              newUser.fcmToken.isNotEmpty
+                  ? newUser.fcmToken
+                  : existing.fcmToken,
+        );
+
+        transaction.update(docRef, UserFirestoreMapper.toFirestore(merged));
+        return merged;
+      });
+
+      return Right(result);
+    } catch (e) {
+      return Left(FirestoreFailure('Failed to merge user on login: $e'));
+    }
+  }
 
   @override
   Future<Either<Failure, UserEntity?>> getById(String userId) async {
@@ -84,7 +141,10 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, void>> updateFcmToken(String userId, String token) async {
+  Future<Either<Failure, void>> updateFcmToken(
+    String userId,
+    String token,
+  ) async {
     try {
       await FirestoreLogger.logWrite(
         '${FirestoreCollections.users}/$userId',

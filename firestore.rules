@@ -102,7 +102,24 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.auth != null;
       // Update: Superadmin can only update their OWN brand (must match user.brand_id)
-      allow update, delete: if request.auth != null && isSuperadmin() && brandId == barberBrandId();
+      // PROTECTED FIELDS: subscription_*, stripe_*, free_trial_days, plan_id cannot be updated by client.
+      allow update: if request.auth != null && isSuperadmin() && brandId == barberBrandId()
+        && !('subscription_status' in request.resource.data)
+        && !('subscription_start' in request.resource.data)
+        && !('subscription_end' in request.resource.data)
+        && !('plan_id' in request.resource.data)
+        && !('stripe_customer_id' in request.resource.data)
+        && !('stripe_subscription_id' in request.resource.data)
+        && !('free_trial_days' in request.resource.data);
+      
+      allow delete: if request.auth != null && isSuperadmin() && brandId == barberBrandId();
+    }
+
+    // -------------------------------------------------------------------------
+    // Config: Read-only (or hidden)
+    // -------------------------------------------------------------------------
+    match /config/{document=**} {
+      allow read, write: if false;
     }
 
     // -------------------------------------------------------------------------

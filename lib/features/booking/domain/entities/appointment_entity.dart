@@ -22,9 +22,11 @@ class AppointmentEntity extends Equatable {
     required this.totalPrice,
     required this.status,
     required this.customerName,
+    this.customerPhone = '',
     required this.serviceName,
     this.barberName,
     this.createdAt,
+    this.loyaltyPointsAwarded = false,
   });
 
   final String appointmentId;
@@ -45,8 +47,14 @@ class AppointmentEntity extends Equatable {
   /// Denormalized service name for display (comma-separated if multiple)
   final String serviceName;
 
+  /// Denormalized customer phone number for quick access (e.g. by barber)
+  final String customerPhone;
+
   /// Denormalized barber/professional name for display (e.g. on client's card)
   final String? barberName;
+
+  /// Whether loyalty points have been awarded for this appointment.
+  final bool loyaltyPointsAwarded;
 
   @override
   List<Object?> get props => [
@@ -62,7 +70,9 @@ class AppointmentEntity extends Equatable {
     status,
     createdAt,
     customerName,
+    customerPhone,
     serviceName,
     barberName,
+    loyaltyPointsAwarded,
   ];
 }

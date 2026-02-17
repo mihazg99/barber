@@ -176,6 +176,12 @@ abstract class AppLocalizations {
   /// **'Natrag'**
   String get back;
 
+  /// No description provided for @generalBack.
+  ///
+  /// In hr, this message translates to:
+  /// **'Natrag'**
+  String get generalBack;
+
   /// No description provided for @logout.
   ///
   /// In hr, this message translates to:
@@ -281,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingLoyaltyDescription.
   ///
   /// In hr, this message translates to:
-  /// **'Skupljaj bodove pri svakom posjetu i iskoristi nagrade na svojim omiljenim lokacijama.'**
+  /// **'Skupljaj bodove pri svakom posjetu i iskoristi nagrade u svojim omiljenim salonima.'**
   String get onboardingLoyaltyDescription;
 
   /// No description provided for @onboardingNotificationsTitle.
@@ -589,6 +595,12 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Tim'**
   String get bookingStepBarber;
+
+  /// No description provided for @bookingStepDate.
+  ///
+  /// In hr, this message translates to:
+  /// **'Datum'**
+  String get bookingStepDate;
 
   /// No description provided for @bookingStepTime.
   ///
@@ -2347,6 +2359,204 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Radno vrijeme uspješno ažurirano'**
   String get shiftWorkingHoursSaved;
+
+  /// No description provided for @dashboardManualBookingTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dodaj termin'**
+  String get dashboardManualBookingTitle;
+
+  /// No description provided for @dashboardManualBookingSelectService.
+  ///
+  /// In hr, this message translates to:
+  /// **'Odaberi uslugu'**
+  String get dashboardManualBookingSelectService;
+
+  /// No description provided for @dashboardManualBookingSelectBarber.
+  ///
+  /// In hr, this message translates to:
+  /// **'Odaberi profesionalca'**
+  String get dashboardManualBookingSelectBarber;
+
+  /// No description provided for @dashboardManualBookingSelectDate.
+  ///
+  /// In hr, this message translates to:
+  /// **'Odaberi datum'**
+  String get dashboardManualBookingSelectDate;
+
+  /// No description provided for @dashboardManualBookingSelectTime.
+  ///
+  /// In hr, this message translates to:
+  /// **'Odaberi vrijeme'**
+  String get dashboardManualBookingSelectTime;
+
+  /// No description provided for @dashboardManualBookingCustomerInfo.
+  ///
+  /// In hr, this message translates to:
+  /// **'Podaci o klijentu'**
+  String get dashboardManualBookingCustomerInfo;
+
+  /// No description provided for @dashboardManualBookingCustomerName.
+  ///
+  /// In hr, this message translates to:
+  /// **'Ime'**
+  String get dashboardManualBookingCustomerName;
+
+  /// No description provided for @dashboardManualBookingCustomerNameHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'npr. Ivan Horvat'**
+  String get dashboardManualBookingCustomerNameHint;
+
+  /// No description provided for @dashboardManualBookingCustomerNameRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'Ime je obavezno'**
+  String get dashboardManualBookingCustomerNameRequired;
+
+  /// No description provided for @dashboardManualBookingCustomerPhone.
+  ///
+  /// In hr, this message translates to:
+  /// **'Telefon'**
+  String get dashboardManualBookingCustomerPhone;
+
+  /// No description provided for @dashboardManualBookingCustomerPhoneHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'+385...'**
+  String get dashboardManualBookingCustomerPhoneHint;
+
+  /// No description provided for @dashboardManualBookingCustomerPhoneRequired.
+  ///
+  /// In hr, this message translates to:
+  /// **'Telefon je obavezan'**
+  String get dashboardManualBookingCustomerPhoneRequired;
+
+  /// No description provided for @dashboardManualBookingSuccess.
+  ///
+  /// In hr, this message translates to:
+  /// **'Termin kreiran'**
+  String get dashboardManualBookingSuccess;
+
+  /// No description provided for @dashboardManualBookingSlotTaken.
+  ///
+  /// In hr, this message translates to:
+  /// **'Termin zauzet'**
+  String get dashboardManualBookingSlotTaken;
+
+  /// No description provided for @dashboardManualBookingNoSlots.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nema slobodnih termina'**
+  String get dashboardManualBookingNoSlots;
+
+  /// No description provided for @completeAppointmentTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Završiti termin?'**
+  String get completeAppointmentTitle;
+
+  /// No description provided for @completeAppointmentMessage.
+  ///
+  /// In hr, this message translates to:
+  /// **'Jeste li sigurni da želite označiti ovaj termin kao dovršen?'**
+  String get completeAppointmentMessage;
+
+  /// No description provided for @complete.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dovrši'**
+  String get complete;
+
+  /// No description provided for @appointmentCompleted.
+  ///
+  /// In hr, this message translates to:
+  /// **'Termin označen kao dovršen'**
+  String get appointmentCompleted;
+
+  /// No description provided for @notificationsDisabledInSettings.
+  ///
+  /// In hr, this message translates to:
+  /// **'Molimo uključite obavijesti u postavkama sustava'**
+  String get notificationsDisabledInSettings;
+
+  /// No description provided for @brandTagHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'oznaka-salona'**
+  String get brandTagHint;
+
+  /// No description provided for @joinBrand.
+  ///
+  /// In hr, this message translates to:
+  /// **'Pridruži salonu {brandName}'**
+  String joinBrand(String brandName);
+
+  /// No description provided for @markAsNoShowTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Označi kao nedolazak?'**
+  String get markAsNoShowTitle;
+
+  /// No description provided for @markAsNoShowMessage.
+  ///
+  /// In hr, this message translates to:
+  /// **'Jeste li sigurni da želite označiti ovaj termin kao nedolazak?'**
+  String get markAsNoShowMessage;
+
+  /// No description provided for @noShow.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nedolazak'**
+  String get noShow;
+
+  /// No description provided for @appointmentMarkedAsNoShow.
+  ///
+  /// In hr, this message translates to:
+  /// **'Termin označen kao nedolazak'**
+  String get appointmentMarkedAsNoShow;
+
+  /// No description provided for @downloadAppCta.
+  ///
+  /// In hr, this message translates to:
+  /// **'Preuzmi STYL'**
+  String get downloadAppCta;
+
+  /// No description provided for @webBannerGreetingMorning.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dobro jutro'**
+  String get webBannerGreetingMorning;
+
+  /// No description provided for @webBannerGreetingAfternoon.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dobar dan'**
+  String get webBannerGreetingAfternoon;
+
+  /// No description provided for @webBannerGreetingEvening.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dobra večer'**
+  String get webBannerGreetingEvening;
+
+  /// No description provided for @webBannerWelcome.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dobrodošli u {brandName}'**
+  String webBannerWelcome(String brandName);
+
+  /// No description provided for @webBannerLoyaltyTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Skupljaj bodove vjernosti'**
+  String get webBannerLoyaltyTitle;
+
+  /// No description provided for @webBannerLoyaltyBody.
+  ///
+  /// In hr, this message translates to:
+  /// **'Preuzmi STYL aplikaciju za praćenje posjeta, skupljanje bodova i otključavanje ekskluzivnih nagrada.'**
+  String get webBannerLoyaltyBody;
 }
 
 class _AppLocalizationsDelegate

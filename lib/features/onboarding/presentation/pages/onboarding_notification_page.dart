@@ -12,6 +12,7 @@ import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/widgets/glass_container.dart';
 import 'package:barber/core/widgets/video_background.dart';
 import 'package:barber/features/auth/di.dart';
+import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/onboarding/di.dart';
 import 'package:barber/core/widgets/glass_button.dart';
 
@@ -60,7 +61,15 @@ class _OnboardingNotificationPageState
     }
     ref.invalidate(onboardingHasCompletedProvider);
     ref.read(videoPreloaderServiceProvider).portalVideoController?.pause();
-    context.go(AppRoute.home.path);
+
+    // Check if brand is locked. If not, go to portal.
+    // (Router would eventually fix this but better to be explicit)
+    final lockedBrand = ref.read(lockedBrandIdProvider);
+    if (lockedBrand == null || lockedBrand.isEmpty) {
+      context.go(AppRoute.brandOnboarding.path);
+    } else {
+      context.go(AppRoute.home.path);
+    }
   }
 
   @override
@@ -86,9 +95,8 @@ class _OnboardingNotificationPageState
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final contentWidth = constraints.maxWidth > 400
-                    ? 400.0
-                    : constraints.maxWidth;
+                final contentWidth =
+                    constraints.maxWidth > 400 ? 400.0 : constraints.maxWidth;
                 return SingleChildScrollView(
                   padding: EdgeInsets.symmetric(
                     horizontal: context.appSizes.paddingLarge,
@@ -96,7 +104,8 @@ class _OnboardingNotificationPageState
                   ),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight -
+                      minHeight:
+                          constraints.maxHeight -
                           context.appSizes.paddingXl * 2,
                     ),
                     child: Column(
@@ -104,16 +113,16 @@ class _OnboardingNotificationPageState
                       children: [
                         // Icon: single clear focus
                         GlassContainer(
-                          borderRadius:
-                              context.appSizes.borderRadius * 1.5,
+                          borderRadius: context.appSizes.borderRadius * 1.5,
                           backgroundColor: context.appColors.primaryColor
                               .withValues(alpha: 0.12),
                           borderColor: context.appColors.primaryColor
                               .withValues(alpha: 0.3),
                           boxShadow: [
                             BoxShadow(
-                              color: context.appColors.primaryColor
-                                  .withValues(alpha: 0.15),
+                              color: context.appColors.primaryColor.withValues(
+                                alpha: 0.15,
+                              ),
                               blurRadius: 20,
                               offset: const Offset(0, 6),
                             ),
@@ -135,8 +144,7 @@ class _OnboardingNotificationPageState
                         SizedBox(
                           width: contentWidth,
                           child: GlassContainer(
-                            borderRadius:
-                                context.appSizes.borderRadius * 1.5,
+                            borderRadius: context.appSizes.borderRadius * 1.5,
                             padding: EdgeInsets.all(
                               context.appSizes.paddingLarge,
                             ),
@@ -165,13 +173,11 @@ class _OnboardingNotificationPageState
                                 Text(
                                   l10n.onboardingNotificationsDescription,
                                   textAlign: TextAlign.center,
-                                  style: context.appTextStyles.body
-                                      .copyWith(
-                                        color: Colors.white
-                                            .withValues(alpha: 0.92),
-                                        fontSize: 16,
-                                        height: 1.45,
-                                      ),
+                                  style: context.appTextStyles.body.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.92),
+                                    fontSize: 16,
+                                    height: 1.45,
+                                  ),
                                 ),
                               ],
                             ),
@@ -192,11 +198,9 @@ class _OnboardingNotificationPageState
                         Gap(context.appSizes.paddingLarge),
                         // Secondary: low emphasis, no guilt
                         TextButton(
-                          onPressed:
-                              _isCompleting ? null : _skipNotifications,
+                          onPressed: _isCompleting ? null : _skipNotifications,
                           style: TextButton.styleFrom(
-                            foregroundColor:
-                                context.appColors.captionTextColor,
+                            foregroundColor: context.appColors.captionTextColor,
                             padding: EdgeInsets.symmetric(
                               vertical: context.appSizes.paddingSmall,
                               horizontal: context.appSizes.paddingMedium,

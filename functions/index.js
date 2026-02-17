@@ -119,16 +119,23 @@ function isInvalidTokenError(error) {
 async function scheduleAppointmentReminderTask(appointmentId, startTime) {
   try {
     const scheduleTime = new Date(startTime.getTime() - REMINDER_HOURS_BEFORE_APPOINTMENT * 60 * 60 * 1000);
-    if (scheduleTime <= new Date()) {
-      logger.info("scheduleAppointmentReminderTask: start_time already within 2h, skip", { appointmentId });
+    const now = new Date();
+
+    if (scheduleTime <= now) {
+      logger.warn("scheduleAppointmentReminderTask: start_time within 2h (or past), skipping", { appointmentId, scheduleTime: scheduleTime.toISOString() });
       return;
     }
-    const queue = getFunctions().taskQueue(`locations/${REGION}/functions/appointmentReminderTask`);
+
+    // Use function resource name compatible with firebase-admin
+    const queuePath = `locations/${REGION}/functions/appointmentReminderTask`;
+    const queue = getFunctions().taskQueue(queuePath);
+
     try {
       await queue.delete(appointmentId);
     } catch {
-      // No existing task (e.g. first book); ignore.
+      // Ignore if task doesn't exist
     }
+
     await queue.enqueue(
       { appointmentId },
       {
@@ -153,20 +160,30 @@ exports.onAppointmentCreated = onDocumentCreated(
     region: REGION,
   },
   async (event) => {
+    const appointmentId = event.params.appointmentId;
+    logger.info("onAppointmentCreated: triggered", { appointmentId });
     try {
-      const snap = event.data?.after;
-      if (!snap?.exists) return;
+      const snap = event.data;
+      if (!snap || !snap.exists) {
+        // Warning if triggered but doc gone (e.g. immediate delete)
+        return;
+      }
       const data = snap.data();
-      if ((data?.status ?? "") !== "scheduled") return;
-      const appointmentId = event.params.appointmentId;
-      const startTime = data?.start_time?.toDate?.();
+      const status = data?.status ?? "";
+      const startTimeVal = data?.start_time;
+      const startTime = startTimeVal?.toDate?.();
+
+      if (status !== "scheduled") {
+        return;
+      }
+
       if (!startTime) {
-        logger.warn("onAppointmentCreated: missing start_time", { appointmentId });
+        logger.warn("onAppointmentCreated: missing start_time or invalid format", { appointmentId });
         return;
       }
       await scheduleAppointmentReminderTask(appointmentId, startTime);
     } catch (err) {
-      logger.error("onAppointmentCreated", { error: err?.message });
+      logger.error("onAppointmentCreated: failed", { appointmentId, error: err?.message });
       throw err;
     }
   },
@@ -228,17 +245,17 @@ exports.onBookingComplete = onDocumentUpdated(
         const dailyRef = locationRef?.collection(COLLECTION_DAILY_STATS).doc(dateKey) ?? null;
         const monthlyRef = locationRef?.collection(COLLECTION_MONTHLY_STATS).doc(monthKey) ?? null;
 
-        await db.runTransaction(async (tx) => {
+        const result = await db.runTransaction(async (tx) => {
           const userBrandSnap = await tx.get(userBrandRef);
           const userBrandData = userBrandSnap?.data() ?? {};
           if (userBrandData.last_processed_appointment_id === appointmentId) {
             logger.info("onBookingComplete: already processed (idempotent)", { appointmentId, userId, brandId });
-            return;
+            return { isAlreadyProcessed: true };
           }
           const prevLifetime = typeof userBrandData.lifetime_value === "number" ? userBrandData.lifetime_value : 0;
           const isNewCustomer = prevLifetime === 0;
           const avgInterval =
-            typeof userBrandData.average_visit_interval === "number" ? userBrandData.average_visit_interval : 30;
+            typeof userBrandData.average_visit_interval === "number" ? userBrandData.average_visit_interval : 21;
           const now = new Date();
           const nextVisitDue = new Date(now);
           nextVisitDue.setDate(nextVisitDue.getDate() + avgInterval);
@@ -278,7 +295,13 @@ exports.onBookingComplete = onDocumentUpdated(
             };
             tx.set(monthlyRef, monthlyUpdate, { merge: true });
           }
+          return { isNewCustomer };
         });
+
+        if (result?.isAlreadyProcessed) return;
+
+        const { isNewCustomer } = result;
+
         logger.info("onBookingComplete: updated user_brands and stats", {
           userId,
           brandId,
@@ -389,6 +412,16 @@ exports.appointmentReminderTask = onTaskDispatched(
         await admin.messaging().send({
           token: fcmToken,
           notification: { title, body },
+          android: {
+            priority: "high",
+          },
+          apns: {
+            payload: {
+              aps: {
+                "content-available": 1,
+              },
+            },
+          },
           data: {
             type: "appointment_reminder",
             appointment_id: appointmentId,
@@ -570,3 +603,11 @@ exports.dailyReminderBatchTask = onTaskDispatched(
     }
   },
 );
+
+// ---------------------------------------------------------------------------
+// Stripe Integration
+// ---------------------------------------------------------------------------
+const { createStripeCustomer, createCheckoutSession, handleStripeWebhook } = require("./stripe_integration");
+exports.createStripeCustomer = createStripeCustomer;
+exports.createCheckoutSession = createCheckoutSession;
+exports.handleStripeWebhook = handleStripeWebhook;

@@ -48,6 +48,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get back => 'Natrag';
 
   @override
+  String get generalBack => 'Natrag';
+
+  @override
   String get logout => 'Odjava';
 
   @override
@@ -106,7 +109,7 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get onboardingLoyaltyDescription =>
-      'Skupljaj bodove pri svakom posjetu i iskoristi nagrade na svojim omiljenim lokacijama.';
+      'Skupljaj bodove pri svakom posjetu i iskoristi nagrade u svojim omiljenim salonima.';
 
   @override
   String get onboardingNotificationsTitle => 'Ne propusti termin';
@@ -268,6 +271,9 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get bookingStepBarber => 'Tim';
+
+  @override
+  String get bookingStepDate => 'Datum';
 
   @override
   String get bookingStepTime => 'Vrijeme';
@@ -1199,4 +1205,112 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get shiftWorkingHoursSaved => 'Radno vrijeme uspješno ažurirano';
+
+  @override
+  String get dashboardManualBookingTitle => 'Dodaj termin';
+
+  @override
+  String get dashboardManualBookingSelectService => 'Odaberi uslugu';
+
+  @override
+  String get dashboardManualBookingSelectBarber => 'Odaberi profesionalca';
+
+  @override
+  String get dashboardManualBookingSelectDate => 'Odaberi datum';
+
+  @override
+  String get dashboardManualBookingSelectTime => 'Odaberi vrijeme';
+
+  @override
+  String get dashboardManualBookingCustomerInfo => 'Podaci o klijentu';
+
+  @override
+  String get dashboardManualBookingCustomerName => 'Ime';
+
+  @override
+  String get dashboardManualBookingCustomerNameHint => 'npr. Ivan Horvat';
+
+  @override
+  String get dashboardManualBookingCustomerNameRequired => 'Ime je obavezno';
+
+  @override
+  String get dashboardManualBookingCustomerPhone => 'Telefon';
+
+  @override
+  String get dashboardManualBookingCustomerPhoneHint => '+385...';
+
+  @override
+  String get dashboardManualBookingCustomerPhoneRequired =>
+      'Telefon je obavezan';
+
+  @override
+  String get dashboardManualBookingSuccess => 'Termin kreiran';
+
+  @override
+  String get dashboardManualBookingSlotTaken => 'Termin zauzet';
+
+  @override
+  String get dashboardManualBookingNoSlots => 'Nema slobodnih termina';
+
+  @override
+  String get completeAppointmentTitle => 'Završiti termin?';
+
+  @override
+  String get completeAppointmentMessage =>
+      'Jeste li sigurni da želite označiti ovaj termin kao dovršen?';
+
+  @override
+  String get complete => 'Dovrši';
+
+  @override
+  String get appointmentCompleted => 'Termin označen kao dovršen';
+
+  @override
+  String get notificationsDisabledInSettings =>
+      'Molimo uključite obavijesti u postavkama sustava';
+
+  @override
+  String get brandTagHint => 'oznaka-salona';
+
+  @override
+  String joinBrand(String brandName) {
+    return 'Pridruži salonu $brandName';
+  }
+
+  @override
+  String get markAsNoShowTitle => 'Označi kao nedolazak?';
+
+  @override
+  String get markAsNoShowMessage =>
+      'Jeste li sigurni da želite označiti ovaj termin kao nedolazak?';
+
+  @override
+  String get noShow => 'Nedolazak';
+
+  @override
+  String get appointmentMarkedAsNoShow => 'Termin označen kao nedolazak';
+
+  @override
+  String get downloadAppCta => 'Preuzmi STYL';
+
+  @override
+  String get webBannerGreetingMorning => 'Dobro jutro';
+
+  @override
+  String get webBannerGreetingAfternoon => 'Dobar dan';
+
+  @override
+  String get webBannerGreetingEvening => 'Dobra večer';
+
+  @override
+  String webBannerWelcome(String brandName) {
+    return 'Dobrodošli u $brandName';
+  }
+
+  @override
+  String get webBannerLoyaltyTitle => 'Skupljaj bodove vjernosti';
+
+  @override
+  String get webBannerLoyaltyBody =>
+      'Preuzmi STYL aplikaciju za praćenje posjeta, skupljanje bodova i otključavanje ekskluzivnih nagrada.';
 }

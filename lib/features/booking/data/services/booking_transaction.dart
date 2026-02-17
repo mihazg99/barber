@@ -329,10 +329,13 @@ class BookingTransaction {
           // All writes after reads.
           transaction.update(appointmentRef, {
             'status': AppointmentStatus.completed,
+            'loyalty_points_awarded': true,
           });
-          transaction.update(userBrandRef, {
-            'loyalty_points': FieldValue.increment(pointsToAdd),
-          });
+          transaction.set(
+            userBrandRef,
+            {'loyalty_points': FieldValue.increment(pointsToAdd)},
+            SetOptions(merge: true),
+          );
           if (lockSnap.exists &&
               lockSnap.data() != null &&
               lockSnap.data()!['active_appointment_id'] == appointmentId) {
@@ -348,6 +351,154 @@ class BookingTransaction {
       return Left(FirestoreFailure(e.message ?? 'Failed to complete visit'));
     } catch (e) {
       return Left(FirestoreFailure('Failed to complete visit: $e'));
+    }
+  }
+
+  /// Marks an appointment as completed without awarding points.
+  /// Used when barber manually completes the appointment.
+  Future<Either<Failure, void>> markAsComplete({
+    required String appointmentId,
+    required String userId,
+    required String brandId,
+  }) async {
+    final appointmentRef = _firestore
+        .collection(FirestoreCollections.appointments)
+        .doc(appointmentId);
+    final lockRef = _firestore
+        .collection(FirestoreCollections.userBookingLocks)
+        .doc('${userId}_$brandId');
+
+    try {
+      await FirestoreLogger.logTransaction(
+        'booking markAsComplete',
+        (Transaction transaction) async {
+          final lockSnap = await transaction.get(lockRef);
+
+          // Mark appointment completed
+          transaction.update(appointmentRef, {
+            'status': AppointmentStatus.completed,
+          });
+
+          // Clear lock if it matches
+          if (lockSnap.exists &&
+              lockSnap.data() != null &&
+              lockSnap.data()!['active_appointment_id'] == appointmentId) {
+            transaction.update(lockRef, {
+              'active_appointment_id': FieldValue.delete(),
+            });
+          }
+        },
+        _firestore,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(FirestoreFailure('Failed to mark as complete: $e'));
+    }
+  }
+
+  /// Marks an appointment as no-show.
+  /// Used when barber manually marks the appointment.
+  Future<Either<Failure, void>> markAsNoShow({
+    required String appointmentId,
+    required String userId,
+    required String brandId,
+  }) async {
+    final appointmentRef = _firestore
+        .collection(FirestoreCollections.appointments)
+        .doc(appointmentId);
+    final lockRef = _firestore
+        .collection(FirestoreCollections.userBookingLocks)
+        .doc('${userId}_$brandId');
+
+    try {
+      await FirestoreLogger.logTransaction(
+        'booking markAsNoShow',
+        (Transaction transaction) async {
+          final lockSnap = await transaction.get(lockRef);
+
+          // Mark appointment no-show
+          transaction.update(appointmentRef, {
+            'status': AppointmentStatus.noShow,
+          });
+
+          // Clear lock if it matches
+          if (lockSnap.exists &&
+              lockSnap.data() != null &&
+              lockSnap.data()!['active_appointment_id'] == appointmentId) {
+            transaction.update(lockRef, {
+              'active_appointment_id': FieldValue.delete(),
+            });
+          }
+        },
+        _firestore,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(FirestoreFailure('Failed to mark as no-show: $e'));
+    }
+  }
+
+  /// Awards points to an ALREADY COMPLETED appointment.
+  /// Used when barber scans QR after manually marking complete.
+  Future<Either<Failure, void>> awardLoyaltyPointsToCompletedAppointment({
+    required String userId,
+    required String brandId,
+    required String appointmentId,
+    required int pointsToAdd,
+  }) async {
+    final userBrandRef = _firestore
+        .collection(FirestoreCollections.users)
+        .doc(userId)
+        .collection('user_brands')
+        .doc(brandId);
+    final appointmentRef = _firestore
+        .collection(FirestoreCollections.appointments)
+        .doc(appointmentId);
+
+    try {
+      await FirestoreLogger.logTransaction(
+        'booking awardLoyaltyPointsToCompletedAppointment',
+        (Transaction transaction) async {
+          final apptSnap = await transaction.get(appointmentRef);
+          if (!apptSnap.exists || apptSnap.data() == null) {
+            throw FirebaseException(
+              plugin: 'booking',
+              code: 'not-found',
+              message: 'Appointment not found',
+            );
+          }
+          final data = apptSnap.data()!;
+          if (data['status'] != AppointmentStatus.completed) {
+            throw FirebaseException(
+              plugin: 'booking',
+              code: 'invalid-status',
+              message: 'Appointment is not completed',
+            );
+          }
+          if (data['loyalty_points_awarded'] == true) {
+            throw FirebaseException(
+              plugin: 'booking',
+              code: 'already-awarded',
+              message: 'Loyalty points already awarded',
+            );
+          }
+
+          transaction.update(appointmentRef, {
+            'loyalty_points_awarded': true,
+          });
+          transaction.set(
+            userBrandRef,
+            {'loyalty_points': FieldValue.increment(pointsToAdd)},
+            SetOptions(merge: true),
+          );
+        },
+        _firestore,
+      );
+      return const Right(null);
+    } on FirebaseException catch (e) {
+      return Left(FirestoreFailure(e.message ?? 'Failed to award points'));
+    } catch (e) {
+      return Left(FirestoreFailure('Failed to award points: $e'));
     }
   }
 
