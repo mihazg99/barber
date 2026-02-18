@@ -106,6 +106,81 @@ function isInvalidTokenError(error) {
   return msg.includes("not-registered") || msg.includes("invalid-registration") || msg.includes("invalid registration");
 }
 
+/**
+ * Helper: Find Brand Owner(s) – Users with role 'superadmin' and matching brand_id.
+ * Returns array of { uid, fcmToken, fullName }
+ */
+async function getBrandOwners(brandId) {
+  if (!brandId) return [];
+  try {
+    const snap = await db.collection(COLLECTION_USERS)
+      .where("brand_id", "==", brandId)
+      .where("role", "==", "superadmin")
+      .get();
+    return snap.docs
+      .map(d => ({ uid: d.id, data: d.data() }))
+      .filter(u => u.data.fcm_token || u.data.fcmToken)
+      .map(u => ({
+        uid: u.uid,
+        fcmToken: u.data.fcm_token || u.data.fcmToken,
+        fullName: u.data.full_name || "Owner"
+      }));
+  } catch (err) {
+    logger.warn("getBrandOwners: failed", { brandId, error: err?.message });
+    return [];
+  }
+}
+
+/**
+ * Helper: Find Barber User – User with matching barber_id (linked to Barbers collection).
+ * Returns { uid, fcmToken, fullName } or null.
+ */
+async function getBarberUser(barberId) {
+  if (!barberId) return null;
+  try {
+    // Assuming 1:1 mapping standard: User.barber_id points to Barber doc ID.
+    const snap = await db.collection(COLLECTION_USERS)
+      .where("barber_id", "==", barberId)
+      .limit(1)
+      .get();
+    if (snap.empty) return null;
+    const doc = snap.docs[0];
+    const data = doc.data();
+    const token = data.fcm_token || data.fcmToken;
+    if (!token) return null;
+    return { uid: doc.id, fcmToken: token, fullName: data.full_name || "Barber" };
+  } catch (err) {
+    logger.warn("getBarberUser: failed", { barberId, error: err?.message });
+    return null;
+  }
+}
+
+/**
+ * Sends a basic notification to a list of recipients.
+ * @param {Array<{uid, fcmToken}>} recipients
+ * @param {string} title
+ * @param {string} body
+ * @param {object} dataPayload
+ */
+async function sendNotifications(recipients, title, body, dataPayload) {
+  if (!recipients || recipients.length === 0) return;
+  const messaging = admin.messaging();
+  const messages = recipients.map(r => ({
+    token: r.fcmToken,
+    notification: { title, body },
+    data: dataPayload,
+    android: { priority: "high" },
+    apns: { payload: { aps: { "content-available": 1 } } },
+  }));
+
+  const results = await messaging.sendEach(messages);
+  results.responses.forEach(async (resp, idx) => {
+    if (!resp.success && isInvalidTokenError(resp.error)) {
+      await removeInvalidFcmToken(recipients[idx].uid);
+    }
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Per-brand user metrics: users/{userId}/user_brands/{brandId}
 // ---------------------------------------------------------------------------
@@ -181,6 +256,47 @@ exports.onAppointmentCreated = onDocumentCreated(
         logger.warn("onAppointmentCreated: missing start_time or invalid format", { appointmentId });
         return;
       }
+
+      // 1. Notify Owner (Always)
+      // 2. Notify Barber (If start_time < 48 hours from now)
+
+      const brandId = data.brand_id;
+      const barberId = data.barber_id;
+      const serviceNames = data.service_name || "New Booking";
+      const customerName = data.customer_name || "Client"; // Appointment usually has client_name snapshot
+
+      const now = new Date();
+      const hoursUntilStart = (startTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+      const isUrgent = hoursUntilStart < 48;
+
+      const [owners, barberUser] = await Promise.all([
+        getBrandOwners(brandId),
+        getBarberUser(barberId)
+      ]);
+
+      const timeStr = formatInTimeZone(startTime, TIMEZONE, "HH:mm dd.MM.");
+      const notifTitle = "Nova rezervacija! 📅";
+      const notifBody = `${customerName} - ${serviceNames} u ${timeStr}`;
+
+      // Payload for navigation (open booking details)
+      const dataPayload = {
+        type: "new_booking",
+        appointment_id: appointmentId,
+        click_action: "FLUTTER_NOTIFICATION_CLICK"
+      };
+
+      // Send to Owners
+      if (owners.length > 0) {
+        await sendNotifications(owners, notifTitle, notifBody, dataPayload);
+        logger.info("onAppointmentCreated: notified owners", { count: owners.length });
+      }
+
+      // Send to Barber if urgent
+      if (barberUser && isUrgent) {
+        await sendNotifications([barberUser], notifTitle, notifBody, dataPayload);
+        logger.info("onAppointmentCreated: notified barber", { uid: barberUser.uid });
+      }
+
       await scheduleAppointmentReminderTask(appointmentId, startTime);
     } catch (err) {
       logger.error("onAppointmentCreated: failed", { appointmentId, error: err?.message });
@@ -229,6 +345,25 @@ exports.onBookingComplete = onDocumentUpdated(
         await scheduleAppointmentReminderTask(appointmentId, startTs);
       } catch (err) {
         logger.error("onBookingComplete: schedule reminder failed", { appointmentId, error: err?.message });
+      }
+      return;
+    }
+
+    // --- status → 'cancelled': notify Barber ---
+    // Note: status might be 'cancelled_by_client' or just 'cancelled'. Checking inclusion.
+    if (statusAfter.includes("cancelled")) {
+      const barberUser = await getBarberUser(barberId);
+      if (barberUser) {
+        const timeStr = formatInTimeZone(startTs, TIMEZONE, "HH:mm dd.MM.");
+        const notifTitle = "Otkazana rezervacija ❌";
+        const notifBody = `Termin u ${timeStr} je otkazan.`;
+        const dataPayload = {
+          type: "sub_cancelled", // using generic 'cancelled' type or reuse existing
+          appointment_id: appointmentId,
+          click_action: "FLUTTER_NOTIFICATION_CLICK"
+        };
+        await sendNotifications([barberUser], notifTitle, notifBody, dataPayload);
+        logger.info("onBookingComplete: notified barber of cancellation", { uid: barberUser.uid });
       }
       return;
     }

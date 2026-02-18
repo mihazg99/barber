@@ -3,6 +3,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:barber/features/auth/data/country_code.dart';
+import 'package:barber/features/auth/presentation/widgets/country_code_selector.dart';
 
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
@@ -31,6 +33,12 @@ class DashboardManualBookingPage extends HookConsumerWidget {
     final phoneController = useTextEditingController();
     final isSubmitting = useState(false);
     final formKey = useMemoized(() => GlobalKey<FormState>());
+    final selectedCountry = useState<CountryCode>(
+      kCountryCodes.firstWhere(
+        (c) => c.isoCode == 'HR',
+        orElse: () => kCountryCodes.first,
+      ),
+    );
 
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -82,6 +90,8 @@ class DashboardManualBookingPage extends HookConsumerWidget {
                     _CustomerSection(
                       nameController: nameController,
                       phoneController: phoneController,
+                      selectedCountry: selectedCountry.value,
+                      onCountryChanged: (c) => selectedCountry.value = c,
                     ),
                     Gap(context.appSizes.paddingLarge),
                     _ServiceSelection(
@@ -134,9 +144,19 @@ class DashboardManualBookingPage extends HookConsumerWidget {
                       onPressed: () async {
                         if (formKey.currentState?.validate() ?? false) {
                           isSubmitting.value = true;
+
+                          String fullPhone = '';
+                          if (phoneController.text.isNotEmpty) {
+                            final digits = phoneController.text.replaceAll(
+                              RegExp(r'[^0-9]'),
+                              '',
+                            );
+                            fullPhone = selectedCountry.value.dialCode + digits;
+                          }
+
                           final error = await notifier.submit(
                             customerName: nameController.text,
-                            customerPhone: phoneController.text,
+                            customerPhone: fullPhone,
                           );
                           isSubmitting.value = false;
 
@@ -175,14 +195,18 @@ class DashboardManualBookingPage extends HookConsumerWidget {
   }
 }
 
-class _CustomerSection extends StatelessWidget {
+class _CustomerSection extends HookWidget {
   const _CustomerSection({
     required this.nameController,
     required this.phoneController,
+    required this.onCountryChanged,
+    required this.selectedCountry,
   });
 
   final TextEditingController nameController;
   final TextEditingController phoneController;
+  final ValueChanged<CountryCode> onCountryChanged;
+  final CountryCode selectedCountry;
 
   @override
   Widget build(BuildContext context) {
@@ -208,15 +232,42 @@ class _CustomerSection extends StatelessWidget {
                       : null,
         ),
         Gap(context.appSizes.paddingMedium),
-        CustomTextField.withTitle(
-          title: context.l10n.dashboardManualBookingCustomerPhone,
-          hint: context.l10n.dashboardManualBookingCustomerPhoneHint,
-          controller: phoneController,
-          validator:
-              (v) =>
-                  (v == null || v.isEmpty)
-                      ? context.l10n.dashboardManualBookingCustomerPhoneRequired
-                      : null,
+        Text(
+          context.l10n.dashboardManualBookingCustomerPhone,
+          style: context.appTextStyles.h2.copyWith(
+            color: context.appColors.secondaryTextColor,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CountryCodeSelector(
+              selected: selectedCountry,
+              onChanged: onCountryChanged,
+            ),
+            Gap(context.appSizes.paddingMedium),
+            Expanded(
+              child: CustomTextField.normal(
+                hint: context.l10n.dashboardManualBookingCustomerPhoneHint,
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                validator: (v) {
+                  // Phone is optional now
+                  if (v == null || v.isEmpty) return null;
+
+                  // If entered, must be valid length (arbitrary > 5 for specific country rules)
+                  final digits = v.replaceAll(RegExp(r'[^0-9]'), '');
+                  if (digits.length < 5) {
+                    return context
+                        .l10n
+                        .dashboardManualBookingCustomerPhoneRequired; // Reuse or new message
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ],
         ),
       ],
     );

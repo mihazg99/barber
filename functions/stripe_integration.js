@@ -3,7 +3,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const { logger } = require("firebase-functions");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const Stripe = require("stripe");
 
 const db = admin.firestore();
 const COLLECTION_BRANDS = "brands";
@@ -19,6 +19,7 @@ exports.createStripeCustomer = onDocumentCreated(
         secrets: ["STRIPE_SECRET_KEY"],
     },
     async (event) => {
+        const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
         const brandId = event.params.brandId;
         const brandData = event.data.data();
 
@@ -66,6 +67,8 @@ exports.createCheckoutSession = onCall(
         if (!brandId || !planId) {
             throw new HttpsError('invalid-argument', 'Missing brandId or planId');
         }
+
+        const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
         try {
             const brandDoc = await db.collection(COLLECTION_BRANDS).doc(brandId).get();
@@ -135,6 +138,7 @@ exports.handleStripeWebhook = onRequest(
     async (req, res) => {
         const sig = req.headers['stripe-signature'];
         const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+        const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
         let event;
 
         try {

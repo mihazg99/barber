@@ -110,7 +110,20 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
                     );
                   }
 
-                  if (value.isEmpty) {
+                  final now = DateTime.now();
+                  final upcomingToday =
+                      value
+                          .where((a) {
+                            final isToday =
+                                a.startTime.year == now.year &&
+                                a.startTime.month == now.month &&
+                                a.startTime.day == now.day;
+                            return isToday && a.startTime.isAfter(now);
+                          })
+                          .take(3)
+                          .toList();
+
+                  if (upcomingToday.isEmpty) {
                     return _TodayEmptyCard(
                       onViewBookings: () => tabNotifier.state = 1,
                     );
@@ -118,7 +131,7 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      ...value.map(
+                      ...upcomingToday.map(
                         (a) => Padding(
                           padding: EdgeInsets.only(
                             bottom: context.appSizes.paddingSmall,

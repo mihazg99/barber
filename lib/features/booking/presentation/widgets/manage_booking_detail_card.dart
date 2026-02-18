@@ -61,6 +61,23 @@ class ManageBookingDetailCard extends StatelessWidget {
                     ? data.appointment.customerName
                     : data.barberName ?? '-',
           ),
+          if (isProfessionalView &&
+              data.clientPhone != null &&
+              data.clientPhone!.isNotEmpty) ...[
+            Gap(context.appSizes.paddingSmall),
+            _DetailRow(
+              icon: Icons.phone_rounded,
+              label: data.clientPhone!,
+              textColor: colors.primaryColor,
+              onTap: () async {
+                final uri = Uri(scheme: 'tel', path: data.clientPhone!);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                }
+              },
+            ),
+          ],
+
           Gap(context.appSizes.paddingSmall),
           if (data.serviceNames.isNotEmpty) ...[
             _DetailRow(
@@ -111,34 +128,48 @@ class _DetailRow extends StatelessWidget {
   const _DetailRow({
     required this.icon,
     required this.label,
+    this.onTap,
+    this.textColor,
   });
 
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    return Row(
+    final row = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: colors.primaryColor,
-        ),
+        Icon(icon, size: 20, color: colors.primaryColor),
         Gap(context.appSizes.paddingSmall),
         Expanded(
           child: Text(
             label,
             style: context.appTextStyles.body.copyWith(
-              color: colors.primaryTextColor,
+              color: textColor ?? colors.primaryTextColor,
               fontSize: 15,
+              decoration: onTap != null ? TextDecoration.underline : null,
+              decorationColor: textColor ?? colors.primaryTextColor,
             ),
           ),
         ),
       ],
     );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: row,
+        ),
+      );
+    }
+    return row;
   }
 }
 
@@ -183,30 +214,6 @@ class _PriceRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _CallClientButton extends StatelessWidget {
-  const _CallClientButton({required this.phone});
-
-  final String phone;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: () async {
-        final uri = Uri(scheme: 'tel', path: phone);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
-        }
-      },
-      style: IconButton.styleFrom(
-        backgroundColor: context.appColors.primaryColor.withValues(alpha: 0.1),
-        foregroundColor: context.appColors.primaryColor,
-        visualDensity: VisualDensity.compact,
-      ),
-      icon: const Icon(Icons.phone_rounded, size: 20),
     );
   }
 }

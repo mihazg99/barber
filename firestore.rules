@@ -205,7 +205,10 @@ service cloud.firestore {
             || (isBarberOrSuperadmin() && resource.data.brand_id == barberBrandId())
             || (isBarberOrSuperadmin() && resource.data.barber_id == userBarberId())
            );
-      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow create: if request.auth != null && (
+        request.resource.data.user_id == request.auth.uid 
+        || (isBarberOrSuperadmin() && request.resource.data.brand_id == barberBrandId())
+      );
       allow update: if request.auth != null
         && (resource.data.user_id == request.auth.uid 
             || (isBarberOrSuperadmin() && resource.data.brand_id == barberBrandId())
