@@ -16,11 +16,18 @@ class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
   final LocationRepository _locationRepository;
   final String _defaultBrandId;
 
+  @override
+  void dispose() {
+    print('[HomeNotifier] DISPOSING for brandId: $_defaultBrandId');
+    super.dispose();
+  }
+
   String? _loadingBrandId;
 
   /// Load home data (brand + locations). Pass [cachedBrand] to avoid a duplicate brand read when already loaded (e.g. from [defaultBrandProvider]).
   /// No-op if we already have data for the same brand or a load is already in progress for this brand (avoids duplicate reads).
   Future<void> load({BrandEntity? cachedBrand}) async {
+    final stopwatch = Stopwatch()..start();
     print('[HomeNotifier] load() called with brandId: $_defaultBrandId');
     if (_defaultBrandId.isEmpty) {
       print('[HomeNotifier] Empty brandId, setting empty data');
@@ -62,6 +69,7 @@ class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
     print('[HomeNotifier] Loading locations for brand: ${brand.brandId}');
     final locationsResult = await _locationRepository.getByBrandId(
       _defaultBrandId,
+      version: brand.dataVersions['locations'],
     );
     _loadingBrandId = null;
 
@@ -73,7 +81,9 @@ class HomeNotifier extends BaseNotifier<HomeData, dynamic> {
         setError(f.message, f);
       },
       (locations) {
-        print('[HomeNotifier] Loaded ${locations.length} locations');
+        print(
+          '[HomeNotifier] Loaded ${locations.length} locations | Total Home Load: ${stopwatch.elapsedMilliseconds}ms',
+        );
         setData(HomeData(brand: brand, locations: locations));
       },
     );

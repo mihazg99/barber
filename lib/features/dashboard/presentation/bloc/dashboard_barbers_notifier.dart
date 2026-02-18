@@ -8,10 +8,12 @@ class DashboardBarbersNotifier
   DashboardBarbersNotifier(
     this._barberRepository,
     this._defaultBrandId,
+    this._version,
   );
 
   final BarberRepository _barberRepository;
   final String _defaultBrandId;
+  final int? _version;
 
   Future<void> load() async {
     if (_defaultBrandId.isEmpty) {
@@ -19,7 +21,10 @@ class DashboardBarbersNotifier
       return;
     }
     await execute(
-      () => _barberRepository.getByBrandId(_defaultBrandId),
+      () => _barberRepository.getByBrandId(
+        _defaultBrandId,
+        version: _version,
+      ),
       (f) => f.message,
     );
   }

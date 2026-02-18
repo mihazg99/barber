@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:barber/core/router/app_stage.dart';
@@ -7,15 +6,16 @@ import 'package:barber/core/router/app_stage.dart';
 import 'package:barber/features/onboarding/di.dart'; // onboardingHasCompletedProvider
 import 'package:barber/features/auth/di.dart'; // isAuthenticatedProvider, isGuestProvider, isStaffProvider
 import 'package:barber/features/brand/di.dart'; // lockedBrandIdProvider
+import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 
 final appStageProvider =
-    AsyncNotifierProvider.autoDispose<AppStageNotifier, AppStage>(
+    NotifierProvider.autoDispose<AppStageNotifier, AppStage>(
       () => AppStageNotifier(),
     );
 
-class AppStageNotifier extends AutoDisposeAsyncNotifier<AppStage> {
+class AppStageNotifier extends AutoDisposeNotifier<AppStage> {
   @override
-  FutureOr<AppStage> build() async {
+  AppStage build() {
     // 1. Watch Onboarding State
     // WEB: Bypass onboarding entirely.
     if (kIsWeb) {
@@ -44,23 +44,46 @@ class AppStageNotifier extends AutoDisposeAsyncNotifier<AppStage> {
     }
 
     // CRITICAL: Guard routing until selected brand config is fully loaded.
-    // This blocks transition to MainAppStage until we have the brand data.
-    final brandConfig = await ref.watch(selectedBrandProvider.future);
+    // Use synchronous cache check to avoid splash flash if data is already available.
 
-    // If config fails to load but we have an ID, we might still proceed
-    // or stay in a loading loop. For now, we assume if it completes (even null),
-    // we proceed. If it throws, AsyncNotifier handles the error state.
+    // a) Check Cache (Sync)
+    final cachedBrand = ref.read(lastLockedBrandProvider);
+
+    // b) Watch for updates (Async) - keeps stream alive and updates us on changes
+    final brandAsync = ref.watch(selectedBrandProvider);
+
+    // Determine effective brand config
+    BrandEntity? brandConfig;
+
+    // Prefer cache if it matches our locked ID (fast path)
+    if (cachedBrand != null && cachedBrand.brandId == lockedBrandId) {
+      brandConfig = cachedBrand;
+    }
+    // Otherwise use async value if ready
+    else if (brandAsync.hasValue) {
+      brandConfig = brandAsync.value;
+    }
+
+    // If we have config (fast or slow path), check access
     if (brandConfig != null) {
       // Check Subscription Status
       if (!brandConfig.isSubscriptionActive) {
         return const BillingLockedStage();
       }
+
+      // Ready for Main App
+      final isStaff = ref.watch(isStaffProvider);
+      return MainAppStage(isStaff: isStaff);
     }
 
-    // If we have a brand, we go to the main app.
-    // Determine if staff to allow role-based navigation updates
-    final isStaff = ref.watch(isStaffProvider);
+    // If no config yet and loading, show splash (LoadingStage)
+    if (brandAsync.isLoading) {
+      return const LoadingStage();
+    }
 
-    return MainAppStage(isStaff: isStaff);
+    // If we aren't loading and have no brand (e.g. error or empty),
+    // fall back to brand selection or handle error.
+    // For now, return BrandSelection as safe fallback.
+    return const BrandSelectionStage();
   }
 }

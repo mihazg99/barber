@@ -5,5 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final serviceRepositoryProvider = Provider<ServiceRepository>((ref) {
   final firestore = ref.watch(firebaseFirestoreProvider);
-  return ServiceRepositoryImpl(firestore);
+  final cacheService = ref.watch(versionedCacheServiceProvider);
+  return ServiceRepositoryImpl(firestore, cacheService);
 });

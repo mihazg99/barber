@@ -87,7 +87,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   // ===========================================================================
 
-  final appStageAsync = ref.watch(appStageProvider);
+  final appStage = ref.watch(appStageProvider);
 
   final goRouter = GoRouter(
     initialLocation: AppRoute.splash.path,
@@ -95,7 +95,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: _RiverpodListenable(ref, appStageProvider),
     redirect: (context, state) {
       // 1. Loading Handling
-      if (appStageAsync.isLoading || appStageAsync.hasError) {
+      if (appStage is LoadingStage) {
         // Allow web booking (brand tag) bypass to preserve URL
         // Explicitly check if path is NOT root, to allow resolution
         if (state.uri.path != '/' && _isPotentialBrandTag(state.uri.path)) {
@@ -106,8 +106,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return AppRoute.splash.path;
       }
 
-      final stage = appStageAsync.valueOrNull;
-      if (stage == null) return AppRoute.splash.path;
+      final stage = appStage;
 
       final path = state.uri.path;
 
@@ -156,6 +155,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
 
       switch (stage) {
+        case LoadingStage():
+          return AppRoute.splash.path;
+
         case OnboardingStage():
           // Allow web booking (brand tag) bypass
           if (_isPotentialBrandTag(path)) return null;

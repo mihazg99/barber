@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -115,39 +116,45 @@ class _ManageBookingBodyState extends ConsumerState<_ManageBookingBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 600),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: ManageBookingPage._horizontalPadding,
-            vertical: 20,
+    final content = SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(
+        horizontal: ManageBookingPage._horizontalPadding,
+        vertical: 20,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ManageBookingDetailCard(
+            data: widget.data,
+            isProfessionalView: !widget.canEdit,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ManageBookingDetailCard(
-                data: widget.data,
-                isProfessionalView: !widget.canEdit,
-              ),
-              Gap(context.appSizes.paddingLarge),
-              ManageBookingActions(
-                onCancel: _handleCancelTap,
-                appointmentId: widget.data.appointment.appointmentId,
-                isCancelling: _isCancelling,
-                canCancel: widget.data.canCancel || !widget.canEdit,
-                canEdit: widget.canEdit,
-              ),
-              if (!widget.canEdit) ...[
-                Gap(context.appSizes.paddingLarge),
-                _BarberActionButtons(appointment: widget.data.appointment),
-              ],
-              Gap(context.appSizes.paddingXxl),
-            ],
+          Gap(context.appSizes.paddingLarge),
+          ManageBookingActions(
+            onCancel: _handleCancelTap,
+            appointmentId: widget.data.appointment.appointmentId,
+            isCancelling: _isCancelling,
+            canCancel: widget.data.canCancel || !widget.canEdit,
+            canEdit: widget.canEdit,
           ),
-        ),
+          if (!widget.canEdit) ...[
+            Gap(context.appSizes.paddingLarge),
+            _BarberActionButtons(appointment: widget.data.appointment),
+          ],
+          Gap(context.appSizes.paddingXxl),
+        ],
       ),
     );
+
+    if (kIsWeb) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: content,
+        ),
+      );
+    }
+
+    return content;
   }
 }
 

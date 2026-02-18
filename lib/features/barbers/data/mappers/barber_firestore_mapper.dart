@@ -13,7 +13,10 @@ class BarberFirestoreMapper {
   static BarberEntity fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
-    final data = doc.data()!;
+    return fromMap(doc.data()!, doc.id);
+  }
+
+  static BarberEntity fromMap(Map<String, dynamic> data, String id) {
     final overrideRaw = data['working_hours_override'] as Map<String, dynamic>?;
     WorkingHoursMap? override;
     if (overrideRaw != null) {
@@ -36,7 +39,7 @@ class BarberFirestoreMapper {
             : (legacyLocationId ?? '');
 
     return BarberEntity(
-      barberId: doc.id,
+      barberId: id,
       brandId: data['brand_id'] as String? ?? '',
       locationId: primaryLocationId,
       name: data['name'] as String? ?? '',

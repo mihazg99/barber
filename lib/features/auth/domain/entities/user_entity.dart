@@ -18,6 +18,7 @@ class UserEntity extends Equatable {
     this.preferredBarberId = '',
     this.barberId = '',
     this.brandId = '',
+    this.dataVersions = const {},
   });
 
   final String userId;
@@ -52,6 +53,9 @@ class UserEntity extends Equatable {
   /// Brand ID this user belongs to (required for superadmins).
   final String brandId;
 
+  /// Version counters for user-specific data (e.g. reward_redemptions).
+  final Map<String, int> dataVersions;
+
   UserEntity copyWith({
     String? userId,
     String? fullName,
@@ -66,6 +70,7 @@ class UserEntity extends Equatable {
     String? preferredBarberId,
     String? barberId,
     String? brandId,
+    Map<String, int>? dataVersions,
   }) => UserEntity(
     userId: userId ?? this.userId,
     fullName: fullName ?? this.fullName,
@@ -80,6 +85,7 @@ class UserEntity extends Equatable {
     preferredBarberId: preferredBarberId ?? this.preferredBarberId,
     barberId: barberId ?? this.barberId,
     brandId: brandId ?? this.brandId,
+    dataVersions: dataVersions ?? this.dataVersions,
   );
 
   @override
@@ -97,5 +103,6 @@ class UserEntity extends Equatable {
     preferredBarberId,
     barberId,
     brandId,
+    dataVersions,
   ];
 }

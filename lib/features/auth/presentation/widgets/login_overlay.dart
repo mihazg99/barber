@@ -1,7 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,6 +12,8 @@ import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/router/app_stage.dart';
+import 'package:barber/core/router/app_stage_notifier.dart'; // Import AppStage for initialization check
 import 'package:barber/features/auth/domain/entities/auth_step.dart';
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
 import 'package:barber/features/auth/presentation/bloc/login_overlay_notifier.dart';
@@ -27,6 +28,14 @@ class LoginOverlay extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // CRITICAL: Check App Stage first.
+    // If the app is still initializing (Splash screen), we must NOT show the overlay.
+    // The "isProfileComplete" check defaults to false during loading, which causes a flash.
+    final appStageState = ref.watch(appStageProvider);
+    if (appStageState is LoadingStage) {
+      return const SizedBox.shrink();
+    }
+
     final overlayState = ref.watch(loginOverlayNotifierProvider);
     final overlayData =
         overlayState is BaseData<LoginOverlayState> ? overlayState.data : null;
@@ -36,7 +45,6 @@ class LoginOverlay extends HookConsumerWidget {
     final authData =
         authState is BaseData<AuthFlowData> ? authState.data : null;
     final needsProfileCompletion = authData?.isProfileInfo ?? false;
-    final profileUser = authData?.user;
 
     // Force visibility if authenticated but profile incomplete
     // This ensures the overlay blocks usage until profile is done.
@@ -46,6 +54,11 @@ class LoginOverlay extends HookConsumerWidget {
 
     // If profile is incomplete, we MUST show the overlay and force profile step
     final forceProfileCompletion = isAuthenticated && !isProfileComplete;
+
+    // Use the most up-to-date user object available
+    final lastSignedIn = ref.watch(lastSignedInUserProvider);
+    final currentUserStream = ref.watch(currentUserProvider).valueOrNull;
+    final effectiveUser = authData?.user ?? lastSignedIn ?? currentUserStream;
 
     if (!forceProfileCompletion &&
         (overlayData == null || !overlayData.isVisible)) {
@@ -89,6 +102,10 @@ class LoginOverlay extends HookConsumerWidget {
       ),
     );
 
+    final showProfileCompletion =
+        (needsProfileCompletion || forceProfileCompletion) &&
+        effectiveUser != null;
+
     return IgnorePointer(
       ignoring: !(forceProfileCompletion || (overlayData?.isVisible ?? false)),
       child: FadeTransition(
@@ -122,15 +139,14 @@ class LoginOverlay extends HookConsumerWidget {
                     errorMessage: overlayData?.errorMessage,
                     needsProfileCompletion:
                         needsProfileCompletion || forceProfileCompletion,
-                    profileUser: profileUser,
+                    profileUser: effectiveUser,
                     onGoogleSignIn: () => _handleGoogleSignIn(context, ref),
                     onProfileSubmit:
-                        (needsProfileCompletion || forceProfileCompletion) &&
-                                profileUser != null
+                        showProfileCompletion
                             ? (fullName, phone) => _handleProfileSubmit(
                               context,
                               ref,
-                              profileUser,
+                              effectiveUser!,
                               fullName,
                               phone,
                             )
@@ -162,6 +178,8 @@ class LoginOverlay extends HookConsumerWidget {
       requireSmsVerification:
           flavorConfig.values.brandConfig.requireSmsVerification,
     );
+
+    if (!context.mounted) return;
 
     // Check auth state after sign-in attempt
     final authState = ref.read(authNotifierProvider);
@@ -249,7 +267,7 @@ class _LoginModalCard extends HookConsumerWidget {
     final brandConfig = flavorConfig.values.brandConfig;
 
     // Obsidian glass background - high-transparency black (NO brown/tan/gold)
-    final cardBackgroundColor = Colors.black.withOpacity(0.4);
+    final cardBackgroundColor = Colors.black.withValues(alpha: 0.4);
 
     return GestureDetector(
       onTap: () {}, // Prevent tap from closing when clicking inside card

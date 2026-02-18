@@ -8,6 +8,7 @@ abstract class RewardRepository {
   Future<Either<Failure, List<RewardEntity>>> getByBrandId(
     String brandId, {
     bool includeInactive = false,
+    int? version,
   });
 
   /// Fetches a reward by id.

@@ -14,8 +14,22 @@ class LocationFirestoreMapper {
   static LocationEntity fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
-    final data = doc.data()!;
-    final geo = data['geo_point'] as GeoPoint?;
+    return fromMap(doc.data()!, doc.id);
+  }
+
+  static LocationEntity fromMap(Map<String, dynamic> data, String id) {
+    double lat = 0.0;
+    double lng = 0.0;
+
+    final geoRaw = data['geo_point'];
+    if (geoRaw is GeoPoint) {
+      lat = geoRaw.latitude;
+      lng = geoRaw.longitude;
+    } else if (geoRaw is Map) {
+      lat = (geoRaw['lat'] as num?)?.toDouble() ?? 0.0;
+      lng = (geoRaw['lng'] as num?)?.toDouble() ?? 0.0;
+    }
+
     final hoursRaw = data['working_hours'] as Map<String, dynamic>?;
     WorkingHoursMap hours = {};
     if (hoursRaw != null) {
@@ -27,12 +41,12 @@ class LocationFirestoreMapper {
       }
     }
     return LocationEntity(
-      locationId: doc.id,
+      locationId: id,
       brandId: data['brand_id'] as String? ?? '',
       name: data['name'] as String? ?? '',
       address: data['address'] as String? ?? '',
-      latitude: geo?.latitude ?? 0.0,
-      longitude: geo?.longitude ?? 0.0,
+      latitude: lat,
+      longitude: lng,
       phone: data['phone'] as String? ?? '',
       workingHours: hours,
     );

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:barber/features/barbers/domain/repositories/barber_repository.dart';
 import 'package:barber/features/brand/domain/repositories/brand_repository.dart';
+import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 import 'package:barber/features/booking/data/services/booking_transaction.dart';
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
 import 'package:barber/features/booking/domain/repositories/appointment_repository.dart';
@@ -86,8 +87,10 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
     this._barberRepository,
     this._serviceRepository,
     this._brandRepository,
-    this._bookingTransaction,
-  ) : super(null);
+    this._bookingTransaction, {
+    BrandEntity? cachedBrand,
+  }) : _cachedBrand = cachedBrand,
+       super(null);
 
   final FirebaseFirestore _firestore;
   final AppointmentRepository _appointmentRepository;
@@ -96,6 +99,7 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
   final ServiceRepository _serviceRepository;
   final BrandRepository _brandRepository;
   final BookingTransaction _bookingTransaction;
+  final BrandEntity? _cachedBrand;
 
   /// Loads appointment and display data from Firebase.
   Future<void> load(String appointmentId) async {
@@ -182,8 +186,14 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
     final s = state;
     if (s == null || !s.canConfirm) return false;
 
-    final brandResult = await _brandRepository.getById(s.appointment.brandId);
-    final brand = brandResult.fold((_) => null, (b) => b);
+    BrandEntity? brand;
+    if (_cachedBrand != null && _cachedBrand.brandId == s.appointment.brandId) {
+      brand = _cachedBrand;
+    } else {
+      final brandResult = await _brandRepository.getById(s.appointment.brandId);
+      brand = brandResult.fold((_) => null, (b) => b);
+    }
+
     final cancelHoursMinimum = brand?.cancelHoursMinimum ?? 0;
 
     final cancelResult = await _bookingTransaction.cancelAppointment(
@@ -215,7 +225,8 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
         '${endTime.hour.toString().padLeft(2, '0')}:'
         '${endTime.minute.toString().padLeft(2, '0')}';
 
-    final effectiveBarberId = s.selectedTimeSlotBarberId ?? s.appointment.barberId;
+    final effectiveBarberId =
+        s.selectedTimeSlotBarberId ?? s.appointment.barberId;
     final barberUnchanged = effectiveBarberId == s.appointment.barberId;
     final newAppointment = AppointmentEntity(
       appointmentId: newAppointmentId,
@@ -230,7 +241,8 @@ class EditBookingNotifier extends StateNotifier<EditBookingState?> {
       status: AppointmentStatus.scheduled,
       customerName: s.appointment.customerName,
       serviceName: s.appointment.serviceName,
-      barberName: barberUnchanged ? (s.barberName ?? s.appointment.barberName) : null,
+      barberName:
+          barberUnchanged ? (s.barberName ?? s.appointment.barberName) : null,
     );
 
     final bufferTime = brand?.bufferTime ?? 0;

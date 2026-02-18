@@ -8,10 +8,13 @@ import 'package:barber/features/rewards/domain/entities/reward_entity.dart';
 import 'package:barber/features/rewards/domain/repositories/reward_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:barber/core/data/services/versioned_cache_service.dart';
+
 class RewardRepositoryImpl implements RewardRepository {
-  RewardRepositoryImpl(this._firestore);
+  RewardRepositoryImpl(this._firestore, this._cacheService);
 
   final FirebaseFirestore _firestore;
+  final VersionedCacheService _cacheService;
 
   CollectionReference<Map<String, dynamic>> get _col =>
       _firestore.collection(FirestoreCollections.rewards);
@@ -20,24 +23,63 @@ class RewardRepositoryImpl implements RewardRepository {
   Future<Either<Failure, List<RewardEntity>>> getByBrandId(
     String brandId, {
     bool includeInactive = false,
+    int? version,
   }) async {
-    try {
-      final snapshot = await FirestoreLogger.logRead(
-        '${FirestoreCollections.rewards}?brand_id=$brandId',
-        () => _col.where('brand_id', isEqualTo: brandId).get(),
+    List<RewardEntity> list;
+    if (version != null) {
+      final result = await _cacheService.fetchVersionedList<RewardEntity>(
+        brandId: brandId,
+        key: 'rewards',
+        remoteVersion: version,
+        fromJson:
+            (json) => RewardFirestoreMapper.fromMap(
+              json,
+              json['id'] as String, // Restore ID
+            ),
+        toJson: (entity) {
+          final map = RewardFirestoreMapper.toFirestore(entity);
+          map['id'] = entity.rewardId; // Save ID
+          return map;
+        },
+        onFetch: () async {
+          try {
+            final snapshot = await FirestoreLogger.logRead(
+              '${FirestoreCollections.rewards}?brand_id=$brandId',
+              () => _col.where('brand_id', isEqualTo: brandId).get(),
+            );
+            final fetched =
+                snapshot.docs
+                    .map((d) => RewardFirestoreMapper.fromFirestore(d))
+                    .toList();
+            return Right(fetched);
+          } catch (e) {
+            return Left(FirestoreFailure('Failed to get rewards: $e'));
+          }
+        },
       );
-      var list =
-          snapshot.docs
-              .map((d) => RewardFirestoreMapper.fromFirestore(d))
-              .toList();
-      if (!includeInactive) {
-        list = list.where((r) => r.isActive).toList();
+      if (result.isLeft()) return result;
+      list = result.getOrElse(() => []);
+    } else {
+      // Fallback
+      try {
+        final snapshot = await FirestoreLogger.logRead(
+          '${FirestoreCollections.rewards}?brand_id=$brandId',
+          () => _col.where('brand_id', isEqualTo: brandId).get(),
+        );
+        list =
+            snapshot.docs
+                .map((d) => RewardFirestoreMapper.fromFirestore(d))
+                .toList();
+      } catch (e) {
+        return Left(FirestoreFailure('Failed to get rewards: $e'));
       }
-      list.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-      return Right(list);
-    } catch (e) {
-      return Left(FirestoreFailure('Failed to get rewards: $e'));
     }
+
+    if (!includeInactive) {
+      list = list.where((r) => r.isActive).toList();
+    }
+    list.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return Right(list);
   }
 
   @override

@@ -8,24 +8,65 @@ import 'package:barber/features/services/domain/entities/service_entity.dart';
 import 'package:barber/features/services/domain/repositories/service_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:barber/core/data/services/versioned_cache_service.dart';
+
 class ServiceRepositoryImpl implements ServiceRepository {
-  ServiceRepositoryImpl(this._firestore);
+  ServiceRepositoryImpl(this._firestore, this._cacheService);
 
   final FirebaseFirestore _firestore;
+  final VersionedCacheService _cacheService;
 
   CollectionReference<Map<String, dynamic>> get _col =>
       _firestore.collection(FirestoreCollections.services);
 
   @override
-  Future<Either<Failure, List<ServiceEntity>>> getByBrandId(String brandId) async {
+  Future<Either<Failure, List<ServiceEntity>>> getByBrandId(
+    String brandId, {
+    int? version,
+  }) async {
+    if (version != null) {
+      return _cacheService.fetchVersionedList<ServiceEntity>(
+        brandId: brandId,
+        key: 'services',
+        remoteVersion: version,
+        fromJson:
+            (json) => ServiceFirestoreMapper.fromMap(
+              json,
+              json['id'] as String, // Restore ID
+            ),
+        toJson: (entity) {
+          final map = ServiceFirestoreMapper.toFirestore(entity);
+          map['id'] = entity.serviceId; // Save ID
+          return map;
+        },
+        onFetch: () async {
+          try {
+            final snapshot = await FirestoreLogger.logRead(
+              '${FirestoreCollections.services}?brand_id=$brandId',
+              () => _col.where('brand_id', isEqualTo: brandId).get(),
+            );
+            final list =
+                snapshot.docs
+                    .map((d) => ServiceFirestoreMapper.fromFirestore(d))
+                    .toList();
+            return Right(list);
+          } catch (e) {
+            return Left(FirestoreFailure('Failed to get services: $e'));
+          }
+        },
+      );
+    }
+
+    // Fallback
     try {
       final snapshot = await FirestoreLogger.logRead(
         '${FirestoreCollections.services}?brand_id=$brandId',
         () => _col.where('brand_id', isEqualTo: brandId).get(),
       );
-      final list = snapshot.docs
-          .map((d) => ServiceFirestoreMapper.fromFirestore(d))
-          .toList();
+      final list =
+          snapshot.docs
+              .map((d) => ServiceFirestoreMapper.fromFirestore(d))
+              .toList();
       return Right(list);
     } catch (e) {
       return Left(FirestoreFailure('Failed to get services: $e'));
@@ -52,7 +93,9 @@ class ServiceRepositoryImpl implements ServiceRepository {
       await FirestoreLogger.logWrite(
         '${FirestoreCollections.services}/${entity.serviceId}',
         'set',
-        () => _col.doc(entity.serviceId).set(
+        () => _col
+            .doc(entity.serviceId)
+            .set(
               ServiceFirestoreMapper.toFirestore(entity),
             ),
       );

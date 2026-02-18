@@ -6,9 +6,12 @@ class RewardFirestoreMapper {
   static RewardEntity fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
-    final data = doc.data()!;
+    return fromMap(doc.data()!, doc.id);
+  }
+
+  static RewardEntity fromMap(Map<String, dynamic> data, String id) {
     return RewardEntity(
-      rewardId: doc.id,
+      rewardId: id,
       brandId: data['brand_id'] as String? ?? '',
       name: data['name'] as String? ?? '',
       description: data['description'] as String? ?? '',

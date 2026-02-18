@@ -48,6 +48,7 @@ final manageBookingNotifierProvider = StateNotifierProvider.family<
   String
 >((ref, appointmentId) {
   final isStaff = ref.watch(isStaffProvider);
+  final cachedBrand = ref.watch(lastLockedBrandProvider);
   return ManageBookingNotifier(
     ref.watch(appointmentRepositoryProvider),
     ref.watch(locationRepositoryProvider),
@@ -56,6 +57,7 @@ final manageBookingNotifierProvider = StateNotifierProvider.family<
     ref.watch(brandRepositoryProvider),
     ref.watch(bookingTransactionProvider),
     isStaff: isStaff,
+    cachedBrand: cachedBrand,
   )..load(appointmentId);
 });
 
@@ -64,6 +66,7 @@ final editBookingNotifierProvider = StateNotifierProvider.family<
   EditBookingState?,
   String
 >((ref, appointmentId) {
+  final cachedBrand = ref.watch(lastLockedBrandProvider);
   return EditBookingNotifier(
     ref.watch(firebaseFirestoreProvider),
     ref.watch(appointmentRepositoryProvider),
@@ -72,6 +75,7 @@ final editBookingNotifierProvider = StateNotifierProvider.family<
     ref.watch(services_di.serviceRepositoryProvider),
     ref.watch(brandRepositoryProvider),
     ref.watch(bookingTransactionProvider),
+    cachedBrand: cachedBrand,
   )..load(appointmentId);
 });
 

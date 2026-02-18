@@ -4,7 +4,11 @@ import 'package:barber/features/services/domain/entities/service_entity.dart';
 
 abstract class ServiceRepository {
   /// Fetches all services for a brand.
-  Future<Either<Failure, List<ServiceEntity>>> getByBrandId(String brandId);
+  /// [version] from Brand Sentinel. If provided, uses caching strategy.
+  Future<Either<Failure, List<ServiceEntity>>> getByBrandId(
+    String brandId, {
+    int? version,
+  });
 
   /// Fetches a service by id.
   Future<Either<Failure, ServiceEntity?>> getById(String serviceId);

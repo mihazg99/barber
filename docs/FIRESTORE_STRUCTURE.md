@@ -25,6 +25,7 @@ Root configuration for each client (brand).
 | `font_family` | String | Font family name (e.g. "Inter") |
 | `locale` | String | Default locale (e.g. "hr", "en") |
 | `colors` | Map | Theme color overrides. Key: color role (e.g. `primary`, `background`), Value: hex string (`#RRGGBB` or `#AARRGGBB`) |
+| `data_versions` | Map | Sentinel version counters: `{ "barbers": 1, "services": 5, "rewards": 2 }` |
 
 ---
 
@@ -117,6 +118,7 @@ App users (clients). Document ID = Firebase Auth UID.
 | `loyalty_points` | Number | Single loyalty card: points for this user (brand) |
 | `role` | String | One of: `user`, `barber`, `superadmin`. Default `user`. **Security:** Clients can only create/keep `user`. `barber` and `superadmin` must be assigned via Firebase Admin SDK (Cloud Functions, admin tool). |
 | `barber_id` | String (optional) | When `role == 'barber'`, set to the **barbers** document id (e.g. `luka`) so security rules can allow the barber to read appointments where they are assigned. Required for barber dashboard “upcoming appointments” to work. |
+| `data_versions` | Map | Sentinel version counters for user-specific data: `{ "reward_redemptions": 3 }` |
 
 ### Role-based navigation
 

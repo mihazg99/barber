@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dartz/dartz.dart';
 import 'package:barber/core/errors/failure.dart';
@@ -9,11 +8,11 @@ import 'package:barber/features/booking/domain/entities/time_slot.dart';
 import 'package:barber/features/booking/domain/use_cases/calculate_free_slots.dart';
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/barbers/domain/repositories/barber_repository.dart';
-import 'package:barber/features/brand/domain/repositories/brand_repository.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 import 'package:barber/features/locations/domain/repositories/location_repository.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
 import 'package:barber/features/services/domain/repositories/service_repository.dart';
+import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 
 class DashboardManualBookingData {
   const DashboardManualBookingData({
@@ -86,30 +85,43 @@ class DashboardManualBookingData {
 class DashboardManualBookingNotifier
     extends BaseNotifier<DashboardManualBookingData, Failure> {
   DashboardManualBookingNotifier(
-    this._brandId,
     this._serviceRepository,
     this._barberRepository,
     this._locationRepository,
-    this._brandRepository,
     this._calculateFreeSlots,
     this._bookingTransaction,
-    this._currentUserBarberId,
   );
 
-  final String _brandId;
+  BrandEntity? _brand;
   final ServiceRepository _serviceRepository;
   final BarberRepository _barberRepository;
   final LocationRepository _locationRepository;
-  final BrandRepository _brandRepository;
   final CalculateFreeSlots _calculateFreeSlots;
   final BookingTransaction _bookingTransaction;
-  final String? _currentUserBarberId;
+  String? _currentUserBarberId;
 
-  Future<void> load() async {
+  Future<void> load(BrandEntity brand, {String? currentUserBarberId}) async {
+    _brand = brand;
+    _currentUserBarberId = currentUserBarberId;
+
     await execute(() async {
-      final servicesResult = await _serviceRepository.getByBrandId(_brandId);
-      final locationsResult = await _locationRepository.getByBrandId(_brandId);
-      final barbersResult = await _barberRepository.getByBrandId(_brandId);
+      // Use versions from the injected brand (Sentinel)
+      final servicesVersion = brand.dataVersions['services'];
+      final locationsVersion = brand.dataVersions['locations'];
+      final barbersVersion = brand.dataVersions['barbers'];
+
+      final servicesResult = await _serviceRepository.getByBrandId(
+        brand.brandId,
+        version: servicesVersion,
+      );
+      final locationsResult = await _locationRepository.getByBrandId(
+        brand.brandId,
+        version: locationsVersion,
+      );
+      final barbersResult = await _barberRepository.getByBrandId(
+        brand.brandId,
+        version: barbersVersion,
+      );
 
       return servicesResult.fold(
         (f) => Left(f),
@@ -252,16 +264,11 @@ class DashboardManualBookingNotifier
       return;
     }
 
+    if (_brand == null) return;
+
     setData(currentData.copyWith(isLoadingSlots: true));
 
     try {
-      final brandResult = await _brandRepository.getById(_brandId);
-      final brand = brandResult.getOrElse(() => null);
-      if (brand == null) {
-        setData(currentData.copyWith(isLoadingSlots: false));
-        return;
-      }
-
       // Check if date is today -> filter out past times
       final now = DateTime.now();
       final isToday =
@@ -274,9 +281,9 @@ class DashboardManualBookingNotifier
         barber: currentData.selectedBarber!,
         location: currentData.selectedLocation!,
         date: currentData.selectedDate!,
-        slotIntervalMinutes: brand.slotInterval,
+        slotIntervalMinutes: _brand!.slotInterval,
         serviceDurationMinutes: currentData.selectedService!.durationMinutes,
-        bufferTimeMinutes: brand.bufferTime,
+        bufferTimeMinutes: _brand!.bufferTime,
         minStartTime: minStartTime,
       );
 
@@ -304,6 +311,8 @@ class DashboardManualBookingNotifier
       return "All fields are required";
     }
 
+    if (_brand == null) return "Brand not found";
+
     final appointmentId = const Uuid().v4();
     final userId = 'manual_${const Uuid().v4()}';
 
@@ -318,7 +327,7 @@ class DashboardManualBookingNotifier
 
     final appointment = AppointmentEntity(
       appointmentId: appointmentId,
-      brandId: _brandId,
+      brandId: _brand!.brandId,
       locationId: currentData.selectedLocation!.locationId,
       userId: userId,
       barberId: currentData.selectedBarber!.barberId,
@@ -334,24 +343,18 @@ class DashboardManualBookingNotifier
       createdAt: DateTime.now(),
     );
 
-    final brandResult = await _brandRepository.getById(_brandId);
-    final brand = brandResult.getOrElse(() => null);
-    if (brand == null) {
-      return "Brand not found";
-    }
-
     try {
       final result = await _bookingTransaction.createBookingWithSlot(
         appointment: appointment,
         barberId: appointment.barberId,
         locationId: appointment.locationId,
-        brandId: _brandId,
+        brandId: _brand!.brandId,
         dateStr:
             '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
         startTime: currentData.selectedTimeSlot!,
         endTime:
             '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
-        bufferTimeMinutes: brand.bufferTime,
+        bufferTimeMinutes: _brand!.bufferTime,
       );
 
       return result.fold((f) => f.message, (_) => null);

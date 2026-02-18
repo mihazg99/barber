@@ -8,7 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final barberRepositoryProvider = Provider<BarberRepository>((ref) {
   final firestore = ref.watch(firebaseFirestoreProvider);
-  return BarberRepositoryImpl(firestore);
+  final cacheService = ref.watch(versionedCacheServiceProvider);
+  return BarberRepositoryImpl(firestore, cacheService);
 });
 
 /// Current barber record when logged-in user has barber role and a barber doc
@@ -16,6 +17,8 @@ final barberRepositoryProvider = Provider<BarberRepository>((ref) {
 final currentBarberProvider = FutureProvider<BarberEntity?>((ref) async {
   final user = await ref.watch(currentUserProvider.future);
   if (user == null || user.role != UserRole.barber) return null;
-  final result = await ref.watch(barberRepositoryProvider).getByUserId(user.userId);
+  final result = await ref
+      .watch(barberRepositoryProvider)
+      .getByUserId(user.userId);
   return result.fold((_) => null, (b) => b);
 });

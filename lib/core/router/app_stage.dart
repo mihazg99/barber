@@ -4,6 +4,23 @@ sealed class AppStage {
   const AppStage();
 }
 
+/// The application is initializing or loading critical data.
+/// Replaces AsyncLoading for synchronous AppStageNotifier.
+class LoadingStage extends AppStage {
+  const LoadingStage();
+
+  @override
+  String toString() => 'LoadingStage';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LoadingStage && runtimeType == other.runtimeType;
+
+  @override
+  int get hashCode => 0;
+}
+
 /// The user is new and hasn't completed the onboarding flow.
 class OnboardingStage extends AppStage {
   const OnboardingStage();

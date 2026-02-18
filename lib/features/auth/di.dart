@@ -229,8 +229,6 @@ final pushNotificationNotifierProvider = StateNotifierProvider.autoDispose<
 >((ref) {
   return PushNotificationNotifier(
     FirebaseMessaging.instance,
-    ref.watch(userRepositoryProvider),
-    () => ref.read(currentUserIdProvider).valueOrNull,
   );
 });
 
@@ -241,16 +239,29 @@ final pushNotificationBootstrapProvider = Provider<void>((ref) {
   final settingsState = ref.watch(notificationSettingsNotifierProvider);
   final notificationsEnabled =
       settingsState is BaseData<bool> ? settingsState.data : true;
-  final userId = ref.watch(currentUserIdProvider).valueOrNull;
+
+  final userAsync = ref.watch(currentUserProvider);
+  final user = userAsync.valueOrNull;
+  final userId = user?.userId;
+
   final pushState = ref.watch(pushNotificationNotifierProvider);
   final pushData =
       pushState is BaseData<PushNotificationData> ? pushState.data : null;
-  final token = pushData?.fcmToken;
-  final userRepo = ref.read(userRepositoryProvider);
+  final newToken = pushData?.fcmToken;
+
   if (userId == null || userId.isEmpty) return;
-  if (notificationsEnabled && token != null && token.isNotEmpty) {
-    userRepo.updateFcmToken(userId, token);
+
+  final userRepo = ref.read(userRepositoryProvider);
+
+  if (notificationsEnabled && newToken != null && newToken.isNotEmpty) {
+    // Only update if token has changed
+    if (user?.fcmToken != newToken) {
+      userRepo.updateFcmToken(userId, newToken);
+    }
   } else if (!notificationsEnabled) {
-    userRepo.updateFcmToken(userId, '');
+    // Only clear if not already cleared
+    if (user?.fcmToken != null && user!.fcmToken.isNotEmpty) {
+      userRepo.updateFcmToken(userId, '');
+    }
   }
 });

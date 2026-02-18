@@ -16,18 +16,52 @@ class BrandRepositoryImpl implements BrandRepository {
   CollectionReference<Map<String, dynamic>> get _col =>
       _firestore.collection(FirestoreCollections.brands);
 
+  // Simple memory cache
+  final Map<String, BrandEntity> _cache = {};
+  final Map<String, DateTime> _cacheTime = {};
+  final Map<String, Future<Either<Failure, BrandEntity?>>> _inflight = {};
+  static const _ttl = Duration(minutes: 5);
+
   @override
   Future<Either<Failure, BrandEntity?>> getById(String brandId) async {
-    try {
-      final doc = await FirestoreLogger.logRead(
-        '${FirestoreCollections.brands}/$brandId',
-        () => _col.doc(brandId).get(),
-      );
-      if (doc.data() == null) return const Right(null);
-      return Right(BrandFirestoreMapper.fromFirestore(doc));
-    } catch (e) {
-      return Left(FirestoreFailure('Failed to get brand: $e'));
+    // Check memory cache
+    if (_cache.containsKey(brandId) && _cacheTime.containsKey(brandId)) {
+      final now = DateTime.now();
+      if (now.difference(_cacheTime[brandId]!) < _ttl) {
+        return Right(_cache[brandId]);
+      }
     }
+
+    // Check in-flight requests
+    if (_inflight.containsKey(brandId)) {
+      return _inflight[brandId]!;
+    }
+
+    final future = () async {
+      try {
+        final doc = await FirestoreLogger.logRead(
+          '${FirestoreCollections.brands}/$brandId',
+          () => _col.doc(brandId).get(),
+        );
+        if (doc.data() == null) return const Right<Failure, BrandEntity?>(null);
+        final entity = BrandFirestoreMapper.fromFirestore(doc);
+
+        // Update cache
+        _cache[brandId] = entity;
+        _cacheTime[brandId] = DateTime.now();
+
+        return Right<Failure, BrandEntity?>(entity);
+      } catch (e) {
+        return Left<Failure, BrandEntity?>(
+          FirestoreFailure('Failed to get brand: $e'),
+        );
+      } finally {
+        _inflight.remove(brandId);
+      }
+    }();
+
+    _inflight[brandId] = future;
+    return future;
   }
 
   @override
