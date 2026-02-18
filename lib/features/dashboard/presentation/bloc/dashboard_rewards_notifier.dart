@@ -8,10 +8,12 @@ class DashboardRewardsNotifier
   DashboardRewardsNotifier(
     this._rewardRepository,
     this._defaultBrandId,
+    this._version,
   );
 
   final RewardRepository _rewardRepository;
   final String _defaultBrandId;
+  final int? _version;
 
   Future<void> load() async {
     if (_defaultBrandId.isEmpty) {
@@ -22,6 +24,7 @@ class DashboardRewardsNotifier
       () => _rewardRepository.getByBrandId(
         _defaultBrandId,
         includeInactive: true,
+        version: _version,
       ),
       (f) => f.message,
     );

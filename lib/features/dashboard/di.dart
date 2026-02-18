@@ -255,16 +255,9 @@ final dashboardBrandIdProvider = Provider.autoDispose<String>((ref) {
       ref.watch(flavorConfigProvider).values.brandConfig.defaultBrandId;
   final selectedBrandId = ref.watch(lockedBrandIdProvider);
 
-  debugPrint(
-    'DashboardBrandIdProvider: user=${user?.userId}, role=${user?.role}, brandId=${user?.brandId}, flavor=$flavorBrandId, selected=$selectedBrandId',
-  );
-
   // PRIORITY 1: Explicitly selected brand (e.g. from search/join flow)
   // This allows Superadmins to "visit" other brands.
   if (selectedBrandId != null && selectedBrandId.isNotEmpty) {
-    debugPrint(
-      'DashboardBrandIdProvider: Using selected brandId: $selectedBrandId',
-    );
     return selectedBrandId;
   }
 
@@ -272,14 +265,10 @@ final dashboardBrandIdProvider = Provider.autoDispose<String>((ref) {
   if (user != null &&
       (user.role == UserRole.superadmin || user.role == UserRole.barber) &&
       user.brandId.isNotEmpty) {
-    debugPrint('DashboardBrandIdProvider: Using user brandId: ${user.brandId}');
     return user.brandId;
   }
 
   // PRIORITY 3: Default/Flavor
-  debugPrint(
-    'DashboardBrandIdProvider: Using default/flavor: ${flavorBrandId.isNotEmpty ? flavorBrandId : 'default'}',
-  );
   return flavorBrandId.isNotEmpty ? flavorBrandId : 'default';
 });
 
@@ -289,7 +278,8 @@ final dashboardBrandNotifierProvider = StateNotifierProvider.autoDispose<
 >((ref) {
   final brandRepo = ref.watch(brandRepositoryProvider);
   final brandId = ref.watch(dashboardBrandIdProvider);
-  return DashboardBrandNotifier(brandRepo, brandId);
+  final cachedBrand = ref.watch(lastLockedBrandProvider);
+  return DashboardBrandNotifier(brandRepo, brandId, cachedBrand: cachedBrand);
 });
 
 final dashboardLocationsNotifierProvider = StateNotifierProvider.autoDispose<
@@ -298,7 +288,12 @@ final dashboardLocationsNotifierProvider = StateNotifierProvider.autoDispose<
 >((ref) {
   final locationRepo = ref.watch(locationRepositoryProvider);
   final brandId = ref.watch(dashboardBrandIdProvider);
-  return DashboardLocationsNotifier(locationRepo, brandId);
+  final brandState = ref.watch(dashboardBrandNotifierProvider);
+  int? version;
+  if (brandState is BaseData<BrandEntity?>) {
+    version = brandState.data?.dataVersions['locations'];
+  }
+  return DashboardLocationsNotifier(locationRepo, brandId, version);
 });
 
 /// Locations state for the dashboard locations tab. Reuses home data when on default brand
@@ -333,7 +328,12 @@ final dashboardServicesNotifierProvider = StateNotifierProvider.autoDispose<
 >((ref) {
   final serviceRepo = ref.watch(services_di.serviceRepositoryProvider);
   final brandId = ref.watch(dashboardBrandIdProvider);
-  return DashboardServicesNotifier(serviceRepo, brandId);
+  final brandState = ref.watch(dashboardBrandNotifierProvider);
+  int? version;
+  if (brandState is BaseData<BrandEntity?>) {
+    version = brandState.data?.dataVersions['services'];
+  }
+  return DashboardServicesNotifier(serviceRepo, brandId, version);
 });
 
 final dashboardRewardsNotifierProvider = StateNotifierProvider.autoDispose<
@@ -342,7 +342,12 @@ final dashboardRewardsNotifierProvider = StateNotifierProvider.autoDispose<
 >((ref) {
   final rewardRepo = ref.watch(rewards_di.rewardRepositoryProvider);
   final brandId = ref.watch(dashboardBrandIdProvider);
-  return DashboardRewardsNotifier(rewardRepo, brandId);
+  final brandState = ref.watch(dashboardBrandNotifierProvider);
+  int? version;
+  if (brandState is BaseData<BrandEntity?>) {
+    version = brandState.data?.dataVersions['rewards'];
+  }
+  return DashboardRewardsNotifier(rewardRepo, brandId, version);
 });
 
 final dashboardBarbersNotifierProvider = StateNotifierProvider.autoDispose<
@@ -351,7 +356,12 @@ final dashboardBarbersNotifierProvider = StateNotifierProvider.autoDispose<
 >((ref) {
   final barberRepo = ref.watch(barbers_di.barberRepositoryProvider);
   final brandId = ref.watch(dashboardBrandIdProvider);
-  return DashboardBarbersNotifier(barberRepo, brandId);
+  final brandState = ref.watch(dashboardBrandNotifierProvider);
+  int? version;
+  if (brandState is BaseData<BrandEntity?>) {
+    version = brandState.data?.dataVersions['barbers'];
+  }
+  return DashboardBarbersNotifier(barberRepo, brandId, version);
 });
 
 final dashboardManualBookingNotifierProvider =
@@ -359,18 +369,12 @@ final dashboardManualBookingNotifierProvider =
       DashboardManualBookingNotifier,
       BaseState<DashboardManualBookingData>
     >((ref) {
-      final brandId = ref.watch(dashboardBrandIdProvider);
-      final user = ref.watch(currentUserProvider).valueOrNull;
-
       return DashboardManualBookingNotifier(
-        brandId,
         ref.watch(services_di.serviceRepositoryProvider),
         ref.watch(barbers_di.barberRepositoryProvider),
         ref.watch(locationRepositoryProvider),
-        ref.watch(brandRepositoryProvider),
         ref.watch(booking_di.calculateFreeSlotsProvider),
         ref.watch(booking_di.bookingTransactionProvider),
-        user?.barberId,
       );
     });
 

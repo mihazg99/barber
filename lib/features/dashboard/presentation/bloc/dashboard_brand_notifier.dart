@@ -6,8 +6,15 @@ import 'package:barber/features/brand/domain/repositories/brand_repository.dart'
 class DashboardBrandNotifier extends BaseNotifier<BrandEntity?, Failure> {
   DashboardBrandNotifier(
     this._brandRepository,
-    this._brandId,
-  );
+    this._brandId, {
+    BrandEntity? cachedBrand,
+  }) {
+    if (cachedBrand != null && cachedBrand.brandId == _brandId) {
+      setData(cachedBrand);
+    } else if (_brandId.isNotEmpty) {
+      load();
+    }
+  }
 
   final BrandRepository _brandRepository;
   final String _brandId;

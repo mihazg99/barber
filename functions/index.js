@@ -746,3 +746,126 @@ const { createStripeCustomer, createCheckoutSession, handleStripeWebhook } = req
 exports.createStripeCustomer = createStripeCustomer;
 exports.createCheckoutSession = createCheckoutSession;
 exports.handleStripeWebhook = handleStripeWebhook;
+
+// ---------------------------------------------------------------------------
+// Sentinel Versioning Strategy
+// ---------------------------------------------------------------------------
+
+/**
+ * Helper to increment data version for a brand.
+ * @param {string} brandId
+ * @param {string} key - 'barbers', 'services', 'locations', 'rewards'
+ */
+async function incrementBrandDataVersion(brandId, key) {
+  if (!brandId) return;
+  try {
+    const brandRef = db.collection(COLLECTION_BRANDS).doc(brandId);
+    await brandRef.set(
+      {
+        data_versions: {
+          [key]: FieldValue.increment(1),
+        },
+        last_updated: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    logger.info(`incrementBrandDataVersion: bumped ${key} for brand ${brandId}`);
+  } catch (err) {
+    logger.error(`incrementBrandDataVersion: failed for ${brandId} key ${key}`, { error: err?.message });
+  }
+}
+
+/**
+ * Generic handler for Sentinel versioning.
+ * Triggers on create/update/delete of public collections.
+ */
+const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+
+exports.onBarberWritten = onDocumentWritten(
+  { document: `${COLLECTION_BARBERS}/{docId}`, region: REGION },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    const brandId = after?.brand_id || before?.brand_id;
+    await incrementBrandDataVersion(brandId, "barbers");
+  }
+);
+
+exports.onServiceWritten = onDocumentWritten(
+  { document: "services/{docId}", region: REGION },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    const brandId = after?.brand_id || before?.brand_id;
+    await incrementBrandDataVersion(brandId, "services");
+  }
+);
+
+exports.onLocationWritten = onDocumentWritten(
+  { document: `${COLLECTION_LOCATIONS}/{docId}`, region: REGION },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    const brandId = after?.brand_id || before?.brand_id;
+    await incrementBrandDataVersion(brandId, "locations");
+  }
+);
+
+exports.onRewardWritten = onDocumentWritten(
+  { document: "rewards/{docId}", region: REGION },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    const brandId = after?.brand_id || before?.brand_id;
+    await incrementBrandDataVersion(brandId, "rewards");
+  }
+);
+
+/**
+ * User-Based Sentinel:
+ * Increment 'reward_redemptions' version on the USER document when a redemption is created/updated.
+ */
+exports.onRedemptionWritten = onDocumentWritten(
+  { document: "reward_redemptions/{docId}", region: REGION },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    const userId = after?.user_id || before?.user_id;
+
+    if (!userId) return;
+
+    try {
+      await db.collection(COLLECTION_USERS).doc(userId).set(
+        {
+          data_versions: {
+            reward_redemptions: FieldValue.increment(1),
+          },
+        },
+        { merge: true }
+      );
+      logger.info(`onRedemptionWritten: bumped reward_redemptions for user ${userId}`);
+    } catch (err) {
+      logger.error(`onRedemptionWritten: failed for user ${userId}`, { error: err?.message });
+    }
+  }
+);
+
+exports.onLocationWritten = onDocumentWritten(
+  { document: `${COLLECTION_LOCATIONS}/{docId}`, region: REGION },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    const brandId = after?.brand_id || before?.brand_id;
+    await incrementBrandDataVersion(brandId, "locations");
+  }
+);
+
+exports.onRewardWritten = onDocumentWritten(
+  { document: "rewards/{docId}", region: REGION },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    const brandId = after?.brand_id || before?.brand_id;
+    await incrementBrandDataVersion(brandId, "rewards");
+  }
+);

@@ -8,32 +8,74 @@ import 'package:barber/features/rewards/domain/entities/redemption_entity.dart';
 import 'package:barber/features/rewards/domain/repositories/redemption_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:barber/core/data/services/versioned_cache_service.dart';
+
 class RedemptionRepositoryImpl implements RedemptionRepository {
-  RedemptionRepositoryImpl(this._firestore);
+  RedemptionRepositoryImpl(this._firestore, this._cacheService);
 
   final FirebaseFirestore _firestore;
+  final VersionedCacheService _cacheService;
 
   CollectionReference<Map<String, dynamic>> get _col =>
       _firestore.collection(FirestoreCollections.rewardRedemptions);
 
   @override
   Future<Either<Failure, List<RedemptionEntity>>> getByUserId(
-    String userId,
-  ) async {
-    try {
-      final snapshot = await FirestoreLogger.logRead(
-        '${FirestoreCollections.rewardRedemptions}?user_id=$userId',
-        () => _col.where('user_id', isEqualTo: userId).get(),
+    String userId, {
+    int? version,
+  }) async {
+    List<RedemptionEntity> list;
+    if (version != null) {
+      final result = await _cacheService.fetchVersionedList<RedemptionEntity>(
+        brandId: 'user_$userId', // Unique key for user redemptions
+        key: 'reward_redemptions',
+        remoteVersion: version,
+        fromJson:
+            (json) => RedemptionFirestoreMapper.fromMap(
+              json,
+              json['id'] as String, // Restore ID
+            ),
+        toJson: (entity) {
+          final map = RedemptionFirestoreMapper.toFirestore(entity);
+          map['id'] = entity.redemptionId; // Save ID
+          return map;
+        },
+        onFetch: () async {
+          try {
+            final snapshot = await FirestoreLogger.logRead(
+              '${FirestoreCollections.rewardRedemptions}?user_id=$userId',
+              () => _col.where('user_id', isEqualTo: userId).get(),
+            );
+            final fetched =
+                snapshot.docs
+                    .map((d) => RedemptionFirestoreMapper.fromFirestore(d))
+                    .toList();
+            return Right(fetched);
+          } catch (e) {
+            return Left(FirestoreFailure('Failed to get redemptions: $e'));
+          }
+        },
       );
-      final list =
-          snapshot.docs
-              .map((d) => RedemptionFirestoreMapper.fromFirestore(d))
-              .toList()
-            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return Right(list);
-    } catch (e) {
-      return Left(FirestoreFailure('Failed to get redemptions: $e'));
+      if (result.isLeft()) return result;
+      list = result.getOrElse(() => []);
+    } else {
+      // Fallback
+      try {
+        final snapshot = await FirestoreLogger.logRead(
+          '${FirestoreCollections.rewardRedemptions}?user_id=$userId',
+          () => _col.where('user_id', isEqualTo: userId).get(),
+        );
+        list =
+            snapshot.docs
+                .map((d) => RedemptionFirestoreMapper.fromFirestore(d))
+                .toList();
+      } catch (e) {
+        return Left(FirestoreFailure('Failed to get redemptions: $e'));
+      }
     }
+
+    list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return Right(list);
   }
 
   @override

@@ -8,10 +8,12 @@ class DashboardServicesNotifier
   DashboardServicesNotifier(
     this._serviceRepository,
     this._defaultBrandId,
+    this._version,
   );
 
   final ServiceRepository _serviceRepository;
   final String _defaultBrandId;
+  final int? _version;
 
   Future<void> load() async {
     if (_defaultBrandId.isEmpty) {
@@ -19,7 +21,10 @@ class DashboardServicesNotifier
       return;
     }
     await execute(
-      () => _serviceRepository.getByBrandId(_defaultBrandId),
+      () => _serviceRepository.getByBrandId(
+        _defaultBrandId,
+        version: _version,
+      ),
       (f) => f.message,
     );
   }

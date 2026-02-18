@@ -142,15 +142,10 @@ class HomeDrawerTile extends HookConsumerWidget {
     final notifier = ref.read(notificationSettingsNotifierProvider.notifier);
     await notifier.setEnabled(enabled);
 
-    final userId = ref.read(currentUserIdProvider).valueOrNull;
-    final userRepo = ref.read(userRepositoryProvider);
-
     if (enabled) {
       await ref
           .read(pushNotificationNotifierProvider.notifier)
           .refreshPermissionAndToken();
-    } else if (userId != null && userId.isNotEmpty) {
-      await userRepo.updateFcmToken(userId, '');
     }
   }
 

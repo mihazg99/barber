@@ -5,5 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final locationRepositoryProvider = Provider<LocationRepository>((ref) {
   final firestore = ref.watch(firebaseFirestoreProvider);
-  return LocationRepositoryImpl(firestore);
+  final cacheService = ref.watch(versionedCacheServiceProvider);
+  return LocationRepositoryImpl(firestore, cacheService);
 });

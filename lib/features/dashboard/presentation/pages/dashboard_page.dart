@@ -7,6 +7,7 @@ import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/auth/domain/entities/user_role.dart';
+import 'package:barber/features/brand/di.dart' as brand_di;
 import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/brand/presentation/widgets/app_header.dart';
 import 'package:barber/features/home/di.dart' as home_di;
@@ -76,7 +77,11 @@ class DashboardPage extends HookConsumerWidget {
           // HomeNotifier layout now auto-detects barber's brandId from user profile.
           // Due to provider caching, if we switched users/brands, we want to ensure we load correct data.
           // Check if we have a brandId to load (avoid loading default if we expect a specific one)
-          await ref.read(home_di.homeNotifierProvider.notifier).load();
+          final brand = await ref.read(brand_di.defaultBrandProvider.future);
+          if (!mounted) return;
+          await ref
+              .read(home_di.homeNotifierProvider.notifier)
+              .load(cachedBrand: brand);
         }
       });
       return () {

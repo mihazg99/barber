@@ -12,6 +12,7 @@ import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/router/app_stage.dart';
 import 'package:barber/core/router/app_stage_notifier.dart'; // Import AppStage for initialization check
 import 'package:barber/features/auth/domain/entities/auth_step.dart';
 import 'package:barber/features/auth/domain/entities/user_entity.dart';
@@ -31,7 +32,7 @@ class LoginOverlay extends HookConsumerWidget {
     // If the app is still initializing (Splash screen), we must NOT show the overlay.
     // The "isProfileComplete" check defaults to false during loading, which causes a flash.
     final appStageState = ref.watch(appStageProvider);
-    if (appStageState.isLoading || appStageState.hasError) {
+    if (appStageState is LoadingStage) {
       return const SizedBox.shrink();
     }
 
@@ -177,6 +178,8 @@ class LoginOverlay extends HookConsumerWidget {
       requireSmsVerification:
           flavorConfig.values.brandConfig.requireSmsVerification,
     );
+
+    if (!context.mounted) return;
 
     // Check auth state after sign-in attempt
     final authState = ref.read(authNotifierProvider);

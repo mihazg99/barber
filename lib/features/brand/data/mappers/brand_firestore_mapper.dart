@@ -38,6 +38,11 @@ class BrandFirestoreMapper {
       stripeCustomerId: data['stripe_customer_id'] as String?,
       stripeSubscriptionId: data['stripe_subscription_id'] as String?,
       freeTrialDays: (data['free_trial_days'] as num?)?.toInt() ?? 0,
+      dataVersions:
+          (data['data_versions'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(key, (value as num).toInt()),
+          ) ??
+          const {},
     );
   }
 
@@ -74,5 +79,6 @@ class BrandFirestoreMapper {
     'stripe_customer_id': entity.stripeCustomerId,
     'stripe_subscription_id': entity.stripeSubscriptionId,
     'free_trial_days': entity.freeTrialDays,
+    'data_versions': entity.dataVersions,
   };
 }

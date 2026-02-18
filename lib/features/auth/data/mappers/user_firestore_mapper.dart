@@ -23,11 +23,16 @@ class UserFirestoreMapper {
       preferredBarberId: data['preferred_barber_id'] as String? ?? '',
       barberId: data['barber_id'] as String? ?? '',
       brandId: data['brand_id'] as String? ?? '',
+      dataVersions:
+          (data['data_versions'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(key, (value as num).toInt()),
+          ) ??
+          const {},
     );
   }
 
-  /// Client-writable fields only. 
-  /// 
+  /// Client-writable fields only.
+  ///
   /// CRITICAL: Server-managed fields are EXCLUDED from this mapper and are
   /// BLOCKED by Firestore security rules. These fields can ONLY be written
   /// by Cloud Functions or Admin SDK:
@@ -36,7 +41,7 @@ class UserFirestoreMapper {
   /// - next_visit_due (calculated based on average_visit_interval)
   /// - average_visit_interval (calculated from booking history)
   /// - reminded_this_cycle (marketing automation flag)
-  /// 
+  ///
   /// If you add new server-managed fields, update firestore.rules to block them.
   static Map<String, dynamic> toFirestore(UserEntity entity) => {
     'full_name': entity.fullName,
@@ -44,6 +49,7 @@ class UserFirestoreMapper {
     'fcm_token': entity.fcmToken,
     'barber_id': entity.barberId,
     'brand_id': entity.brandId,
+    'data_versions': entity.dataVersions,
     _fieldRole: entity.role.value,
   };
 }

@@ -8,10 +8,12 @@ class DashboardLocationsNotifier
   DashboardLocationsNotifier(
     this._locationRepository,
     this._defaultBrandId,
+    this._version,
   );
 
   final LocationRepository _locationRepository;
   final String _defaultBrandId;
+  final int? _version;
 
   Future<void> load() async {
     if (_defaultBrandId.isEmpty) {
@@ -19,7 +21,10 @@ class DashboardLocationsNotifier
       return;
     }
     await execute(
-      () => _locationRepository.getByBrandId(_defaultBrandId),
+      () => _locationRepository.getByBrandId(
+        _defaultBrandId,
+        version: _version,
+      ),
       (f) => f.message,
     );
   }

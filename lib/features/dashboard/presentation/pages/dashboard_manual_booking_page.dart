@@ -20,6 +20,8 @@ import 'package:barber/features/booking/presentation/widgets/booking_date_sectio
 import 'package:barber/features/booking/presentation/widgets/booking_time_section.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
 import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
+import 'package:barber/features/auth/di.dart';
+import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 
 class DashboardManualBookingPage extends HookConsumerWidget {
   const DashboardManualBookingPage({super.key});
@@ -40,12 +42,18 @@ class DashboardManualBookingPage extends HookConsumerWidget {
       ),
     );
 
+    final brandState = ref.watch(dashboardBrandNotifierProvider);
+    final userState = ref.watch(currentUserProvider);
+
     useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifier.load();
-      });
+      if (brandState is BaseData<BrandEntity?> && brandState.data != null) {
+        final user = userState.valueOrNull;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          notifier.load(brandState.data!, currentUserBarberId: user?.barberId);
+        });
+      }
       return null;
-    }, []);
+    }, [brandState, userState]);
 
     // Helper to check if we can select date
     final canSelectDate =
@@ -65,7 +73,28 @@ class DashboardManualBookingPage extends HookConsumerWidget {
       ),
       body: Builder(
         builder: (context) {
-          if (state is BaseLoading) {
+          // 1. Handle Brand States (Dependency)
+          if (brandState is BaseLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (brandState is BaseError) {
+            return Center(
+              child: Text(
+                (brandState as BaseError).message,
+                style: context.appTextStyles.body.copyWith(
+                  color: context.appColors.errorColor,
+                ),
+              ),
+            );
+          }
+          if (brandState is! BaseData ||
+              (brandState as BaseData).data == null) {
+            // Waiting for brand...
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // 2. Handle Notifier States
+          if (state is BaseLoading || state is BaseInitial) {
             return const Center(child: CircularProgressIndicator());
           }
           if (state is BaseError) {

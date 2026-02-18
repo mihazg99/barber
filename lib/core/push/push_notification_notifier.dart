@@ -2,28 +2,21 @@ import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:barber/core/state/base_notifier.dart';
-import 'package:barber/features/auth/domain/repositories/user_repository.dart';
 
 import 'push_notification_data.dart';
 
 /// Callback to get the current signed-in user ID. Used to sync FCM token to
 /// the user document when token is obtained or refreshed.
-typedef GetCurrentUserId = String? Function();
 
 /// Notifier for FCM: permission, token, and foreground/initial message handling.
 /// Syncs token to the current user document when available.
-class PushNotificationNotifier extends BaseNotifier<PushNotificationData, dynamic> {
-  PushNotificationNotifier(
-    this._messaging,
-    this._userRepository,
-    this._getCurrentUserId,
-  ) {
+class PushNotificationNotifier
+    extends BaseNotifier<PushNotificationData, dynamic> {
+  PushNotificationNotifier(this._messaging) {
     _init();
   }
 
   final FirebaseMessaging _messaging;
-  final UserRepository _userRepository;
-  final GetCurrentUserId _getCurrentUserId;
 
   StreamSubscription<String>? _tokenSubscription;
   StreamSubscription<RemoteMessage>? _messageSubscription;
@@ -46,20 +39,19 @@ class PushNotificationNotifier extends BaseNotifier<PushNotificationData, dynami
       print('FCM token: $token');
       final initialMessage = await _messaging.getInitialMessage();
 
-      await _syncTokenToUser(token);
-
       if (mounted) {
-        setData(PushNotificationData(
-          fcmToken: token,
-          authorizationStatus: settings.authorizationStatus,
-          initialMessage: initialMessage,
-        ));
+        setData(
+          PushNotificationData(
+            fcmToken: token,
+            authorizationStatus: settings.authorizationStatus,
+            initialMessage: initialMessage,
+          ),
+        );
       }
 
       _tokenSubscription = _messaging.onTokenRefresh.listen((newToken) {
         // ignore: avoid_print
         print('FCM token refreshed: $newToken');
-        _syncTokenToUser(newToken);
         if (mounted) {
           final current = data;
           if (current != null) {
@@ -83,13 +75,6 @@ class PushNotificationNotifier extends BaseNotifier<PushNotificationData, dynami
     } catch (e) {
       if (mounted) setError('Push setup failed: $e', e);
     }
-  }
-
-  Future<void> _syncTokenToUser(String? token) async {
-    if (token == null || token.isEmpty) return;
-    final userId = _getCurrentUserId();
-    if (userId == null || userId.isEmpty) return;
-    await _userRepository.updateFcmToken(userId, token);
   }
 
   /// Clears the last foreground message (e.g. after showing in-app UI).
@@ -117,13 +102,14 @@ class PushNotificationNotifier extends BaseNotifier<PushNotificationData, dynami
       sound: true,
     );
     final token = await _messaging.getToken();
-    await _syncTokenToUser(token);
     if (mounted) {
       final current = data;
-      setData((current ?? const PushNotificationData()).copyWith(
-        fcmToken: token,
-        authorizationStatus: settings.authorizationStatus,
-      ));
+      setData(
+        (current ?? const PushNotificationData()).copyWith(
+          fcmToken: token,
+          authorizationStatus: settings.authorizationStatus,
+        ),
+      );
     }
   }
 

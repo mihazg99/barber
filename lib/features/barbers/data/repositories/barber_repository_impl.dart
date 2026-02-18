@@ -8,18 +8,62 @@ import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 import 'package:barber/features/barbers/domain/repositories/barber_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:barber/core/data/services/versioned_cache_service.dart';
+
 class BarberRepositoryImpl implements BarberRepository {
-  BarberRepositoryImpl(this._firestore);
+  BarberRepositoryImpl(this._firestore, this._cacheService);
 
   final FirebaseFirestore _firestore;
+  final VersionedCacheService _cacheService;
 
   CollectionReference<Map<String, dynamic>> get _col =>
       _firestore.collection(FirestoreCollections.barbers);
 
+  // Simple memory cache
+  final Map<String, BarberEntity> _cache = {};
+  final Map<String, DateTime> _cacheTime = {};
+  final Map<String, Future<Either<Failure, BarberEntity?>>> _inflight = {};
+  static const _ttl = Duration(minutes: 5);
+
   @override
   Future<Either<Failure, List<BarberEntity>>> getByBrandId(
-    String brandId,
-  ) async {
+    String brandId, {
+    int? version,
+  }) async {
+    if (version != null) {
+      return _cacheService.fetchVersionedList<BarberEntity>(
+        brandId: brandId,
+        key: 'barbers',
+        remoteVersion: version,
+        fromJson:
+            (json) => BarberFirestoreMapper.fromMap(
+              json,
+              json['id'] as String, // Restore ID from JSON
+            ),
+        toJson: (entity) {
+          final map = BarberFirestoreMapper.toFirestore(entity);
+          map['id'] = entity.barberId; // Save ID for restoration
+          return map;
+        },
+        onFetch: () async {
+          try {
+            final snapshot = await FirestoreLogger.logRead(
+              '${FirestoreCollections.barbers}?brand_id=$brandId',
+              () => _col.where('brand_id', isEqualTo: brandId).get(),
+            );
+            final list =
+                snapshot.docs
+                    .map((d) => BarberFirestoreMapper.fromFirestore(d))
+                    .toList();
+            return Right(list);
+          } catch (e) {
+            return Left(FirestoreFailure('Failed to get barbers: $e'));
+          }
+        },
+      );
+    }
+
+    // Fallback or No Version provided: Fresh Fetch
     try {
       final snapshot = await FirestoreLogger.logRead(
         '${FirestoreCollections.barbers}?brand_id=$brandId',
@@ -56,16 +100,45 @@ class BarberRepositoryImpl implements BarberRepository {
 
   @override
   Future<Either<Failure, BarberEntity?>> getById(String barberId) async {
-    try {
-      final doc = await FirestoreLogger.logRead(
-        '${FirestoreCollections.barbers}/$barberId',
-        () => _col.doc(barberId).get(),
-      );
-      if (doc.data() == null) return const Right(null);
-      return Right(BarberFirestoreMapper.fromFirestore(doc));
-    } catch (e) {
-      return Left(FirestoreFailure('Failed to get barber: $e'));
+    // Check memory cache
+    if (_cache.containsKey(barberId) && _cacheTime.containsKey(barberId)) {
+      final now = DateTime.now();
+      if (now.difference(_cacheTime[barberId]!) < _ttl) {
+        return Right(_cache[barberId]);
+      }
     }
+
+    // Check in-flight requests
+    if (_inflight.containsKey(barberId)) {
+      return _inflight[barberId]!;
+    }
+
+    final future = () async {
+      try {
+        final doc = await FirestoreLogger.logRead(
+          '${FirestoreCollections.barbers}/$barberId',
+          () => _col.doc(barberId).get(),
+        );
+        if (doc.data() == null)
+          return const Right<Failure, BarberEntity?>(null);
+        final entity = BarberFirestoreMapper.fromFirestore(doc);
+
+        // Update cache
+        _cache[barberId] = entity;
+        _cacheTime[barberId] = DateTime.now();
+
+        return Right<Failure, BarberEntity?>(entity);
+      } catch (e) {
+        return Left<Failure, BarberEntity?>(
+          FirestoreFailure('Failed to get barber: $e'),
+        );
+      } finally {
+        _inflight.remove(barberId);
+      }
+    }();
+
+    _inflight[barberId] = future;
+    return future;
   }
 
   @override

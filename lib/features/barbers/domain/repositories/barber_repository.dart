@@ -4,10 +4,16 @@ import 'package:barber/features/barbers/domain/entities/barber_entity.dart';
 
 abstract class BarberRepository {
   /// Fetches all barbers for a brand.
-  Future<Either<Failure, List<BarberEntity>>> getByBrandId(String brandId);
+  /// [version] from Brand Sentinel. If provided, uses caching strategy.
+  Future<Either<Failure, List<BarberEntity>>> getByBrandId(
+    String brandId, {
+    int? version,
+  });
 
   /// Fetches all barbers at a location.
-  Future<Either<Failure, List<BarberEntity>>> getByLocationId(String locationId);
+  Future<Either<Failure, List<BarberEntity>>> getByLocationId(
+    String locationId,
+  );
 
   /// Fetches a barber by id.
   Future<Either<Failure, BarberEntity?>> getById(String barberId);

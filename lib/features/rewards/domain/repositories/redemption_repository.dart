@@ -4,7 +4,10 @@ import 'package:barber/features/rewards/domain/entities/redemption_entity.dart';
 
 abstract class RedemptionRepository {
   /// Lists redemptions for a user (for "my rewards" and QR display).
-  Future<Either<Failure, List<RedemptionEntity>>> getByUserId(String userId);
+  Future<Either<Failure, List<RedemptionEntity>>> getByUserId(
+    String userId, {
+    int? version,
+  });
 
   /// Fetches a single redemption by id (for barber scan lookup).
   Future<Either<Failure, RedemptionEntity?>> getById(String redemptionId);

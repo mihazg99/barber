@@ -1,6 +1,7 @@
 import 'package:barber/core/state/base_notifier.dart';
 import 'package:barber/features/barbers/domain/repositories/barber_repository.dart';
 import 'package:barber/features/brand/domain/repositories/brand_repository.dart';
+import 'package:barber/features/brand/domain/entities/brand_entity.dart';
 import 'package:barber/features/booking/data/services/booking_transaction.dart';
 import 'package:barber/features/booking/domain/entities/appointment_entity.dart';
 import 'package:barber/features/booking/domain/repositories/appointment_repository.dart';
@@ -47,7 +48,8 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
     this._brandRepository,
     this._bookingTransaction, {
     this.isStaff = false,
-  });
+    BrandEntity? cachedBrand,
+  }) : _cachedBrand = cachedBrand;
 
   final AppointmentRepository _appointmentRepository;
   final LocationRepository _locationRepository;
@@ -56,6 +58,7 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
   final BrandRepository _brandRepository;
   final BookingTransaction _bookingTransaction;
   final bool isStaff;
+  final BrandEntity? _cachedBrand;
 
   /// Loads appointment and related display data from Firebase.
   Future<void> load(String appointmentId) async {
@@ -78,7 +81,15 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
           appt.locationId,
         );
         final barberResult = await _barberRepository.getById(appt.barberId);
-        final brandResult = await _brandRepository.getById(appt.brandId);
+
+        BrandEntity? brand;
+        if (_cachedBrand != null && _cachedBrand.brandId == appt.brandId) {
+          brand = _cachedBrand;
+        } else {
+          final brandResult = await _brandRepository.getById(appt.brandId);
+          brand = brandResult.fold((_) => null, (b) => b);
+        }
+
         var serviceNames = <String>[];
         for (final sid in appt.serviceIds) {
           final sr = await _serviceRepository.getById(sid);
@@ -99,7 +110,7 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
           (_) => 'Unknown',
           (b) => b?.name ?? 'Unknown',
         );
-        final brand = brandResult.fold((_) => null, (b) => b);
+
         final cancelHoursMinimum = brand?.cancelHoursMinimum ?? 0;
         final (canCancel, cancelHoursRequired) =
             isStaff
@@ -164,11 +175,18 @@ class ManageBookingNotifier extends BaseNotifier<ManageBookingData, dynamic> {
     // the success callback from running. The UI shows button spinner via _isCancelling.
     int cancelHours = 0;
     if (!isStaff) {
-      final brandResult = await _brandRepository.getById(d.appointment.brandId);
-      cancelHours = brandResult.fold(
-        (_) => 0,
-        (b) => b?.cancelHoursMinimum ?? 0,
-      );
+      if (_cachedBrand != null &&
+          _cachedBrand.brandId == d.appointment.brandId) {
+        cancelHours = _cachedBrand.cancelHoursMinimum;
+      } else {
+        final brandResult = await _brandRepository.getById(
+          d.appointment.brandId,
+        );
+        cancelHours = brandResult.fold(
+          (_) => 0,
+          (b) => b?.cancelHoursMinimum ?? 0,
+        );
+      }
     }
 
     final result = await _bookingTransaction.cancelAppointment(
