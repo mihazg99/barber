@@ -1305,4 +1305,92 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get webBannerLoyaltyBody =>
       'Download STYL to track your visits, earn points, and unlock exclusive rewards.';
+
+  @override
+  String get categoryAddNew => 'Add New Category';
+
+  @override
+  String get categoryName => 'Category name';
+
+  @override
+  String get categorySelect => 'Select category';
+
+  @override
+  String get categorySaved => 'Category saved';
+
+  @override
+  String categorySaveError(String error) {
+    return 'Failed to save category to server: $error';
+  }
+
+  @override
+  String get error => 'Error';
+
+  @override
+  String get locationLat => 'Latitude';
+
+  @override
+  String get locationLng => 'Longitude';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get invalidQrCode => 'Invalid QR code';
+
+  @override
+  String get noCompletableAppointmentFound =>
+      'No active or recent completable appointment found';
+
+  @override
+  String scanCooldownMessage(int seconds) {
+    return 'Please wait $seconds seconds before scanning again';
+  }
+
+  @override
+  String get accessRestricted => 'Access restricted';
+
+  @override
+  String get processing => 'Processing…';
+
+  @override
+  String redeemConfirmMessage(String reward, int points, String pointsLabel) {
+    return 'Redeem $reward ($points $pointsLabel)?';
+  }
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String durationMinutesShort(int minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String durationHoursShort(int hours) {
+    return '${hours}h';
+  }
+
+  @override
+  String durationHoursMinutesShort(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String get timeOffLoadError => 'Unable to load time off.';
+
+  @override
+  String get noBarberProfileTitle => 'No Barber Profile Found';
+
+  @override
+  String get noBarberProfileMessage =>
+      'Your account has the \"Barber\" role but is not linked to any barber profile. Please contact support or creating a new barber profile.';
+
+  @override
+  String dashboardBrandId(String id) {
+    return 'Brand ID: $id';
+  }
 }

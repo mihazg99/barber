@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/di.dart';
 
 /// Reusable cinematic video background widget with color grading
@@ -112,7 +113,7 @@ class VideoBackground extends HookConsumerWidget {
         children: [
           // Base solid background layer
           Container(
-            color: const Color(0xFF020617),
+            color: context.appColors.backgroundColor,
           ),
 
           // Video layer with color grading and luminance control

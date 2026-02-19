@@ -11,11 +11,13 @@ import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/widgets/custom_back_button.dart';
 import 'package:barber/core/widgets/custom_textfield.dart';
 import 'package:barber/core/widgets/primary_button.dart';
+import 'package:barber/core/widgets/searchable_dropdown.dart';
 import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/home/di.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 import 'package:barber/features/locations/di.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
+import 'package:barber/features/brand/di.dart';
 
 /// Full-page form for add/edit service. Pass [service] for edit, null for create.
 class ServiceFormPage extends HookConsumerWidget {
@@ -36,6 +38,9 @@ class ServiceFormPage extends HookConsumerWidget {
     final descriptionController = useTextEditingController(
       text: service?.description ?? '',
     );
+    final categoryState = useState<String>(
+      service?.category ?? '',
+    );
     final availableAtAll = useState(
       service?.availableAtLocations.isEmpty ?? true,
     );
@@ -50,6 +55,7 @@ class ServiceFormPage extends HookConsumerWidget {
     final effectiveBrandId = ref.watch(dashboardBrandIdProvider);
     final locationRepo = ref.watch(locationRepositoryProvider);
     final notifier = ref.read(dashboardServicesNotifierProvider.notifier);
+    final brandAsync = ref.watch(brandByIdProvider(effectiveBrandId));
 
     useEffect(() {
       void loadLocations() async {
@@ -97,6 +103,10 @@ class ServiceFormPage extends HookConsumerWidget {
         price: price,
         durationMinutes: duration,
         description: descriptionController.text.trim(),
+        category:
+            categoryState.value.trim().isEmpty
+                ? null
+                : categoryState.value.trim(),
       );
 
       await notifier.save(entity);
@@ -108,7 +118,9 @@ class ServiceFormPage extends HookConsumerWidget {
       if (notifier.hasError) {
         messenger?.showSnackBar(
           SnackBar(
-            content: Text(notifier.errorMessage ?? 'Error'),
+            content: Text(
+              notifier.errorMessage ?? context.l10n.error,
+            ),
             backgroundColor: context.appColors.errorColor,
           ),
         );
@@ -205,6 +217,78 @@ class ServiceFormPage extends HookConsumerWidget {
                 controller: descriptionController,
                 maxLines: 3,
               ),
+              Gap(context.appSizes.paddingMedium),
+              // Category Dropdown
+              if (brandAsync.valueOrNull?.isRight() ?? false) ...[
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final brand = brandAsync.value!.getOrElse(() => null);
+                    if (brand == null) return const SizedBox.shrink();
+
+                    return SearchableDropdown(
+                      label: context.l10n.addItemCategory,
+                      hint: context.l10n.addItemCategoryHint,
+                      items: brand.serviceCategories,
+                      selectedValue:
+                          categoryState.value.isNotEmpty
+                              ? categoryState.value
+                              : null,
+                      onChanged: (value) {
+                        categoryState.value = value;
+                      },
+                      onAddItem: (newCategory) async {
+                        if (newCategory.isNotEmpty) {
+                          if (!brand.serviceCategories.contains(newCategory)) {
+                            final updatedCategories = [
+                              ...brand.serviceCategories,
+                              newCategory,
+                            ]..sort();
+                            final result = await ref
+                                .read(brandRepositoryProvider)
+                                .updateServiceCategories(
+                                  brand.brandId,
+                                  updatedCategories,
+                                );
+
+                            result.fold(
+                              (failure) {
+                                // Even if it failed, we invalidate providers so the user sees the local optimistic update
+                                // But we still warn them that the sync failed
+                                ref.invalidate(
+                                  brandByIdProvider(brand.brandId),
+                                );
+
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        context.l10n.categorySaveError(
+                                          failure.message,
+                                        ),
+                                      ),
+                                      backgroundColor:
+                                          context.appColors.errorColor,
+                                    ),
+                                  );
+                                }
+                              },
+                              (_) {
+                                print(
+                                  'DEBUG: Brand saved. Invalidating providers.',
+                                );
+                                // Invalidate just this brand to refresh the UI
+                                ref.invalidate(
+                                  brandByIdProvider(brand.brandId),
+                                );
+                              },
+                            );
+                          }
+                        }
+                      },
+                    );
+                  },
+                ),
+              ],
               Gap(context.appSizes.paddingLarge),
               Text(
                 context.l10n.dashboardServiceAvailableAt,

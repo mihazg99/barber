@@ -5,20 +5,32 @@ import 'base_state.dart';
 abstract class BaseNotifier<T, F> extends StateNotifier<BaseState<T>> {
   BaseNotifier() : super(const BaseInitial());
 
+  bool _mounted = true;
+
+  @override
+  void dispose() {
+    _mounted = false;
+    super.dispose();
+  }
+
   // Explicit state transitions
   void setInitial() {
+    if (!_mounted) return;
     state = const BaseInitial();
   }
 
   void setLoading() {
+    if (!_mounted) return;
     state = const BaseLoading();
   }
 
   void setData(T data) {
+    if (!_mounted) return;
     state = BaseData(data);
   }
 
   void setError(String message, [Object? error]) {
+    if (!_mounted) return;
     state = BaseError(message, error);
   }
 
@@ -73,4 +85,4 @@ abstract class BaseNotifier<T, F> extends StateNotifier<BaseState<T>> {
     }
     return null;
   }
-} 
+}

@@ -147,7 +147,7 @@ class _BrandForm extends HookConsumerWidget {
         final snackBar =
             notifier.hasError
                 ? SnackBar(
-                  content: Text(notifier.errorMessage ?? 'Error'),
+                  content: Text(notifier.errorMessage ?? context.l10n.error),
                   backgroundColor: errorColor,
                 )
                 : SnackBar(
@@ -166,7 +166,7 @@ class _BrandForm extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Brand ID: $brandId',
+              context.l10n.dashboardBrandId(brandId),
               style: context.appTextStyles.caption.copyWith(
                 color: context.appColors.captionTextColor,
                 fontSize: 12,
@@ -245,7 +245,7 @@ class _BrandForm extends HookConsumerWidget {
             Gap(context.appSizes.paddingLarge),
             PrimaryButton.big(
               onPressed: submit,
-              child: Text(isEdit ? context.l10n.save : 'Create'),
+              child: Text(isEdit ? context.l10n.save : context.l10n.create),
             ),
           ],
         ),

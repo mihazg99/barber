@@ -67,6 +67,10 @@ class BrandRepositoryImpl implements BrandRepository {
   @override
   Future<Either<Failure, void>> set(BrandEntity entity) async {
     try {
+      // Update cache immediately (Optimistic UI)
+      _cache[entity.brandId] = entity;
+      _cacheTime[entity.brandId] = DateTime.now();
+
       await FirestoreLogger.logWrite(
         '${FirestoreCollections.brands}/${entity.brandId}',
         'set',
@@ -104,6 +108,32 @@ class BrandRepositoryImpl implements BrandRepository {
       return Right(BrandFirestoreMapper.fromFirestore(snapshot.docs.first));
     } catch (e) {
       return Left(FirestoreFailure('Failed to get brand by tag: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateServiceCategories(
+    String brandId,
+    List<String> categories,
+  ) async {
+    try {
+      // Update cache if exists
+      if (_cache.containsKey(brandId)) {
+        final current = _cache[brandId]!;
+        _cache[brandId] = current.copyWith(serviceCategories: categories);
+        _cacheTime[brandId] = DateTime.now();
+      }
+
+      await FirestoreLogger.logWrite(
+        '${FirestoreCollections.brands}/$brandId',
+        'updateServiceCategories',
+        () => _col.doc(brandId).update({'service_categories': categories}),
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(
+        FirestoreFailure('Failed to update service categories: $e'),
+      );
     }
   }
 }

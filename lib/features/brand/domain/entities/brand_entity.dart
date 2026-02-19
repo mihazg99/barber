@@ -29,6 +29,7 @@ class BrandEntity extends Equatable {
     this.stripeSubscriptionId,
     this.freeTrialDays = 0,
     this.dataVersions = const {},
+    this.serviceCategories = const [],
   });
 
   final String brandId;
@@ -70,6 +71,9 @@ class BrandEntity extends Equatable {
   // Sentinel Versioning
   final Map<String, int> dataVersions;
 
+  // Domain Data
+  final List<String> serviceCategories;
+
   /// Returns true if the subscription is active, trialing, or within the 3-day grace period.
   bool get isSubscriptionActive {
     if (subscriptionStatus == 'active' || subscriptionStatus == 'trialing') {
@@ -109,6 +113,7 @@ class BrandEntity extends Equatable {
     String? stripeSubscriptionId,
     int? freeTrialDays,
     Map<String, int>? dataVersions,
+    List<String>? serviceCategories,
   }) => BrandEntity(
     brandId: brandId ?? this.brandId,
     name: name ?? this.name,
@@ -137,6 +142,7 @@ class BrandEntity extends Equatable {
     stripeSubscriptionId: stripeSubscriptionId ?? this.stripeSubscriptionId,
     freeTrialDays: freeTrialDays ?? this.freeTrialDays,
     dataVersions: dataVersions ?? this.dataVersions,
+    serviceCategories: serviceCategories ?? this.serviceCategories,
   );
 
   @override
@@ -166,5 +172,6 @@ class BrandEntity extends Equatable {
     stripeSubscriptionId,
     freeTrialDays,
     dataVersions,
+    serviceCategories,
   ];
 }

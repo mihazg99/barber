@@ -65,7 +65,13 @@ class DashboardBookingsTab extends HookConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text(error.toString())),
+        error:
+            (error, stack) => Center(
+              child: Text(
+                context.l10n.errorLoadingAppointments,
+                style: context.appTextStyles.medium,
+              ),
+            ),
       ),
     );
   }

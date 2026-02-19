@@ -56,7 +56,8 @@ class PremiumServiceCard extends HookWidget {
             mainAxisSize: MainAxisSize.max,
             children: [
               // Service name - flexible to handle long names
-              Flexible(
+              Tooltip(
+                message: service.name,
                 child: Text(
                   service.name,
                   style: context.appTextStyles.h2.copyWith(
@@ -65,7 +66,7 @@ class PremiumServiceCard extends HookWidget {
                     color: c.primaryTextColor,
                     height: 1.3,
                   ),
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

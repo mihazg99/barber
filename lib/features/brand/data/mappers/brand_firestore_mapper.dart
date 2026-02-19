@@ -43,6 +43,11 @@ class BrandFirestoreMapper {
             (key, value) => MapEntry(key, (value as num).toInt()),
           ) ??
           const {},
+      serviceCategories:
+          (data['service_categories'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
     );
   }
 
@@ -80,5 +85,6 @@ class BrandFirestoreMapper {
     'stripe_subscription_id': entity.stripeSubscriptionId,
     'free_trial_days': entity.freeTrialDays,
     'data_versions': entity.dataVersions,
+    'service_categories': entity.serviceCategories,
   };
 }

@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:barber/core/l10n/app_localizations_ext.dart';
+import 'package:barber/gen/l10n/app_localizations.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -218,12 +219,12 @@ class _ServiceCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
-  static String _formatDuration(int minutes) {
-    if (minutes < 60) return '${minutes}min';
+  static String _formatDuration(AppLocalizations l10n, int minutes) {
+    if (minutes < 60) return l10n.durationMinutesShort(minutes);
     final h = minutes ~/ 60;
     final m = minutes % 60;
-    if (m == 0) return '${h}h';
-    return '${h}h ${m}min';
+    if (m == 0) return l10n.durationHoursShort(h);
+    return l10n.durationHoursMinutesShort(h, m);
   }
 
   @override
@@ -281,7 +282,10 @@ class _ServiceCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          _formatDuration(service.durationMinutes),
+                          _formatDuration(
+                            context.l10n,
+                            service.durationMinutes,
+                          ),
                           style: context.appTextStyles.caption.copyWith(
                             fontSize: 12,
                             color: context.appColors.captionTextColor,

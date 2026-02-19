@@ -11,6 +11,7 @@ class ServiceEntity extends Equatable {
     required this.price,
     required this.durationMinutes,
     required this.description,
+    this.category,
   });
 
   final String serviceId;
@@ -20,6 +21,7 @@ class ServiceEntity extends Equatable {
   final num price;
   final int durationMinutes;
   final String description;
+  final String? category;
 
   /// True if this service is offered at [locationId].
   /// Empty [availableAtLocations] means "all locations".
@@ -31,12 +33,13 @@ class ServiceEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        serviceId,
-        brandId,
-        availableAtLocations,
-        name,
-        price,
-        durationMinutes,
-        description,
-      ];
+    serviceId,
+    brandId,
+    availableAtLocations,
+    name,
+    price,
+    durationMinutes,
+    description,
+    category,
+  ];
 }

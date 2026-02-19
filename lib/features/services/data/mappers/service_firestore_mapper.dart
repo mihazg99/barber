@@ -21,6 +21,7 @@ class ServiceFirestoreMapper {
       price: (data['price'] as num?) ?? 0,
       durationMinutes: (data['duration_minutes'] as num?)?.toInt() ?? 0,
       description: data['description'] as String? ?? '',
+      category: data['category'] as String?,
     );
   }
 
@@ -31,5 +32,6 @@ class ServiceFirestoreMapper {
     'price': entity.price,
     'duration_minutes': entity.durationMinutes,
     'description': entity.description,
+    if (entity.category != null) 'category': entity.category,
   };
 }

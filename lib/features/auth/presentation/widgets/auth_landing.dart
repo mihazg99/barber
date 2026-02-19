@@ -30,7 +30,7 @@ class AuthLanding extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          context.l10n.welcome ?? 'Welcome',
+          context.l10n.welcome,
           style: context.appTextStyles.h1.copyWith(
             color: context.appColors.primaryTextColor,
             fontWeight: FontWeight.w700,
@@ -39,7 +39,7 @@ class AuthLanding extends HookConsumerWidget {
         ),
         Gap(context.appSizes.paddingLarge),
         Text(
-          context.l10n.signInToContinue ?? 'Sign in to continue',
+          context.l10n.signInToContinue,
           style: context.appTextStyles.body.copyWith(
             color: context.appColors.captionTextColor,
             fontSize: 16,

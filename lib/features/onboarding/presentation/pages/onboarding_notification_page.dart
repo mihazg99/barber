@@ -77,20 +77,22 @@ class _OnboardingNotificationPageState
     final l10n = context.l10n;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF020617),
+      backgroundColor: context.appColors.backgroundColor,
       body: Stack(
         children: [
-          const Positioned.fill(
+          Positioned.fill(
             child: VideoBackground(
-              baseColor: Color(0xFF4338CA),
+              baseColor: context.appColors.backgroundColor,
               opacity: 0.65,
             ),
           ),
-          const Positioned(
+          Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            child: _BottomGradientMask(),
+            child: _BottomGradientMask(
+              backgroundColor: context.appColors.backgroundColor,
+            ),
           ),
           SafeArea(
             child: LayoutBuilder(
@@ -228,19 +230,21 @@ class _OnboardingNotificationPageState
 }
 
 class _BottomGradientMask extends StatelessWidget {
-  const _BottomGradientMask();
+  const _BottomGradientMask({required this.backgroundColor});
+
+  final Color backgroundColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 200,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
             Colors.transparent,
-            Color(0xFF020617),
+            backgroundColor,
           ],
         ),
       ),

@@ -99,7 +99,7 @@ class LocationFormPage extends HookConsumerWidget {
         if (notifier.hasError) {
           messenger.showSnackBar(
             SnackBar(
-              content: Text(notifier.errorMessage ?? 'Error'),
+              content: Text(notifier.errorMessage ?? context.l10n.error),
               backgroundColor: errorColor,
             ),
           );
@@ -183,7 +183,7 @@ class LocationFormPage extends HookConsumerWidget {
                   children: [
                     Expanded(
                       child: CustomTextField.withTitle(
-                        title: 'Lat',
+                        title: context.l10n.locationLat,
                         hint: context.l10n.dashboardLocationLatHint,
                         controller: latController,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -195,7 +195,7 @@ class LocationFormPage extends HookConsumerWidget {
                     Gap(context.appSizes.paddingSmall),
                     Expanded(
                       child: CustomTextField.withTitle(
-                        title: 'Lng',
+                        title: context.l10n.locationLng,
                         hint: context.l10n.dashboardLocationLngHint,
                         controller: lngController,
                         keyboardType: const TextInputType.numberWithOptions(

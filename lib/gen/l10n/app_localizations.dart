@@ -2557,6 +2557,150 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Preuzmi STYL aplikaciju za praćenje posjeta, skupljanje bodova i otključavanje ekskluzivnih nagrada.'**
   String get webBannerLoyaltyBody;
+
+  /// No description provided for @categoryAddNew.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dodaj novu kategoriju'**
+  String get categoryAddNew;
+
+  /// No description provided for @categoryName.
+  ///
+  /// In hr, this message translates to:
+  /// **'Naziv kategorije'**
+  String get categoryName;
+
+  /// No description provided for @categorySelect.
+  ///
+  /// In hr, this message translates to:
+  /// **'Odaberi kategoriju'**
+  String get categorySelect;
+
+  /// No description provided for @categorySaved.
+  ///
+  /// In hr, this message translates to:
+  /// **'Kategorija spremljena'**
+  String get categorySaved;
+
+  /// No description provided for @categorySaveError.
+  ///
+  /// In hr, this message translates to:
+  /// **'Greška pri spremanju kategorije: {error}'**
+  String categorySaveError(String error);
+
+  /// No description provided for @error.
+  ///
+  /// In hr, this message translates to:
+  /// **'Greška'**
+  String get error;
+
+  /// No description provided for @locationLat.
+  ///
+  /// In hr, this message translates to:
+  /// **'Geografska širina'**
+  String get locationLat;
+
+  /// No description provided for @locationLng.
+  ///
+  /// In hr, this message translates to:
+  /// **'Geografska dužina'**
+  String get locationLng;
+
+  /// No description provided for @ok.
+  ///
+  /// In hr, this message translates to:
+  /// **'U redu'**
+  String get ok;
+
+  /// No description provided for @invalidQrCode.
+  ///
+  /// In hr, this message translates to:
+  /// **'Neispravan QR kod'**
+  String get invalidQrCode;
+
+  /// No description provided for @noCompletableAppointmentFound.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nije pronađen aktivan ili nedavni termin za dovršetak'**
+  String get noCompletableAppointmentFound;
+
+  /// No description provided for @scanCooldownMessage.
+  ///
+  /// In hr, this message translates to:
+  /// **'Pričekajte {seconds} sekundi prije ponovnog skeniranja'**
+  String scanCooldownMessage(int seconds);
+
+  /// No description provided for @accessRestricted.
+  ///
+  /// In hr, this message translates to:
+  /// **'Pristup ograničen'**
+  String get accessRestricted;
+
+  /// No description provided for @processing.
+  ///
+  /// In hr, this message translates to:
+  /// **'Obrada u tijeku…'**
+  String get processing;
+
+  /// No description provided for @redeemConfirmMessage.
+  ///
+  /// In hr, this message translates to:
+  /// **'Iskoristiti {reward} ({points} {pointsLabel})?'**
+  String redeemConfirmMessage(String reward, int points, String pointsLabel);
+
+  /// No description provided for @create.
+  ///
+  /// In hr, this message translates to:
+  /// **'Kreiraj'**
+  String get create;
+
+  /// No description provided for @delete.
+  ///
+  /// In hr, this message translates to:
+  /// **'Obriši'**
+  String get delete;
+
+  /// No description provided for @durationMinutesShort.
+  ///
+  /// In hr, this message translates to:
+  /// **'{minutes}min'**
+  String durationMinutesShort(int minutes);
+
+  /// No description provided for @durationHoursShort.
+  ///
+  /// In hr, this message translates to:
+  /// **'{hours}h'**
+  String durationHoursShort(int hours);
+
+  /// No description provided for @durationHoursMinutesShort.
+  ///
+  /// In hr, this message translates to:
+  /// **'{hours}h {minutes}min'**
+  String durationHoursMinutesShort(int hours, int minutes);
+
+  /// No description provided for @timeOffLoadError.
+  ///
+  /// In hr, this message translates to:
+  /// **'Nije moguće učitati slobodne dane.'**
+  String get timeOffLoadError;
+
+  /// No description provided for @noBarberProfileTitle.
+  ///
+  /// In hr, this message translates to:
+  /// **'Profil frizera nije pronađen'**
+  String get noBarberProfileTitle;
+
+  /// No description provided for @noBarberProfileMessage.
+  ///
+  /// In hr, this message translates to:
+  /// **'Vaš račun ima ulogu \"Frizer\", ali nije povezan s profilom frizera. Kontaktirajte podršku ili kreirajte novi profil.'**
+  String get noBarberProfileMessage;
+
+  /// No description provided for @dashboardBrandId.
+  ///
+  /// In hr, this message translates to:
+  /// **'ID Brenda: {id}'**
+  String dashboardBrandId(String id);
 }
 
 class _AppLocalizationsDelegate

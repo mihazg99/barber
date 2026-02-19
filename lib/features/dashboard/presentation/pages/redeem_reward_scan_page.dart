@@ -69,7 +69,7 @@ Future<void> _handleRewardRedemption(
               actions: [
                 FilledButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text('OK'),
+                  child: Text(context.l10n.ok),
                 ),
               ],
             ),
@@ -107,7 +107,8 @@ Future<void> _handleLoyaltyPoints(
   if (user == null || !context.mounted) {
     lastScannedId.value = null;
     lastFailedScanTime.value = DateTime.now();
-    if (context.mounted) showErrorSnackBar(context, message: 'Invalid QR code');
+    if (context.mounted)
+      showErrorSnackBar(context, message: context.l10n.invalidQrCode);
     return;
   }
 
@@ -156,7 +157,7 @@ Future<void> _handleLoyaltyPoints(
     if (context.mounted) {
       showErrorSnackBar(
         context,
-        message: 'No active or recent completable appointment found',
+        message: context.l10n.noCompletableAppointmentFound,
       );
     }
     return;
@@ -266,7 +267,7 @@ class RedeemRewardScanPage extends HookConsumerWidget {
           if (context.mounted) {
             showErrorSnackBar(
               context,
-              message: 'Please wait $remaining seconds before scanning again',
+              message: context.l10n.scanCooldownMessage(remaining),
             );
           }
           return;
@@ -366,7 +367,7 @@ class _AccessRestrictedPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'Access restricted',
+        context.l10n.accessRestricted,
         style: context.appTextStyles.medium.copyWith(
           color: context.appColors.secondaryTextColor,
         ),
@@ -392,7 +393,7 @@ class _ProcessingOverlay extends StatelessWidget {
                 const CircularProgressIndicator(),
                 SizedBox(height: context.appSizes.paddingMedium),
                 Text(
-                  'Processing…',
+                  context.l10n.processing,
                   style: context.appTextStyles.medium,
                 ),
               ],
@@ -474,7 +475,7 @@ class _ScanSuccessDialog extends StatelessWidget {
             width: double.infinity,
             child: FilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text(context.l10n.ok),
             ),
           ),
         ],
@@ -497,12 +498,16 @@ class _RedeemConfirmDialog extends StatelessWidget {
     return AlertDialog(
       title: Text(context.l10n.dashboardRedeemReward),
       content: Text(
-        'Redeem "$rewardName" ($pointsSpent ${context.l10n.loyaltyPointsAbbrev})?',
+        context.l10n.redeemConfirmMessage(
+          rewardName,
+          pointsSpent,
+          context.l10n.loyaltyPointsAbbrev,
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),

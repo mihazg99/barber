@@ -146,7 +146,7 @@ class LoginOverlay extends HookConsumerWidget {
                             ? (fullName, phone) => _handleProfileSubmit(
                               context,
                               ref,
-                              effectiveUser!,
+                              effectiveUser,
                               fullName,
                               phone,
                             )

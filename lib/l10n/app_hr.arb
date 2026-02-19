@@ -583,5 +583,87 @@
     }
   },
   "webBannerLoyaltyTitle": "Skupljaj bodove vjernosti",
-  "webBannerLoyaltyBody": "Preuzmi STYL aplikaciju za praćenje posjeta, skupljanje bodova i otključavanje ekskluzivnih nagrada."
+  "webBannerLoyaltyBody": "Preuzmi STYL aplikaciju za praćenje posjeta, skupljanje bodova i otključavanje ekskluzivnih nagrada.",
+  "categoryAddNew": "Dodaj novu kategoriju",
+  "categoryName": "Naziv kategorije",
+  "categorySelect": "Odaberi kategoriju",
+  "categorySaved": "Kategorija spremljena",
+  "categorySaveError": "Greška pri spremanju kategorije: {error}",
+  "@categorySaveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "error": "Greška",
+  "locationLat": "Geografska širina",
+  "locationLng": "Geografska dužina",
+  "ok": "U redu",
+  "invalidQrCode": "Neispravan QR kod",
+  "noCompletableAppointmentFound": "Nije pronađen aktivan ili nedavni termin za dovršetak",
+  "scanCooldownMessage": "Pričekajte {seconds} sekundi prije ponovnog skeniranja",
+  "@scanCooldownMessage": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "accessRestricted": "Pristup ograničen",
+  "processing": "Obrada u tijeku…",
+  "redeemConfirmMessage": "Iskoristiti {reward} ({points} {pointsLabel})?",
+  "@redeemConfirmMessage": {
+    "placeholders": {
+      "reward": {
+        "type": "String"
+      },
+      "points": {
+        "type": "int"
+      },
+      "pointsLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "create": "Kreiraj",
+  "delete": "Obriši",
+  "durationMinutesShort": "{minutes}min",
+  "@durationMinutesShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursShort": "{hours}h",
+  "@durationHoursShort": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutesShort": "{hours}h {minutes}min",
+  "@durationHoursMinutesShort": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "timeOffLoadError": "Nije moguće učitati slobodne dane.",
+  "noBarberProfileTitle": "Profil frizera nije pronađen",
+  "noBarberProfileMessage": "Vaš račun ima ulogu \"Frizer\", ali nije povezan s profilom frizera. Kontaktirajte podršku ili kreirajte novi profil.",
+  "dashboardBrandId": "ID Brenda: {id}",
+  "@dashboardBrandId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }

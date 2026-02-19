@@ -93,14 +93,14 @@ class DashboardBarberHomeTab extends HookConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'No Barber Profile Found',
+                            context.l10n.noBarberProfileTitle,
                             style: context.appTextStyles.h3.copyWith(
                               color: context.appColors.errorColor,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Your account has the "Barber" role but is not linked to any barber profile. Please contact support or creating a new barber profile.',
+                            context.l10n.noBarberProfileMessage,
                             style: context.appTextStyles.body.copyWith(
                               fontSize: 13,
                             ),

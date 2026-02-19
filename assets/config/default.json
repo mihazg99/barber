@@ -6,17 +6,17 @@
   "font_family": "Inter",
   "require_sms_verification": true,
   "colors": {
-    "primary": "#6366F1",
-    "secondary": "#4338CA",
-    "background": "#020617",
-    "navigation_background": "#0F172A",
-    "primary_text": "#F8FAFC",
-    "secondary_text": "#94A3B8",
-    "caption_text": "#64748B",
+    "primary": "#2DD4BF",
+    "secondary": "#0D9488",
+    "background": "#09090B",
+    "navigation_background": "#18181B",
+    "primary_text": "#FAFAFA",
+    "secondary_text": "#A1A1AA",
+    "caption_text": "#71717A",
     "primary_white": "#FFFFFF",
-    "hint_text": "#475569",
-    "menu_background": "#0F172A",
-    "border": "#1E293B",
-    "error": "#EF4444"
+    "hint_text": "#52525B",
+    "menu_background": "#18181B",
+    "border": "#27272A",
+    "error": "#F87171"
   }
 }

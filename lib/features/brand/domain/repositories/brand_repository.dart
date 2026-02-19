@@ -14,4 +14,10 @@ abstract class BrandRepository {
 
   /// Fetches a brand by tag. Returns [null] if not found in Right.
   Future<Either<Failure, BrandEntity?>> getByTag(String tag);
+
+  /// Updates only the service categories for a brand.
+  Future<Either<Failure, void>> updateServiceCategories(
+    String brandId,
+    List<String> categories,
+  );
 }

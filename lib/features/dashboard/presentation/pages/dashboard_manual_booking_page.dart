@@ -320,7 +320,9 @@ class _ServiceSelection extends StatelessWidget {
       label: context.l10n.dashboardManualBookingSelectService,
       value: selectedService,
       items: services,
-      itemLabel: (s) => '${s.name} (${s.price}€, ${s.durationMinutes}min)',
+      itemLabel:
+          (s) =>
+              '${s.name} (${s.price}€, ${context.l10n.durationMinutesShort(s.durationMinutes)})',
       onChanged: (s) {
         if (s != null) onChanged(s);
       },

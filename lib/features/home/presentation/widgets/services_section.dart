@@ -68,7 +68,7 @@ class _ServicesContent extends StatelessWidget {
         HomeSectionTitle(title: title),
         Gap(context.appSizes.paddingSmall),
         SizedBox(
-          height: 120, // Matches actual content height
+          height: 150, // Matches actual content height
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.only(right: context.appSizes.paddingMedium),
@@ -99,7 +99,7 @@ class _ServicesSectionShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const cardWidth = 160.0;
-    const cardHeight = 120.0;
+    const cardHeight = 150.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

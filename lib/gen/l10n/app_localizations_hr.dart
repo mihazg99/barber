@@ -1313,4 +1313,92 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get webBannerLoyaltyBody =>
       'Preuzmi STYL aplikaciju za praćenje posjeta, skupljanje bodova i otključavanje ekskluzivnih nagrada.';
+
+  @override
+  String get categoryAddNew => 'Dodaj novu kategoriju';
+
+  @override
+  String get categoryName => 'Naziv kategorije';
+
+  @override
+  String get categorySelect => 'Odaberi kategoriju';
+
+  @override
+  String get categorySaved => 'Kategorija spremljena';
+
+  @override
+  String categorySaveError(String error) {
+    return 'Greška pri spremanju kategorije: $error';
+  }
+
+  @override
+  String get error => 'Greška';
+
+  @override
+  String get locationLat => 'Geografska širina';
+
+  @override
+  String get locationLng => 'Geografska dužina';
+
+  @override
+  String get ok => 'U redu';
+
+  @override
+  String get invalidQrCode => 'Neispravan QR kod';
+
+  @override
+  String get noCompletableAppointmentFound =>
+      'Nije pronađen aktivan ili nedavni termin za dovršetak';
+
+  @override
+  String scanCooldownMessage(int seconds) {
+    return 'Pričekajte $seconds sekundi prije ponovnog skeniranja';
+  }
+
+  @override
+  String get accessRestricted => 'Pristup ograničen';
+
+  @override
+  String get processing => 'Obrada u tijeku…';
+
+  @override
+  String redeemConfirmMessage(String reward, int points, String pointsLabel) {
+    return 'Iskoristiti $reward ($points $pointsLabel)?';
+  }
+
+  @override
+  String get create => 'Kreiraj';
+
+  @override
+  String get delete => 'Obriši';
+
+  @override
+  String durationMinutesShort(int minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String durationHoursShort(int hours) {
+    return '${hours}h';
+  }
+
+  @override
+  String durationHoursMinutesShort(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String get timeOffLoadError => 'Nije moguće učitati slobodne dane.';
+
+  @override
+  String get noBarberProfileTitle => 'Profil frizera nije pronađen';
+
+  @override
+  String get noBarberProfileMessage =>
+      'Vaš račun ima ulogu \"Frizer\", ali nije povezan s profilom frizera. Kontaktirajte podršku ili kreirajte novi profil.';
+
+  @override
+  String dashboardBrandId(String id) {
+    return 'ID Brenda: $id';
+  }
 }

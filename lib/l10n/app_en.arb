@@ -583,5 +583,87 @@
     }
   },
   "webBannerLoyaltyTitle": "Earn Loyalty Points",
-  "webBannerLoyaltyBody": "Download STYL to track your visits, earn points, and unlock exclusive rewards."
+  "webBannerLoyaltyBody": "Download STYL to track your visits, earn points, and unlock exclusive rewards.",
+  "categoryAddNew": "Add New Category",
+  "categoryName": "Category name",
+  "categorySelect": "Select category",
+  "categorySaved": "Category saved",
+  "categorySaveError": "Failed to save category to server: {error}",
+  "@categorySaveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "error": "Error",
+  "locationLat": "Latitude",
+  "locationLng": "Longitude",
+  "ok": "OK",
+  "invalidQrCode": "Invalid QR code",
+  "noCompletableAppointmentFound": "No active or recent completable appointment found",
+  "scanCooldownMessage": "Please wait {seconds} seconds before scanning again",
+  "@scanCooldownMessage": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "accessRestricted": "Access restricted",
+  "processing": "Processing…",
+  "redeemConfirmMessage": "Redeem {reward} ({points} {pointsLabel})?",
+  "@redeemConfirmMessage": {
+    "placeholders": {
+      "reward": {
+        "type": "String"
+      },
+      "points": {
+        "type": "int"
+      },
+      "pointsLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "create": "Create",
+  "delete": "Delete",
+  "durationMinutesShort": "{minutes}min",
+  "@durationMinutesShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursShort": "{hours}h",
+  "@durationHoursShort": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutesShort": "{hours}h {minutes}min",
+  "@durationHoursMinutesShort": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "timeOffLoadError": "Unable to load time off.",
+  "noBarberProfileTitle": "No Barber Profile Found",
+  "noBarberProfileMessage": "Your account has the \"Barber\" role but is not linked to any barber profile. Please contact support or creating a new barber profile.",
+  "dashboardBrandId": "Brand ID: {id}",
+  "@dashboardBrandId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }

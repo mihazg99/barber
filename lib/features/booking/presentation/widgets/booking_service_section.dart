@@ -7,7 +7,9 @@ import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/features/services/domain/entities/service_entity.dart';
 import 'package:gap/gap.dart';
 
-class BookingServiceSection extends StatelessWidget {
+import 'package:flutter_hooks/flutter_hooks.dart';
+
+class BookingServiceSection extends HookWidget {
   const BookingServiceSection({
     super.key,
     required this.services,
@@ -21,6 +23,45 @@ class BookingServiceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // efficient category extraction
+    final categories = useMemoized<List<String>>(() {
+      final cats =
+          services
+              .map((s) => s.category)
+              .where((c) => c != null && c.isNotEmpty)
+              .cast<String>()
+              .toSet()
+              .toList();
+      cats.sort();
+      return ['All', ...cats];
+    }, [services]);
+
+    final selectedCategory = useState('All');
+
+    // Reset category if selected service changes and belongs to a different category
+    useEffect(() {
+      if (selectedServiceId != null) {
+        final service = services.firstWhere(
+          (s) => s.serviceId == selectedServiceId,
+          orElse: () => services.first,
+        );
+        if (service.category != null &&
+            selectedCategory.value != 'All' &&
+            service.category != selectedCategory.value) {
+          // If we wanted to auto-switch category on external selection, we could do it here.
+          // But for now let's keep it simple.
+        }
+      }
+      return null;
+    }, [selectedServiceId]);
+
+    final filteredServices = useMemoized(() {
+      if (selectedCategory.value == 'All') return services;
+      return services
+          .where((s) => s.category == selectedCategory.value)
+          .toList();
+    }, [services, selectedCategory.value]);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -37,25 +78,93 @@ class BookingServiceSection extends StatelessWidget {
             ),
           ),
         ),
-        Gap(context.appSizes.paddingSmall),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.symmetric(
-            horizontal: context.appSizes.paddingMedium,
+
+        // Category Chips
+        if (categories.length > 1) ...[
+          Gap(context.appSizes.paddingSmall),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(
+              horizontal: context.appSizes.paddingMedium,
+            ),
+            child: Row(
+              children:
+                  categories.map((category) {
+                    final isSelected = category == selectedCategory.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(
+                          category == 'All' ? 'All' : category,
+                        ), // Assuming 'All' localization or literal
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            selectedCategory.value = category;
+                          }
+                        },
+                        backgroundColor: context.appColors.menuBackgroundColor,
+                        selectedColor: context.appColors.primaryColor
+                            .withValues(alpha: 0.1),
+                        checkmarkColor: context.appColors.primaryColor,
+                        labelStyle: context.appTextStyles.body.copyWith(
+                          color:
+                              isSelected
+                                  ? context.appColors.primaryColor
+                                  : context.appColors.primaryTextColor,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color:
+                                isSelected
+                                    ? context.appColors.primaryColor
+                                    : context.appColors.borderColor.withValues(
+                                      alpha: 0.5,
+                                    ),
+                          ),
+                        ),
+                        showCheckmark: false,
+                      ),
+                    );
+                  }).toList(),
+            ),
           ),
-          itemCount: services.length,
-          separatorBuilder: (_, __) => Gap(context.appSizes.paddingSmall),
-          itemBuilder: (context, index) {
-            final service = services[index];
-            final isSelected = service.serviceId == selectedServiceId;
-            return _ServiceCard(
-              service: service,
-              isSelected: isSelected,
-              onTap: () => onServiceSelected(service),
-            );
-          },
-        ),
+        ],
+
+        Gap(context.appSizes.paddingSmall),
+
+        if (filteredServices.isEmpty)
+          Padding(
+            padding: EdgeInsets.all(context.appSizes.paddingMedium),
+            child: Text(
+              'No services available',
+              style: context.appTextStyles.body.copyWith(
+                color: context.appColors.captionTextColor,
+              ),
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.appSizes.paddingMedium,
+            ),
+            itemCount: filteredServices.length,
+            separatorBuilder: (_, __) => Gap(context.appSizes.paddingSmall),
+            itemBuilder: (context, index) {
+              final service = filteredServices[index];
+              final isSelected = service.serviceId == selectedServiceId;
+              return _ServiceCard(
+                service: service,
+                isSelected: isSelected,
+                onTap: () => onServiceSelected(service),
+              );
+            },
+          ),
       ],
     );
   }

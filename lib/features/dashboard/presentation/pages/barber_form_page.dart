@@ -227,7 +227,7 @@ class BarberFormPage extends HookConsumerWidget {
       if (notifier.hasError) {
         messenger?.showSnackBar(
           SnackBar(
-            content: Text(notifier.errorMessage ?? 'Error'),
+            content: Text(notifier.errorMessage ?? context.l10n.error),
             backgroundColor: context.appColors.errorColor,
           ),
         );

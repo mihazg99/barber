@@ -12,6 +12,7 @@ import 'package:barber/core/di.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
+import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/utils/snackbar_helper.dart';
@@ -28,9 +29,6 @@ import 'package:barber/features/home/di.dart';
 class _PortalDesign {
   static const neutralBackground = Color(0xFF020617);
   static const primaryIndigo = Color(0xFF6366F1);
-  static const secondaryIndigo = Color(
-    0xFF4338CA,
-  ); // Deep sapphire for video grading
   static const morphDuration = Duration(
     milliseconds: 3000,
   ); // Extended for smooth settling
@@ -185,11 +183,7 @@ class VideoPortalPage extends HookConsumerWidget {
       };
     }, []);
 
-    // Calculate colors
-    final targetColor =
-        portalState.selectedBrand != null
-            ? _hexToColor(portalState.selectedBrand!.primaryColor)
-            : _PortalDesign.primaryIndigo;
+    // Colors remain static down below
 
     return PopScope(
       canPop: !showScanner.value && !showSearch.value,
@@ -208,12 +202,10 @@ class VideoPortalPage extends HookConsumerWidget {
             false, // Prevent keyboard from pushing content
         body: Stack(
           children: [
-            // Cinematic video background with color grading
+            // Cinematic video background
             Positioned.fill(
               child: VideoBackground(
-                targetColor: targetColor,
-                morphProgress: morphValue,
-                baseColor: _PortalDesign.secondaryIndigo,
+                baseColor: context.appColors.backgroundColor,
                 opacity: 0.65,
               ),
             ),
@@ -395,11 +387,8 @@ class _GlassMonolithCard extends HookWidget {
           morphProgress,
         )!;
 
-    // Parse brand color
-    final brandColor =
-        brand != null
-            ? _hexToColor(brand!.primaryColor)
-            : _PortalDesign.primaryIndigo;
+    // Always use our standard color, no morphing to brand colors
+    final brandColor = _PortalDesign.primaryIndigo;
 
     return Transform.scale(
       scale: scale * breatheScale, // Combine user scale with breathing
@@ -756,14 +745,8 @@ class _PortalContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Accent color for buttons
-    final brandColor = brand != null ? _hexToColor(brand!.primaryColor) : null;
-    final accentColor =
-        Color.lerp(
-          _PortalDesign.primaryIndigo,
-          brandColor ?? _PortalDesign.primaryIndigo,
-          morphProgress,
-        )!;
+    // Accent color for buttons - stay at our colors
+    final accentColor = _PortalDesign.primaryIndigo;
 
     return Column(
       children: [
