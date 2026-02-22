@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -182,12 +183,17 @@ class _BarberCircle extends StatelessWidget {
                             initial: initial,
                             size: _circleSize,
                           )
-                          : Image.network(
-                            barber.photoUrl,
+                          : CachedNetworkImage(
+                            imageUrl: barber.photoUrl,
                             width: _circleSize,
                             height: _circleSize,
                             fit: BoxFit.cover,
-                            errorBuilder:
+                            placeholder:
+                                (_, __) => _AvatarPlaceholder(
+                                  initial: initial,
+                                  size: _circleSize,
+                                ),
+                            errorWidget:
                                 (_, __, ___) => _AvatarPlaceholder(
                                   initial: initial,
                                   size: _circleSize,
