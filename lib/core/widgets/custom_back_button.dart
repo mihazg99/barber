@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/gen/assets.gen.dart';
@@ -34,7 +33,7 @@ class CustomBackButton extends StatelessWidget {
       return IconButton(
         onPressed: _handlePressed(context),
         padding: EdgeInsets.zero,
-        icon: SvgPicture.asset(Assets.icons.back),
+        icon: Assets.icons.back.svg(),
       );
     }
 
@@ -47,7 +46,7 @@ class CustomBackButton extends StatelessWidget {
             child: IconButton(
               onPressed: _handlePressed(context),
               padding: EdgeInsets.zero,
-              icon: SvgPicture.asset(Assets.icons.back),
+              icon: Assets.icons.back.svg(),
             ),
           ),
           Center(

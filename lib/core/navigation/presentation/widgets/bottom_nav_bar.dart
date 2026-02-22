@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:barber/core/navigation/data/navigation_config.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -49,8 +48,7 @@ class BottomNavBar extends StatelessWidget {
                 margin: EdgeInsets.symmetric(
                   vertical: context.appSizes.paddingSmall,
                 ),
-                child: SvgPicture.asset(
-                  item.iconBuilder(isSelected),
+                child: item.iconBuilder(isSelected).svg(
                   colorFilter: ColorFilter.mode(
                     isSelected
                         ? context.appColors.primaryColor

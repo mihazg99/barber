@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "257675957691-1eosk65j475fbe8s2kq6lrkhd92im4ho.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.barber.app",
+            "certificate_hash": "6db6c0d7ef5ef9c38ee4e376934c448f12ba9f8a"
+          }
+        },
+        {
           "client_id": "257675957691-djn6uflp6hupd7dqjitoaj4pj3fgcavm.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -21,6 +29,42 @@
             "certificate_hash": "181b591a489e8dac87fe32700617b2f8f0a93197"
           }
         },
+        {
+          "client_id": "257675957691-cl793i6kpf3assu8hh8bccg12mde15vj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWSuX46JQEq3VDfSyAFciDMhjpn7YQMUI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "257675957691-cl793i6kpf3assu8hh8bccg12mde15vj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "257675957691-8fu40rb5b5mqm9qgghrvl97pm9r20cqm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.barber.app"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:257675957691:android:a2eb3db33f360085fba09e",
+        "android_client_info": {
+          "package_name": "com.tamebooking.app"
+        }
+      },
+      "oauth_client": [
         {
           "client_id": "257675957691-cl793i6kpf3assu8hh8bccg12mde15vj.apps.googleusercontent.com",
           "client_type": 3

@@ -8,7 +8,6 @@ import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/features/inventory/di.dart';
 import 'package:barber/features/inventory/domain/entities/box_entity.dart';
 import 'package:barber/gen/assets.gen.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class BoxListCard extends ConsumerWidget {
   final BoxEntity box;
@@ -75,8 +74,7 @@ class BoxListCard extends ConsumerWidget {
                   ),
                 ),
                 child: Center(
-                  child: SvgPicture.asset(
-                    Assets.icons.qr,
+                  child: Assets.icons.qr.svg(
                     width: 48,
                     height: 48,
                   ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/gen/assets.gen.dart';
@@ -27,7 +26,7 @@ class FilterButton extends StatelessWidget {
           ),
           color: context.appColors.menuBackgroundColor,
         ),
-        child: SvgPicture.asset(Assets.icons.filter),
+        child: Assets.icons.filter.svg(),
       ),
     );
   }

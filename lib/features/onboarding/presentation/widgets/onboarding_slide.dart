@@ -3,7 +3,7 @@ import 'package:gap/gap.dart';
 
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
-import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/theme/default_brand_text_styles.dart';
 import 'package:barber/core/widgets/glass_container.dart';
 import 'package:barber/features/onboarding/domain/entities/onboarding_page_entity.dart';
 
@@ -82,21 +82,18 @@ class OnboardingSlide extends StatelessWidget {
                       Text(
                         page.title,
                         textAlign: TextAlign.center,
-                        style: context.appTextStyles.headline.copyWith(
-                          color: Colors.white,
+                        style: DefaultBrandTextStyles.headingMedium.copyWith(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: -0.3,
                         ),
                       ),
                       Gap(context.appSizes.paddingMedium),
                       Text(
                         page.description,
                         textAlign: TextAlign.center,
-                        style: context.appTextStyles.body.copyWith(
-                          color: Colors.white.withValues(alpha: 0.92),
+                        style: DefaultBrandTextStyles.bodyParagraph.copyWith(
                           fontSize: 16,
-                          height: 1.45,
+                          color: Colors.white.withValues(alpha: 0.92),
                         ),
                       ),
                     ],

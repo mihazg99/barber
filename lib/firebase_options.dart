@@ -25,15 +25,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -57,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAWSuX46JQEq3VDfSyAFciDMhjpn7YQMUI',
-    appId: '1:257675957691:android:b51729fb7de657cdfba09e',
+    appId: '1:257675957691:android:a2eb3db33f360085fba09e',
     messagingSenderId: '257675957691',
     projectId: 'barber-shop-whitelabel',
     storageBucket: 'barber-shop-whitelabel.firebasestorage.app',
@@ -65,12 +59,34 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDRNr5mFoF5pnRpccyWCXPc_LO_Xo-9OgU',
-    appId: '1:257675957691:ios:1edb373593f72081fba09e',
+    appId: '1:257675957691:ios:6ea1477d33f9711ffba09e',
     messagingSenderId: '257675957691',
     projectId: 'barber-shop-whitelabel',
     storageBucket: 'barber-shop-whitelabel.firebasestorage.app',
-    androidClientId: '257675957691-djn6uflp6hupd7dqjitoaj4pj3fgcavm.apps.googleusercontent.com',
-    iosClientId: '257675957691-8fu40rb5b5mqm9qgghrvl97pm9r20cqm.apps.googleusercontent.com',
-    iosBundleId: 'com.barber.app',
+    androidClientId: '257675957691-1eosk65j475fbe8s2kq6lrkhd92im4ho.apps.googleusercontent.com',
+    iosClientId: '257675957691-pg2dah6759019chvghtj5uotjsis113r.apps.googleusercontent.com',
+    iosBundleId: 'com.tamebooking.app',
   );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDRNr5mFoF5pnRpccyWCXPc_LO_Xo-9OgU',
+    appId: '1:257675957691:ios:6ea1477d33f9711ffba09e',
+    messagingSenderId: '257675957691',
+    projectId: 'barber-shop-whitelabel',
+    storageBucket: 'barber-shop-whitelabel.firebasestorage.app',
+    androidClientId: '257675957691-1eosk65j475fbe8s2kq6lrkhd92im4ho.apps.googleusercontent.com',
+    iosClientId: '257675957691-pg2dah6759019chvghtj5uotjsis113r.apps.googleusercontent.com',
+    iosBundleId: 'com.tamebooking.app',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyAiwQj3HRdMppv_dvwI4dwYcoWEc9ugrlM',
+    appId: '1:257675957691:web:c29f272aaa622f3dfba09e',
+    messagingSenderId: '257675957691',
+    projectId: 'barber-shop-whitelabel',
+    authDomain: 'barber-shop-whitelabel.firebaseapp.com',
+    storageBucket: 'barber-shop-whitelabel.firebasestorage.app',
+    measurementId: 'G-HPZGMKWV08',
+  );
+
 }

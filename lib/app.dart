@@ -1,5 +1,6 @@
 import 'package:app_links/app_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,13 +48,13 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     ref.watch(pushNotificationBootstrapProvider);
     final flavor = ref.watch(flavorConfigProvider);
     final brandConfig = flavor.values.brandConfig;
-    final title = brandConfig.appTitle;
+    final title = kIsWeb ? 'Tame - booking made easy' : brandConfig.appTitle;
 
     // Watch dynamic colors (with overrides)
     final appColors = ref.watch(appColorsProvider);
 
     final router = ref.watch(goRouterProvider);
-    final theme = appThemeFromBrandColors(appColors.colors);
+    final theme = appThemeFromBrandColors(appColors.colors, brandConfig: brandConfig);
 
     return MaterialApp.router(
       scaffoldMessengerKey: rootScaffoldMessengerKey,

@@ -8,7 +8,7 @@ import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
-import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/theme/default_brand_text_styles.dart';
 import 'package:barber/core/widgets/glass_container.dart';
 import 'package:barber/core/widgets/video_background.dart';
 import 'package:barber/features/auth/di.dart';
@@ -163,22 +163,20 @@ class _OnboardingNotificationPageState
                                 Text(
                                   l10n.onboardingNotificationsTitle,
                                   textAlign: TextAlign.center,
-                                  style: context.appTextStyles.headline
+                                  style: DefaultBrandTextStyles.headingMedium
                                       .copyWith(
-                                        color: Colors.white,
                                         fontSize: 22,
                                         fontWeight: FontWeight.w700,
-                                        letterSpacing: -0.3,
                                       ),
                                 ),
                                 Gap(context.appSizes.paddingMedium),
                                 Text(
                                   l10n.onboardingNotificationsDescription,
                                   textAlign: TextAlign.center,
-                                  style: context.appTextStyles.body.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.92),
+                                  style: DefaultBrandTextStyles.bodyParagraph
+                                      .copyWith(
                                     fontSize: 16,
-                                    height: 1.45,
+                                    color: Colors.white.withValues(alpha: 0.92),
                                   ),
                                 ),
                               ],
@@ -210,7 +208,7 @@ class _OnboardingNotificationPageState
                           ),
                           child: Text(
                             l10n.notNow,
-                            style: context.appTextStyles.body.copyWith(
+                            style: DefaultBrandTextStyles.bodyParagraph.copyWith(
                               color: Colors.white.withValues(alpha: 0.6),
                               fontSize: 15,
                             ),

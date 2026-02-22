@@ -95,8 +95,8 @@ class BookingServiceSection extends HookWidget {
                       padding: const EdgeInsets.only(right: 8),
                       child: FilterChip(
                         label: Text(
-                          category == 'All' ? 'All' : category,
-                        ), // Assuming 'All' localization or literal
+                          category == 'All' ? context.l10n.bookingAllCategories : category,
+                        ),
                         selected: isSelected,
                         onSelected: (selected) {
                           if (selected) {

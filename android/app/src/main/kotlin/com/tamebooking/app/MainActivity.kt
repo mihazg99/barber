@@ -1,4 +1,4 @@
-package com.barber.app
+package com.tamebooking.app
 
 import io.flutter.embedding.android.FlutterActivity
 

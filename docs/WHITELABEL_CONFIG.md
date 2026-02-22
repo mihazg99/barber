@@ -113,8 +113,8 @@ Use this for the **default** flavor (e.g. “Barber” dev/prototype). One Fireb
 
 | Platform | Firebase Console field | Value |
 |----------|------------------------|--------|
-| Android  | Android package name   | `com.barber.app` |
-| iOS      | Bundle ID              | `com.barber.app` |
+| Android  | Android package name   | `com.tamebooking.app` |
+| iOS      | Bundle ID              | `com.tamebooking.app` |
 
 1. In [Firebase Console](https://console.firebase.google.com/), create a project (or select an existing one) for this brand.
 2. Add Android and iOS apps in that project using the values above (from `android/app/build.gradle.kts` and `ios/Runner.xcodeproj`).

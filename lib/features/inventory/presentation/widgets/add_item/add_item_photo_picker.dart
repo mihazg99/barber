@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
@@ -44,7 +43,7 @@ class ImagePickerSection extends HookConsumerWidget {
             child: Center(
               child:
                   imagePath == null
-                      ? SvgPicture.asset(Assets.icons.photo)
+                      ? Assets.icons.photo.svg()
                       : Stack(
                         children: [
                           ClipRRect(

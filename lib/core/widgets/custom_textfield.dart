@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
@@ -118,7 +117,7 @@ class CustomTextField extends HookWidget {
       onChanged: onChanged,
       prefixIcon: Padding(
         padding: EdgeInsets.all(AppSizes.main.paddingSmall),
-        child: SvgPicture.asset(Assets.icons.search),
+        child: Assets.icons.search.svg(),
       ),
       enabled: enabled,
       key: key,

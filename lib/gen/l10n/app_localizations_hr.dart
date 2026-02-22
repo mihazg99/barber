@@ -213,6 +213,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get bookingSelectService => 'Odaberi uslugu';
 
   @override
+  String get bookingAllCategories => 'Sve';
+
+  @override
   String get bookingSelectBarber => 'Odaberi profesionalca';
 
   @override
@@ -1274,7 +1277,7 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String joinBrand(String brandName) {
-    return 'Pridruži salonu $brandName';
+    return 'Pridruži se $brandName';
   }
 
   @override

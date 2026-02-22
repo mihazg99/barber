@@ -44,7 +44,7 @@ keytool -list -v -keystore /path/to/your/keystore.jks -alias your-key-alias
 
 1. In Firebase Console, go to **Project Settings** (gear icon)
 2. Scroll down to **Your apps** section
-3. Click on your Android app (`com.barber.app`)
+3. Click on your Android app (`com.tamebooking.app`)
 4. Click **Add fingerprint**
 5. Paste your SHA-1 fingerprint
 6. Click **Save**
@@ -55,7 +55,7 @@ keytool -list -v -keystore /path/to/your/keystore.jks -alias your-key-alias
 
 iOS should work automatically once Google Sign-In is enabled in Firebase Console. The `GoogleService-Info.plist` already contains the necessary OAuth client IDs.
 
-**Note:** Make sure your iOS bundle ID (`com.barber.app`) matches the one configured in Firebase Console.
+**Note:** Make sure your iOS bundle ID (`com.tamebooking.app`) matches the one configured in Firebase Console.
 
 ## Apple Sign-In Setup
 
@@ -69,7 +69,7 @@ iOS should work automatically once Google Sign-In is enabled in Firebase Console
 
 1. Go to [Apple Developer Portal](https://developer.apple.com/account/)
 2. Navigate to **Certificates, Identifiers & Profiles**
-3. Select **Identifiers** → Your App ID (`com.barber.app`)
+3. Select **Identifiers** → Your App ID (`com.tamebooking.app`)
 4. Enable **Sign In with Apple** capability
 5. Save the changes
 
@@ -126,7 +126,7 @@ The `sign_in_with_apple` plugin should handle this automatically, but verify tha
     <string>Editor</string>
     <key>CFBundleURLSchemes</key>
     <array>
-      <string>com.barber.app</string>
+      <string>com.tamebooking.app</string>
     </array>
   </dict>
 </array>

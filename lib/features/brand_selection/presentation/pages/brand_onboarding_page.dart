@@ -14,6 +14,7 @@ import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/utils/snackbar_helper.dart';
 import 'package:barber/core/utils/debug_seeder.dart';
+import 'package:barber/core/widgets/glass_button.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/brand/domain/entities/brand_entity.dart';
@@ -567,8 +568,10 @@ class _BrandResultCard extends ConsumerWidget {
 
         SizedBox(
           width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
+          child: GlassPrimaryButton(
+            icon: Icons.check_circle,
+            label: context.l10n.joinBrand(brand.name),
+            onTap: () {
               final currentUserId = ref.read(currentUserIdProvider).valueOrNull;
               final notifier = ref.read(
                 _brandOnboardingNotifierProvider.notifier,
@@ -579,19 +582,8 @@ class _BrandResultCard extends ConsumerWidget {
                 notifier.joinBrand(brand.brandId, currentUserId);
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: context.appColors.primaryColor,
-              padding: EdgeInsets.symmetric(
-                vertical: context.appSizes.paddingMedium,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'Join ${brand.name}',
-              style: context.appTextStyles.button.copyWith(color: Colors.white),
-            ),
+            isPrimary: true,
+            accentColor: context.appColors.primaryColor,
           ),
         ),
       ],

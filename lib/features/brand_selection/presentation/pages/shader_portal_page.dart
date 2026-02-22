@@ -13,6 +13,7 @@ import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/utils/snackbar_helper.dart';
+import 'package:barber/core/widgets/glass_button.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/brand/di.dart';
 import 'package:barber/features/brand/domain/entities/brand_entity.dart';
@@ -808,9 +809,9 @@ class _BrandResultCard extends ConsumerWidget {
         Gap(context.appSizes.paddingXxl),
         SizedBox(
           width: double.infinity,
-          child: _PremiumButton(
+          child: GlassPrimaryButton(
             icon: Icons.check_circle,
-            label: 'Join ${brand.name}',
+            label: context.l10n.joinBrand(brand.name),
             onTap: () {
               final currentUserId = ref.read(currentUserIdProvider).valueOrNull;
               final notifier = ref.read(

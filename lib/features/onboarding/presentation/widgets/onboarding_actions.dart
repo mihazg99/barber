@@ -4,7 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
-import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/theme/default_brand_text_styles.dart';
 import 'package:barber/core/widgets/glass_button.dart';
 import 'package:barber/features/onboarding/domain/entities/onboarding_data.dart';
 
@@ -36,7 +36,7 @@ class OnboardingActions extends StatelessWidget {
               onPressed: isCompleting ? null : onSkip,
               child: Text(
                 context.l10n.skip,
-                style: context.appTextStyles.body.copyWith(
+                style: DefaultBrandTextStyles.bodyParagraph.copyWith(
                   color: context.appColors.captionTextColor,
                 ),
               ),

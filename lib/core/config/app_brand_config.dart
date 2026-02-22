@@ -12,10 +12,14 @@ class AppBrandConfig {
     required this.fontFamily,
     required this.colors,
     this.requireSmsVerification = false,
+    this.displayFontFamily,
   });
 
   final String appTitle;
+  /// Body and UI font (Sans). Used for body text, labels, buttons.
   final String fontFamily;
+  /// Display and heading font (Serif). When null, [fontFamily] is used.
+  final String? displayFontFamily;
   final String logoPath;
   final String defaultBrandId;
 
@@ -30,14 +34,15 @@ class AppBrandConfig {
   factory AppBrandConfig.fromJson(Map<String, dynamic> json) {
     final colorsJson = json['colors'] as Map<String, dynamic>? ?? {};
     return AppBrandConfig(
-      appTitle: json['app_title'] as String? ?? 'Barber',
+      appTitle: json['app_title'] as String? ?? 'Tame',
       logoPath: json['logo_path'] as String? ?? '',
       defaultBrandId: json['default_brand_id'] as String? ?? '',
       currency: json['currency'] as String? ?? 'EUR',
-      fontFamily: json['font_family'] as String? ?? 'Poppins',
+      fontFamily: json['font_family'] as String? ?? 'Source Sans 3',
       colors: AppBrandColors.fromJson(colorsJson),
       requireSmsVerification:
           json['require_sms_verification'] as bool? ?? false,
+      displayFontFamily: json['display_font_family'] as String?,
     );
   }
 
@@ -49,6 +54,7 @@ class AppBrandConfig {
     'font_family': fontFamily,
     'colors': colors.toJson(),
     'require_sms_verification': requireSmsVerification,
+    if (displayFontFamily != null) 'display_font_family': displayFontFamily,
   };
 }
 

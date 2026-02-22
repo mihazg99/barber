@@ -14,8 +14,9 @@ import 'package:barber/core/router/app_routes.dart';
 import 'package:barber/core/state/base_state.dart';
 import 'package:barber/core/theme/app_colors.dart';
 import 'package:barber/core/theme/app_sizes.dart';
-import 'package:barber/core/theme/app_text_styles.dart';
+import 'package:barber/core/theme/default_brand_text_styles.dart';
 import 'package:barber/core/utils/snackbar_helper.dart';
+import 'package:barber/core/widgets/glass_button.dart';
 import 'package:barber/core/widgets/video_background.dart';
 import 'package:barber/features/auth/di.dart';
 import 'package:barber/features/brand/di.dart';
@@ -27,8 +28,6 @@ import 'package:barber/features/home/di.dart';
 
 /// Design constants
 class _PortalDesign {
-  static const neutralBackground = Color(0xFF020617);
-  static const primaryIndigo = Color(0xFF6366F1);
   static const morphDuration = Duration(
     milliseconds: 3000,
   ); // Extended for smooth settling
@@ -197,7 +196,7 @@ class VideoPortalPage extends HookConsumerWidget {
         }
       },
       child: Scaffold(
-        backgroundColor: _PortalDesign.neutralBackground,
+        backgroundColor: context.appColors.backgroundColor,
         resizeToAvoidBottomInset:
             false, // Prevent keyboard from pushing content
         body: Stack(
@@ -388,7 +387,7 @@ class _GlassMonolithCard extends HookWidget {
         )!;
 
     // Always use our standard color, no morphing to brand colors
-    final brandColor = _PortalDesign.primaryIndigo;
+    final brandColor = context.appColors.primaryColor;
 
     return Transform.scale(
       scale: scale * breatheScale, // Combine user scale with breathing
@@ -745,8 +744,8 @@ class _PortalContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Accent color for buttons - stay at our colors
-    final accentColor = _PortalDesign.primaryIndigo;
+    // Use default brand primary color (before brand is locked)
+    final accentColor = context.appColors.primaryColor;
 
     return Column(
       children: [
@@ -871,7 +870,7 @@ class _PremiumButton extends HookWidget {
               Gap(context.appSizes.paddingMedium),
               Text(
                 label,
-                style: context.appTextStyles.button.copyWith(
+                style: DefaultBrandTextStyles.button.copyWith(
                   color: isPrimary ? accentColor : Colors.white,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
@@ -1077,12 +1076,12 @@ class _SearchView extends HookConsumerWidget {
                     child: TextField(
                       controller: searchController,
                       autofocus: true,
-                      style: context.appTextStyles.body.copyWith(
+                      style: DefaultBrandTextStyles.bodyParagraph.copyWith(
                         color: Colors.white,
                       ),
                       decoration: InputDecoration(
                         hintText: 'brand-tag',
-                        hintStyle: context.appTextStyles.body.copyWith(
+                        hintStyle: DefaultBrandTextStyles.bodyParagraph.copyWith(
                           color: Colors.white.withValues(alpha: 0.5),
                         ),
                         border: InputBorder.none,
@@ -1091,7 +1090,7 @@ class _SearchView extends HookConsumerWidget {
                           color: Colors.white.withValues(alpha: 0.7),
                         ),
                         prefixText: '@',
-                        prefixStyle: context.appTextStyles.body.copyWith(
+                        prefixStyle: DefaultBrandTextStyles.bodyParagraph.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1139,7 +1138,7 @@ class _SearchView extends HookConsumerWidget {
                             Gap(context.appSizes.paddingMedium),
                             Text(
                               data?.errorMessage ?? '',
-                              style: context.appTextStyles.body.copyWith(
+                              style: DefaultBrandTextStyles.bodyParagraph.copyWith(
                                 color: Colors.white.withValues(alpha: 0.9),
                               ),
                               textAlign: TextAlign.center,
@@ -1150,7 +1149,7 @@ class _SearchView extends HookConsumerWidget {
                       : Center(
                         child: Text(
                           context.l10n.searchBusinessByTag,
-                          style: context.appTextStyles.body.copyWith(
+                          style: DefaultBrandTextStyles.bodyParagraph.copyWith(
                             color: Colors.white.withValues(alpha: 0.6),
                           ),
                           textAlign: TextAlign.center,
@@ -1204,14 +1203,14 @@ class _BrandResultCard extends ConsumerWidget {
         Gap(context.appSizes.paddingLarge),
         Text(
           brand.name,
-          style: context.appTextStyles.h2.copyWith(color: Colors.white),
+          style: DefaultBrandTextStyles.h2.copyWith(color: Colors.white),
           textAlign: TextAlign.center,
         ),
         if (brand.tag != null) ...[
           Gap(context.appSizes.paddingSmall),
           Text(
             '@${brand.tag}',
-            style: context.appTextStyles.body.copyWith(
+            style: DefaultBrandTextStyles.bodyParagraph.copyWith(
               color: Colors.white.withValues(alpha: 0.8),
               fontWeight: FontWeight.bold,
             ),
@@ -1220,9 +1219,9 @@ class _BrandResultCard extends ConsumerWidget {
         Gap(context.appSizes.paddingXxl),
         SizedBox(
           width: double.infinity,
-          child: _PremiumButton(
+          child: GlassPrimaryButton(
             icon: Icons.check_circle,
-            label: 'Join ${brand.name}',
+            label: context.l10n.joinBrand(brand.name),
             onTap: () {
               final currentUserId = ref.read(currentUserIdProvider).valueOrNull;
               final notifier = ref.read(
@@ -1235,7 +1234,7 @@ class _BrandResultCard extends ConsumerWidget {
               }
             },
             isPrimary: true,
-            accentColor: _hexToColor(brand.primaryColor),
+            accentColor: _hexToColor(brand.primaryColor, context),
           ),
         ),
       ],
@@ -1244,10 +1243,10 @@ class _BrandResultCard extends ConsumerWidget {
 }
 
 /// Utility function to parse hex color
-Color _hexToColor(String hex) {
+Color _hexToColor(String hex, BuildContext context) {
   final hexCode = hex.replaceAll('#', '');
   if (hexCode.length == 6) {
     return Color(int.parse('FF$hexCode', radix: 16));
   }
-  return _PortalDesign.primaryIndigo;
+  return context.appColors.primaryColor;
 }

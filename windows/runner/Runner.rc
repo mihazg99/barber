@@ -89,7 +89,7 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.barber.app" "\0"
+            VALUE "CompanyName", "com.tamebooking.app" "\0"
             VALUE "FileDescription", "Barber" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "barber" "\0"

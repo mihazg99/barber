@@ -1,7 +1,9 @@
+import 'package:barber/gen/assets.gen.dart';
+
 class NavigationItem {
   final String route;
   final String label;
-  final String Function(bool isSelected) iconBuilder;
+  final SvgGenImage Function(bool isSelected) iconBuilder;
 
   const NavigationItem({
     required this.route,

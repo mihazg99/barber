@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:barber/core/l10n/app_localizations_ext.dart';
 import 'package:barber/core/theme/app_sizes.dart';
@@ -16,7 +15,7 @@ class ScanQrCodeButton extends StatelessWidget {
       child: PrimaryButton.big(
         onPressed: () {},
         height: 64,
-        icon: SvgPicture.asset(Assets.icons.qrCodeScanner),
+        icon: Assets.icons.qrCodeScanner.svg(),
         child: Text(context.l10n.scanQrCode),
       ),
     );

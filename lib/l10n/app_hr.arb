@@ -83,6 +83,7 @@
 
   "bookingTitle": "Rezerviraj termin",
   "bookingSelectService": "Odaberi uslugu",
+  "bookingAllCategories": "Sve",
   "bookingSelectBarber": "Odaberi profesionalca",
   "bookingAnyBarber": "Bilo koji profesionalac",
   "bookingSelectDate": "Odaberi datum",
@@ -558,7 +559,7 @@
   "appointmentCompleted": "Termin označen kao dovršen",
   "notificationsDisabledInSettings": "Molimo uključite obavijesti u postavkama sustava",
   "brandTagHint": "oznaka-salona",
-  "joinBrand": "Pridruži salonu {brandName}",
+  "joinBrand": "Pridruži se {brandName}",
   "@joinBrand": {
     "placeholders": {
       "brandName": {

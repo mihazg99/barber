@@ -482,6 +482,12 @@ abstract class AppLocalizations {
   /// **'Odaberi uslugu'**
   String get bookingSelectService;
 
+  /// No description provided for @bookingAllCategories.
+  ///
+  /// In hr, this message translates to:
+  /// **'Sve'**
+  String get bookingAllCategories;
+
   /// No description provided for @bookingSelectBarber.
   ///
   /// In hr, this message translates to:
@@ -2489,7 +2495,7 @@ abstract class AppLocalizations {
   /// No description provided for @joinBrand.
   ///
   /// In hr, this message translates to:
-  /// **'Pridruži salonu {brandName}'**
+  /// **'Pridruži se {brandName}'**
   String joinBrand(String brandName);
 
   /// No description provided for @markAsNoShowTitle.

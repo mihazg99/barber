@@ -1,9 +1,10 @@
 {
-  "app_title": "Core System",
+  "app_title": "Tame",
   "logo_path": "assets/images/platform_logo.png",
   "default_brand_id": "default",
   "currency": "EUR",
-  "font_family": "Inter",
+  "font_family": "Source Sans 3",
+  "display_font_family": "Source Serif 4",
   "require_sms_verification": true,
   "colors": {
     "primary": "#2DD4BF",

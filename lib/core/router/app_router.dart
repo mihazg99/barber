@@ -33,6 +33,7 @@ import 'package:barber/features/onboarding/presentation/pages/onboarding_page.da
 import 'package:barber/features/brand_selection/presentation/pages/video_portal_page.dart';
 import 'package:barber/features/brand_selection/presentation/pages/brand_switcher_page.dart';
 import 'package:barber/features/auth/presentation/pages/auth_page.dart'; // Kept for consistency
+import 'package:barber/features/splash/di.dart';
 import 'package:barber/features/splash/presentation/pages/splash_page.dart';
 import 'package:barber/core/presentation/pages/site_not_found_page.dart';
 import 'package:barber/core/presentation/pages/subscription_locked_page.dart';
@@ -88,12 +89,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   // ===========================================================================
 
   final appStage = ref.watch(appStageProvider);
+  final splashExitComplete = ref.watch(splashExitCompleteProvider);
 
   final goRouter = GoRouter(
     initialLocation: AppRoute.splash.path,
     debugLogDiagnostics: kDebugMode,
-    refreshListenable: _RiverpodListenable(ref, appStageProvider),
+    refreshListenable: _RiverpodMultiListenable(ref, [
+      appStageProvider,
+      splashNotifierProvider,
+    ]),
     redirect: (context, state) {
+      // Stay on splash until exit (Phase 4) animation completes
+      if (state.uri.path == AppRoute.splash.path &&
+          appStage is! LoadingStage &&
+          !splashExitComplete) {
+        return AppRoute.splash.path;
+      }
+
       // 1. Loading Handling
       if (appStage is LoadingStage) {
         // Allow web booking (brand tag) bypass to preserve URL
@@ -430,18 +442,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   return goRouter;
 });
 
-class _RiverpodListenable extends ChangeNotifier {
-  _RiverpodListenable(this.ref, this.provider) {
-    _subscription = ref.listen(provider, (_, __) => notifyListeners());
+/// Notifies when any of the given providers change (e.g. app stage or splash exit).
+class _RiverpodMultiListenable extends ChangeNotifier {
+  _RiverpodMultiListenable(this.ref, this.providers) {
+    _subscriptions =
+        providers.map((p) => ref.listen(p, (_, __) => notifyListeners())).toList();
   }
 
   final Ref ref;
-  final ProviderListenable provider;
-  late final ProviderSubscription _subscription;
+  final List<ProviderListenable> providers;
+  late final List<ProviderSubscription> _subscriptions;
 
   @override
   void dispose() {
-    _subscription.close();
+    for (final s in _subscriptions) {
+      s.close();
+    }
     super.dispose();
   }
 }

@@ -212,6 +212,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingSelectService => 'Select Service';
 
   @override
+  String get bookingAllCategories => 'All';
+
+  @override
   String get bookingSelectBarber => 'Select a professional';
 
   @override

@@ -83,6 +83,7 @@
 
   "bookingTitle": "Book appointment",
   "bookingSelectService": "Select Service",
+  "bookingAllCategories": "All",
   "bookingSelectBarber": "Select a professional",
   "bookingAnyBarber": "Any professional",
   "bookingSelectDate": "Select Date",

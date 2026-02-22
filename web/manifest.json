@@ -1,11 +1,11 @@
 {
-    "name": "Barber",
-    "short_name": "Barber",
+    "name": "Tame - booking made easy",
+    "short_name": "Tame",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Barbershop whitelabel app",
+    "description": "Tame - booking made easy",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
