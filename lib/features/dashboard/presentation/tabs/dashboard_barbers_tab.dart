@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
@@ -265,23 +266,26 @@ class _BarberCard extends StatelessWidget {
           padding: EdgeInsets.all(context.appSizes.paddingMedium),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: context.appColors.primaryColor.withValues(
-                  alpha: 0.15,
-                ),
-                backgroundImage:
-                    barber.photoUrl.isNotEmpty
-                        ? NetworkImage(barber.photoUrl)
-                        : null,
+              ClipOval(
                 child:
-                    barber.photoUrl.isEmpty
-                        ? Icon(
-                          Icons.person,
-                          size: 32,
-                          color: context.appColors.primaryColor,
+                    barber.photoUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                          imageUrl: barber.photoUrl,
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                          placeholder:
+                              (_, __) => _BarberAvatarPlaceholder(
+                                primaryColor: context.appColors.primaryColor,
+                              ),
+                          errorWidget:
+                              (_, __, ___) => _BarberAvatarPlaceholder(
+                                primaryColor: context.appColors.primaryColor,
+                              ),
                         )
-                        : null,
+                        : _BarberAvatarPlaceholder(
+                          primaryColor: context.appColors.primaryColor,
+                        ),
               ),
               Gap(context.appSizes.paddingMedium),
               Expanded(
@@ -403,6 +407,26 @@ class _BarbersError extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _BarberAvatarPlaceholder extends StatelessWidget {
+  const _BarberAvatarPlaceholder({required this.primaryColor});
+
+  final Color primaryColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: primaryColor.withValues(alpha: 0.15),
+      ),
+      alignment: Alignment.center,
+      child: Icon(Icons.person, size: 32, color: primaryColor),
     );
   }
 }

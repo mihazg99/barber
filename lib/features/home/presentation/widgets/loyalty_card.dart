@@ -794,7 +794,8 @@ class _LoyaltyCardBackFace extends HookWidget {
                     const Gap(14),
                     Text(
                       brandName?.trim().isNotEmpty == true
-                          ? '${brandName!.trim()} ${context.l10n.loyaltyClub}'.toUpperCase()
+                          ? '${brandName!.trim()} ${context.l10n.loyaltyClub}'
+                              .toUpperCase()
                           : '',
                       style: styles.caption.copyWith(
                         fontSize: 10,
@@ -946,7 +947,7 @@ class _GuestLoyaltyCard extends HookConsumerWidget {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

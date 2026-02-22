@@ -3,6 +3,9 @@ import 'package:equatable/equatable.dart';
 
 /// Specific shop belonging to a brand.
 /// doc_id: location_id (e.g. zagreb-centar)
+///
+/// [closedDates] are holidays or other dates when the location is closed (YYYY-MM-DD).
+/// Superadmin can disable/activate days via working hours (null = closed that weekday).
 class LocationEntity extends Equatable {
   const LocationEntity({
     required this.locationId,
@@ -13,6 +16,7 @@ class LocationEntity extends Equatable {
     required this.longitude,
     required this.phone,
     required this.workingHours,
+    this.closedDates = const [],
   });
 
   final String locationId;
@@ -23,6 +27,15 @@ class LocationEntity extends Equatable {
   final double longitude;
   final String phone;
   final WorkingHoursMap workingHours;
+  /// Dates when the location is closed (e.g. holidays). Format: YYYY-MM-DD.
+  final List<String> closedDates;
+
+  /// True if the location is closed on [date] (holiday or other closed date).
+  bool isClosedOnDate(DateTime date) {
+    final key =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    return closedDates.contains(key);
+  }
 
   LocationEntity copyWith({
     String? locationId,
@@ -33,6 +46,7 @@ class LocationEntity extends Equatable {
     double? longitude,
     String? phone,
     WorkingHoursMap? workingHours,
+    List<String>? closedDates,
   }) =>
       LocationEntity(
         locationId: locationId ?? this.locationId,
@@ -43,6 +57,7 @@ class LocationEntity extends Equatable {
         longitude: longitude ?? this.longitude,
         phone: phone ?? this.phone,
         workingHours: workingHours ?? this.workingHours,
+        closedDates: closedDates ?? this.closedDates,
       );
 
   @override
@@ -55,5 +70,6 @@ class LocationEntity extends Equatable {
         longitude,
         phone,
         workingHours,
+        closedDates,
       ];
 }

@@ -115,7 +115,7 @@ class UpcomingBookingCard extends StatelessWidget {
                           Text(
                             title,
                             style: context.appTextStyles.h2.copyWith(
-                              fontSize: 15,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: colors.primaryTextColor,
                             ),
@@ -133,7 +133,7 @@ class UpcomingBookingCard extends StatelessWidget {
                                 : Text(
                                   locationName ?? '',
                                   style: context.appTextStyles.caption.copyWith(
-                                    fontSize: 13,
+                                    fontSize: 11,
                                     color: colors.captionTextColor,
                                   ),
                                 ),
@@ -142,7 +142,7 @@ class UpcomingBookingCard extends StatelessWidget {
                           Text(
                             _formatDateTime(context, appointment.startTime),
                             style: context.appTextStyles.caption.copyWith(
-                              fontSize: 13,
+                              fontSize: 11,
                               color: colors.captionTextColor,
                             ),
                           ),
@@ -234,7 +234,7 @@ class NoUpcomingBookingCTA extends StatelessWidget {
                       Text(
                         context.l10n.bookYourNextVisit,
                         style: context.appTextStyles.h2.copyWith(
-                          fontSize: 15,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: colors.primaryTextColor,
                         ),
@@ -243,7 +243,7 @@ class NoUpcomingBookingCTA extends StatelessWidget {
                       Text(
                         context.l10n.chooseLocationServiceTime,
                         style: context.appTextStyles.caption.copyWith(
-                          fontSize: 13,
+                          fontSize: 11,
                           color: colors.captionTextColor,
                         ),
                       ),

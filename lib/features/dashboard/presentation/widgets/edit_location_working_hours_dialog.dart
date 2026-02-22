@@ -29,6 +29,11 @@ class EditLocationWorkingHoursDialog extends HookWidget {
     final sizes = context.appSizes;
     final l10n = context.l10n;
 
+    // Per-day enabled: superadmin can disable/activate each weekday.
+    final dayEnabled = useState<List<bool>>(
+      List.generate(7, (i) => initialHours?[_dayKeys[i]] != null),
+    );
+
     // Initialize controllers with initial values
     final openControllers = useMemoized(() {
       return List.generate(7, (i) {
@@ -68,6 +73,10 @@ class EditLocationWorkingHoursDialog extends HookWidget {
       final WorkingHoursMap newHours = {};
 
       for (var i = 0; i < 7; i++) {
+        if (!dayEnabled.value[i]) {
+          newHours[_dayKeys[i]] = null;
+          continue;
+        }
         final open = _normalizeTime(openControllers[i].text.trim());
         final close = _normalizeTime(closeControllers[i].text.trim());
 
@@ -101,10 +110,24 @@ class EditLocationWorkingHoursDialog extends HookWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      l10n.dashboardLocationWorkingHours,
-                      style: context.appTextStyles.h3.copyWith(
-                        fontWeight: FontWeight.w800,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.dashboardLocationWorkingHours,
+                            style: context.appTextStyles.h3.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            l10n.workingHoursApplyHint,
+                            style: context.appTextStyles.h4.copyWith(
+                              color: colors.captionTextColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     IconButton(
@@ -120,6 +143,12 @@ class EditLocationWorkingHoursDialog extends HookWidget {
                       children: List.generate(7, (i) {
                         return _WorkingHoursRow(
                           dayLabel: dayLabels[i],
+                          enabled: dayEnabled.value[i],
+                          onEnabledChanged: (v) {
+                            final next = List<bool>.from(dayEnabled.value);
+                            next[i] = v;
+                            dayEnabled.value = next;
+                          },
                           openController: openControllers[i],
                           closeController: closeControllers[i],
                         );
@@ -130,7 +159,7 @@ class EditLocationWorkingHoursDialog extends HookWidget {
                 Gap(sizes.paddingMedium),
                 PrimaryButton.big(
                   onPressed: onSave,
-                  child: Text(l10n.save),
+                  child: Text(l10n.applyChanges),
                 ),
               ],
             ),
@@ -151,11 +180,15 @@ class EditLocationWorkingHoursDialog extends HookWidget {
 class _WorkingHoursRow extends StatelessWidget {
   const _WorkingHoursRow({
     required this.dayLabel,
+    required this.enabled,
+    required this.onEnabledChanged,
     required this.openController,
     required this.closeController,
   });
 
   final String dayLabel;
+  final bool enabled;
+  final ValueChanged<bool> onEnabledChanged;
   final TextEditingController openController;
   final TextEditingController closeController;
 
@@ -169,22 +202,37 @@ class _WorkingHoursRow extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 50,
+            width: 44,
             child: Text(
               dayLabel,
               style: context.appTextStyles.medium.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
-                color: colors.secondaryTextColor,
+                color:
+                    enabled
+                        ? colors.secondaryTextColor
+                        : colors.secondaryTextColor.withValues(alpha: 0.6),
               ),
             ),
           ),
           Gap(sizes.paddingSmall),
+          Switch.adaptive(
+            value: enabled,
+            onChanged: onEnabledChanged,
+            activeColor: colors.primaryColor,
+          ),
+          Gap(sizes.paddingSmall),
           Expanded(
-            child: TimePickerField(
-              controller: openController,
-              hintText: '09:00',
-              fillColor: colors.menuBackgroundColor,
+            child: IgnorePointer(
+              ignoring: !enabled,
+              child: Opacity(
+                opacity: enabled ? 1 : 0.5,
+                child: TimePickerField(
+                  controller: openController,
+                  hintText: '09:00',
+                  fillColor: colors.menuBackgroundColor,
+                ),
+              ),
             ),
           ),
           Padding(
@@ -198,10 +246,16 @@ class _WorkingHoursRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: TimePickerField(
-              controller: closeController,
-              hintText: '17:00',
-              fillColor: colors.menuBackgroundColor,
+            child: IgnorePointer(
+              ignoring: !enabled,
+              child: Opacity(
+                opacity: enabled ? 1 : 0.5,
+                child: TimePickerField(
+                  controller: closeController,
+                  hintText: '17:00',
+                  fillColor: colors.menuBackgroundColor,
+                ),
+              ),
             ),
           ),
         ],

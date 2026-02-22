@@ -24,6 +24,13 @@ class AppLocalizationsHr extends AppLocalizations {
   String get save => 'Spremi';
 
   @override
+  String get applyChanges => 'Primijeni promjene';
+
+  @override
+  String get workingHoursApplyHint =>
+      'Promjene će biti spremljene kada pohranite lokaciju.';
+
+  @override
   String get cancel => 'Odustani';
 
   @override
@@ -195,10 +202,13 @@ class AppLocalizationsHr extends AppLocalizations {
       'Prijavite se za pristup ekskluzivnim nagradama';
 
   @override
-  String get continueWithGoogle => 'Nastavi s Googleom';
+  String get continueWithGoogle => 'Nastavi s Google';
 
   @override
-  String get continueWithApple => 'Nastavi s Appleom';
+  String get continueWithApple => 'Nastavi s Apple';
+
+  @override
+  String get signInFailed => 'Neuspjela prijava';
 
   @override
   String get or => 'ili';
@@ -345,6 +355,9 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get bookNow => 'Rezerviraj sada';
+
+  @override
+  String get viewWorkingHours => 'Pogledaj radno vrijeme';
 
   @override
   String get sectionBarbers => 'Odaberi profesionalca';
@@ -831,6 +844,25 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get dashboardLocationNoWorkingHours =>
       'Radno vrijeme nije postavljeno. Dodirnite za dodavanje.';
+
+  @override
+  String get dashboardLocationClosedDates => 'Dani zatvaranja (praznici)';
+
+  @override
+  String get dashboardLocationClosedDatesHint =>
+      'Dani kada je salon zatvoren (npr. praznici). Korisnici će vidjeti \"Zatvoreno\" na te datume.';
+
+  @override
+  String get dashboardLocationAddClosedDate => 'Dodaj datum zatvaranja';
+
+  @override
+  String get dashboardLocationDayEnabled => 'Otvoreno ovaj dan';
+
+  @override
+  String get closedToday => 'Danas zatvoreno';
+
+  @override
+  String get closedHolidayOrDate => 'Zatvoreno (praznik)';
 
   @override
   String get dashboardNoBrand => 'Nije konfiguriran brend';

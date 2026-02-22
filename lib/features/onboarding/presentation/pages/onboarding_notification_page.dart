@@ -35,9 +35,12 @@ class _OnboardingNotificationPageState
     if (_isRequestingPermission || _isCompleting) return;
     setState(() => _isRequestingPermission = true);
     try {
+      // requestPermissionOnly resolves as soon as the iOS dialog is dismissed
+      // (accept OR deny) — does NOT block waiting for the APNS/FCM token.
+      // The token arrives in the background via onTokenRefresh.
       await ref
           .read(pushNotificationNotifierProvider.notifier)
-          .refreshPermissionAndToken();
+          .requestPermissionOnly();
     } finally {
       if (mounted) setState(() => _isRequestingPermission = false);
     }
@@ -175,9 +178,11 @@ class _OnboardingNotificationPageState
                                   textAlign: TextAlign.center,
                                   style: DefaultBrandTextStyles.bodyParagraph
                                       .copyWith(
-                                    fontSize: 16,
-                                    color: Colors.white.withValues(alpha: 0.92),
-                                  ),
+                                        fontSize: 16,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.92,
+                                        ),
+                                      ),
                                 ),
                               ],
                             ),
@@ -208,10 +213,11 @@ class _OnboardingNotificationPageState
                           ),
                           child: Text(
                             l10n.notNow,
-                            style: DefaultBrandTextStyles.bodyParagraph.copyWith(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              fontSize: 15,
-                            ),
+                            style: DefaultBrandTextStyles.bodyParagraph
+                                .copyWith(
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  fontSize: 15,
+                                ),
                           ),
                         ),
                       ],

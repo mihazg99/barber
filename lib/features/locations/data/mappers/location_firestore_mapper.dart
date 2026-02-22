@@ -40,6 +40,14 @@ class LocationFirestoreMapper {
         );
       }
     }
+    final closedDatesRaw = data['closed_dates'] as List<dynamic>?;
+    final closedDates = closedDatesRaw != null
+        ? closedDatesRaw
+            .map((e) => e?.toString() ?? '')
+            .where((s) => s.isNotEmpty)
+            .toList()
+        : <String>[];
+
     return LocationEntity(
       locationId: id,
       brandId: data['brand_id'] as String? ?? '',
@@ -49,6 +57,7 @@ class LocationFirestoreMapper {
       longitude: lng,
       phone: data['phone'] as String? ?? '',
       workingHours: hours,
+      closedDates: closedDates,
     );
   }
 
@@ -64,6 +73,7 @@ class LocationFirestoreMapper {
       'geo_point': GeoPoint(entity.latitude, entity.longitude),
       'phone': entity.phone,
       'working_hours': hours,
+      'closed_dates': entity.closedDates,
     };
   }
 }

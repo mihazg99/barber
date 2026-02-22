@@ -128,6 +128,18 @@ abstract class AppLocalizations {
   /// **'Spremi'**
   String get save;
 
+  /// No description provided for @applyChanges.
+  ///
+  /// In hr, this message translates to:
+  /// **'Primijeni promjene'**
+  String get applyChanges;
+
+  /// No description provided for @workingHoursApplyHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'Promjene će biti spremljene kada pohranite lokaciju.'**
+  String get workingHoursApplyHint;
+
   /// No description provided for @cancel.
   ///
   /// In hr, this message translates to:
@@ -449,14 +461,20 @@ abstract class AppLocalizations {
   /// No description provided for @continueWithGoogle.
   ///
   /// In hr, this message translates to:
-  /// **'Nastavi s Googleom'**
+  /// **'Nastavi s Google'**
   String get continueWithGoogle;
 
   /// No description provided for @continueWithApple.
   ///
   /// In hr, this message translates to:
-  /// **'Nastavi s Appleom'**
+  /// **'Nastavi s Apple'**
   String get continueWithApple;
+
+  /// No description provided for @signInFailed.
+  ///
+  /// In hr, this message translates to:
+  /// **'Neuspjela prijava'**
+  String get signInFailed;
 
   /// No description provided for @or.
   ///
@@ -733,6 +751,12 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Rezerviraj sada'**
   String get bookNow;
+
+  /// No description provided for @viewWorkingHours.
+  ///
+  /// In hr, this message translates to:
+  /// **'Pogledaj radno vrijeme'**
+  String get viewWorkingHours;
 
   /// No description provided for @sectionBarbers.
   ///
@@ -1645,6 +1669,42 @@ abstract class AppLocalizations {
   /// In hr, this message translates to:
   /// **'Radno vrijeme nije postavljeno. Dodirnite za dodavanje.'**
   String get dashboardLocationNoWorkingHours;
+
+  /// No description provided for @dashboardLocationClosedDates.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dani zatvaranja (praznici)'**
+  String get dashboardLocationClosedDates;
+
+  /// No description provided for @dashboardLocationClosedDatesHint.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dani kada je salon zatvoren (npr. praznici). Korisnici će vidjeti \"Zatvoreno\" na te datume.'**
+  String get dashboardLocationClosedDatesHint;
+
+  /// No description provided for @dashboardLocationAddClosedDate.
+  ///
+  /// In hr, this message translates to:
+  /// **'Dodaj datum zatvaranja'**
+  String get dashboardLocationAddClosedDate;
+
+  /// No description provided for @dashboardLocationDayEnabled.
+  ///
+  /// In hr, this message translates to:
+  /// **'Otvoreno ovaj dan'**
+  String get dashboardLocationDayEnabled;
+
+  /// No description provided for @closedToday.
+  ///
+  /// In hr, this message translates to:
+  /// **'Danas zatvoreno'**
+  String get closedToday;
+
+  /// No description provided for @closedHolidayOrDate.
+  ///
+  /// In hr, this message translates to:
+  /// **'Zatvoreno (praznik)'**
+  String get closedHolidayOrDate;
 
   /// No description provided for @dashboardNoBrand.
   ///

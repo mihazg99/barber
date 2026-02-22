@@ -55,25 +55,27 @@ class PremiumServiceCard extends HookWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.max,
             children: [
-              // Service name - flexible to handle long names
-              Tooltip(
-                message: service.name,
-                child: Text(
-                  service.name,
-                  style: context.appTextStyles.h2.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: c.primaryTextColor,
-                    height: 1.3,
+              // Service name - flexible; pushes duration/price to bottom
+              Expanded(
+                child: Tooltip(
+                  message: service.name,
+                  child: Text(
+                    service.name,
+                    style: context.appTextStyles.h2.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: c.primaryTextColor,
+                      height: 1.25,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
 
               const Gap(8),
 
-              // Duration with icon
+              // Duration - fixed position right above price
               Row(
                 children: [
                   Icon(
@@ -93,7 +95,7 @@ class PremiumServiceCard extends HookWidget {
                 ],
               ),
 
-              const Spacer(),
+              const Gap(4),
 
               // Price and arrow
               Row(

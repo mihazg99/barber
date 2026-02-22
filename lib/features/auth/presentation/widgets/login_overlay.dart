@@ -1,9 +1,12 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:barber/core/di.dart';
@@ -141,6 +144,7 @@ class LoginOverlay extends HookConsumerWidget {
                         needsProfileCompletion || forceProfileCompletion,
                     profileUser: effectiveUser,
                     onGoogleSignIn: () => _handleGoogleSignIn(context, ref),
+                    onAppleSignIn: () => _handleAppleSignIn(context, ref),
                     onProfileSubmit:
                         showProfileCompletion
                             ? (fullName, phone) => _handleProfileSubmit(
@@ -181,12 +185,11 @@ class LoginOverlay extends HookConsumerWidget {
 
     if (!context.mounted) return;
 
-    // Check auth state after sign-in attempt
     final authState = ref.read(authNotifierProvider);
     if (authState is BaseData<AuthFlowData>) {
       final authData = authState.data;
       if (authData.errorMessage != null && authData.errorMessage!.isNotEmpty) {
-        overlayNotifier.setErrorMessage(authData.errorMessage!);
+        overlayNotifier.setErrorMessage(context.l10n.signInFailed);
       } else if (authData.isProfileInfo) {
         // Profile completion needed - keep overlay visible
         overlayNotifier.setLoadingState(false);
@@ -194,10 +197,41 @@ class LoginOverlay extends HookConsumerWidget {
         // Success - hide overlay
         overlayNotifier.hide();
       }
-    } else if (authState case BaseError<AuthFlowData>(:final message)) {
-      overlayNotifier.setErrorMessage(message);
+    } else if (authState is BaseError<AuthFlowData>) {
+      overlayNotifier.setErrorMessage(context.l10n.signInFailed);
     } else {
       // Loading or initial state - keep overlay visible
+    }
+  }
+
+  Future<void> _handleAppleSignIn(BuildContext context, WidgetRef ref) async {
+    final overlayNotifier = ref.read(loginOverlayNotifierProvider.notifier);
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final flavorConfig = ref.read(flavorConfigProvider);
+
+    overlayNotifier.setLoadingState(true);
+
+    await authNotifier.signInWithApple(
+      requireSmsVerification:
+          flavorConfig.values.brandConfig.requireSmsVerification,
+    );
+
+    if (!context.mounted) return;
+
+    final authState = ref.read(authNotifierProvider);
+    if (authState is BaseData<AuthFlowData>) {
+      final authData = authState.data;
+      if (authData.errorMessage != null && authData.errorMessage!.isNotEmpty) {
+        overlayNotifier.setErrorMessage(context.l10n.signInFailed);
+      } else if (authData.isProfileInfo) {
+        overlayNotifier.setLoadingState(false);
+      } else {
+        overlayNotifier.hide();
+      }
+    } else if (authState is BaseError<AuthFlowData>) {
+      overlayNotifier.setErrorMessage(context.l10n.signInFailed);
+    } else {
+      overlayNotifier.setLoadingState(false);
     }
   }
 
@@ -247,6 +281,7 @@ class _LoginModalCard extends HookConsumerWidget {
     required this.needsProfileCompletion,
     this.profileUser,
     required this.onGoogleSignIn,
+    required this.onAppleSignIn,
     this.onProfileSubmit,
     required this.onClose,
   });
@@ -256,6 +291,7 @@ class _LoginModalCard extends HookConsumerWidget {
   final bool needsProfileCompletion;
   final UserEntity? profileUser;
   final VoidCallback onGoogleSignIn;
+  final VoidCallback onAppleSignIn;
   final Future<void> Function(String fullName, String phone)? onProfileSubmit;
   final VoidCallback onClose;
 
@@ -272,12 +308,11 @@ class _LoginModalCard extends HookConsumerWidget {
     return GestureDetector(
       onTap: () {}, // Prevent tap from closing when clicking inside card
       child: Container(
-        // Fixed height container - does not resize during transitions
+        // Intrinsic height — content drives height; expands for Apple button on iOS.
         constraints: const BoxConstraints(
           maxWidth: 400,
           minHeight: 300,
         ),
-        height: 400, // Fixed height for consistent transitions
         margin: EdgeInsets.symmetric(horizontal: sizes.paddingLarge),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -383,6 +418,7 @@ class _LoginModalCard extends HookConsumerWidget {
                                         isLoading: isLoading,
                                         errorMessage: errorMessage,
                                         onGoogleSignIn: onGoogleSignIn,
+                                        onAppleSignIn: onAppleSignIn,
                                       ),
                             ),
                           ],
@@ -400,18 +436,20 @@ class _LoginModalCard extends HookConsumerWidget {
   }
 }
 
-/// Login step - minimalist Google Auth button.
+/// Login step - Google + Apple sign-in buttons.
 class _LoginStep extends ConsumerWidget {
   const _LoginStep({
     super.key,
     required this.isLoading,
     this.errorMessage,
     required this.onGoogleSignIn,
+    required this.onAppleSignIn,
   });
 
   final bool isLoading;
   final String? errorMessage;
   final VoidCallback onGoogleSignIn;
+  final VoidCallback onAppleSignIn;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -433,11 +471,21 @@ class _LoginStep extends ConsumerWidget {
           textAlign: TextAlign.center,
         ),
         Gap(sizes.paddingXxl),
-        // Google Sign In Button - Solid Gold Bar with vertical gradient
+        // Google Sign In Button
         _GoogleSignInButton(
           onPressed: isLoading ? null : onGoogleSignIn,
           isLoading: isLoading,
         ),
+        // Apple Sign In – shown on web, iOS, and macOS
+        if (!isLoading && (kIsWeb || Platform.isIOS || Platform.isMacOS)) ...[
+          Gap(sizes.paddingMedium),
+          _OrDivider(),
+          Gap(sizes.paddingMedium),
+          _AppleSignInButton(
+            onPressed: isLoading ? null : onAppleSignIn,
+            isLoading: isLoading,
+          ),
+        ],
         // Error message
         if (errorMessage != null) ...[
           Gap(sizes.paddingMedium),
@@ -763,7 +811,45 @@ class _BrandLogo extends StatelessWidget {
   }
 }
 
-/// Google Sign In button - Solid Gold Bar with vertical gradient and high-contrast deep black text.
+/// Thin 'or' divider between sign-in buttons.
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Row(
+      children: [
+        Expanded(
+          child: Divider(
+            color: colors.primaryColor.withValues(alpha: 0.2),
+            thickness: 1,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            context.l10n.or,
+            style: TextStyle(
+              color: colors.secondaryTextColor.withValues(alpha: 0.6),
+              fontSize: 12,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Divider(
+            color: colors.primaryColor.withValues(alpha: 0.2),
+            thickness: 1,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Google Sign In button — official Google brand style.
+/// White background, 4-colour Google G logo, dark text, subtle border.
 class _GoogleSignInButton extends ConsumerWidget {
   const _GoogleSignInButton({
     required this.onPressed,
@@ -773,29 +859,96 @@ class _GoogleSignInButton extends ConsumerWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
 
+  // Official Google G mark as inline SVG
+  static const _googleGSvg = '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+  <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z" fill="#FBBC05"/>
+  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+</svg>''';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.appColors;
     final sizes = context.appSizes;
-    final textStyles = context.appTextStyles;
-    final flavorConfig = ref.watch(flavorConfigProvider);
-    final brandConfig = flavorConfig.values.brandConfig;
-
-    // Clean rectangular border radius (12px)
     const borderRadius = 12.0;
+    // Google brand colours
+    const bgColor = Color(0xFFFFFFFF);
+    const borderColor = Color(0xFFDADCE0);
+    const textColor = Color(0xFF1F1F1F);
 
-    // Solid Gold Bar: Vertical LinearGradient with primary gold tones
-    // Create a vertical gradient from lighter to slightly darker gold for depth
-    final goldTop = colors.primaryColor;
-    final goldBottom =
-        Color.lerp(
-          colors.primaryColor,
-          Colors.black,
-          0.15,
-        )!; // Slightly darker at bottom for premium solid gold bar effect
+    return SizedBox(
+      width: double.infinity,
+      height: sizes.buttonHeightBig,
+      child: Material(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(borderRadius),
+          splashColor: const Color(0x1A4285F4),
+          highlightColor: const Color(0x0D4285F4),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(color: borderColor, width: 1),
+            ),
+            child: Center(
+              child:
+                  isLoading
+                      ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF4285F4),
+                          ),
+                        ),
+                      )
+                      : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SvgPicture.string(
+                            _googleGSvg,
+                            width: 20,
+                            height: 20,
+                          ),
+                          Gap(sizes.paddingMedium),
+                          Text(
+                            context.l10n.continueWithGoogle,
+                            style: GoogleFonts.roboto(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: textColor,
+                              letterSpacing: 0.25,
+                            ),
+                          ),
+                        ],
+                      ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-    // Text color: colors.secondary (High-Contrast Deep Black) to pop
-    final textColor = colors.secondaryColor;
+/// Apple Sign In button – black pill with Apple logo and white text.
+class _AppleSignInButton extends ConsumerWidget {
+  const _AppleSignInButton({
+    required this.onPressed,
+    required this.isLoading,
+  });
+
+  final VoidCallback? onPressed;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sizes = context.appSizes;
+    const borderRadius = 12.0;
 
     return SizedBox(
       width: double.infinity,
@@ -808,41 +961,41 @@ class _GoogleSignInButton extends ConsumerWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(borderRadius),
-              // Solid Gold Bar: Vertical LinearGradient with primary gold tones
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [goldTop, goldBottom],
+              color: Colors.black,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.15),
+                width: 1,
               ),
             ),
             child: Center(
               child:
                   isLoading
-                      ? SizedBox(
+                      ? const SizedBox(
                         width: 24,
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                       : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.g_mobiledata,
-                            color: textColor,
-                            size: 24,
+                          const Icon(
+                            Icons.apple,
+                            color: Colors.white,
+                            size: 22,
                           ),
                           Gap(sizes.paddingMedium),
                           Text(
-                            context.l10n.continueWithGoogle,
-                            style: textStyles.button.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: textColor, // High-Contrast Deep Black
-                              fontFamily: brandConfig.fontFamily,
-                              letterSpacing: 1.5,
+                            context.l10n.continueWithApple,
+                            style: GoogleFonts.roboto(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                              letterSpacing: 0.25,
                             ),
                           ),
                         ],

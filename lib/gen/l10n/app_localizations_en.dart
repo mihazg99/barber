@@ -24,6 +24,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get save => 'Save';
 
   @override
+  String get applyChanges => 'Apply changes';
+
+  @override
+  String get workingHoursApplyHint =>
+      'These will be saved when you save the location.';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -200,6 +207,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueWithApple => 'Continue with Apple';
 
   @override
+  String get signInFailed => 'Sign-in failed';
+
+  @override
   String get or => 'or';
 
   @override
@@ -344,6 +354,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookNow => 'Book Now';
+
+  @override
+  String get viewWorkingHours => 'View working hours';
 
   @override
   String get sectionBarbers => 'Select a professional';
@@ -828,6 +841,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardLocationNoWorkingHours =>
       'No working hours set. Tap to add.';
+
+  @override
+  String get dashboardLocationClosedDates => 'Closed dates (holidays)';
+
+  @override
+  String get dashboardLocationClosedDatesHint =>
+      'Days when the shop is closed (e.g. holidays). Users will see \"Closed\" on these dates.';
+
+  @override
+  String get dashboardLocationAddClosedDate => 'Add closed date';
+
+  @override
+  String get dashboardLocationDayEnabled => 'Open this day';
+
+  @override
+  String get closedToday => 'Closed today';
+
+  @override
+  String get closedHolidayOrDate => 'Closed (holiday)';
 
   @override
   String get dashboardNoBrand => 'No brand configured';

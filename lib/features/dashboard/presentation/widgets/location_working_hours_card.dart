@@ -9,17 +9,32 @@ import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/value_objects/working_hours.dart';
 
 /// Displays location working hours in a card format with optional edit button.
+/// Set [showCardContainer] to false to render content only (e.g. inside a bottom sheet).
+/// When [closedDates] is provided and today is in that list, the "today" row shows
+/// "Closed (holiday)" so users see the shop is closed on that date.
 class LocationWorkingHoursCard extends StatelessWidget {
   const LocationWorkingHoursCard({
     required this.workingHours,
+    this.closedDates,
+    this.todayOverride,
     this.onEdit,
+    this.showCardContainer = true,
     super.key,
   });
 
   final WorkingHoursMap? workingHours;
+  /// Dates when the location is closed (YYYY-MM-DD). When today is in this list, today's row shows closed.
+  final List<String>? closedDates;
+  /// For tests; if null, uses DateTime.now() to determine today.
+  final DateTime? todayOverride;
   final VoidCallback? onEdit;
+  final bool showCardContainer;
 
   static const _dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+  static String _todayKey(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,20 +46,27 @@ class LocationWorkingHoursCard extends StatelessWidget {
         workingHours != null &&
         workingHours!.values.any((hours) => hours != null);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.menuBackgroundColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.borderColor.withValues(alpha: 0.1),
-        ),
-      ),
-      child: Column(
+    final contentPadding = showCardContainer
+        ? EdgeInsets.all(sizes.paddingMedium)
+        : EdgeInsets.zero;
+    final listPadding = showCardContainer
+        ? EdgeInsets.fromLTRB(
+            sizes.paddingMedium,
+            0,
+            sizes.paddingMedium,
+            sizes.paddingMedium,
+          )
+        : EdgeInsets.only(
+            top: sizes.paddingSmall,
+            bottom: sizes.paddingMedium,
+          );
+
+    final content = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
           Padding(
-            padding: EdgeInsets.all(sizes.paddingMedium),
+            padding: contentPadding,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -116,36 +138,59 @@ class LocationWorkingHoursCard extends StatelessWidget {
           ),
           // Content
           if (!hasHours)
-            _buildEmptyState(context)
+            _buildEmptyState(context, compact: !showCardContainer)
           else
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                sizes.paddingMedium,
-                0,
-                sizes.paddingMedium,
-                sizes.paddingMedium,
-              ),
+              padding: listPadding,
               child: Column(
                 children: List.generate(7, (index) {
                   final dayKey = _dayKeys[index];
                   final dayHours = workingHours![dayKey];
+                  final today = todayOverride ?? DateTime.now();
+                  final isTodayRow = today.weekday == index + 1;
+                  final todayStr = _todayKey(today);
+                  final isClosedDate =
+                      closedDates != null &&
+                      closedDates!.isNotEmpty &&
+                      isTodayRow &&
+                      closedDates!.contains(todayStr);
+                  final closedLabelOverride = isClosedDate
+                      ? (context.l10n.closedHolidayOrDate)
+                      : null;
                   return _DayRow(
                     dayLabel: _getDayLabel(context, index),
                     dayHours: dayHours,
+                    closedLabelOverride: closedLabelOverride,
                     isLast: index == 6,
                   );
                 }),
               ),
             ),
         ],
-      ),
-    );
+      );
+
+    if (showCardContainer) {
+      return Container(
+        decoration: BoxDecoration(
+          color: colors.menuBackgroundColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: colors.borderColor.withValues(alpha: 0.1),
+          ),
+        ),
+        child: content,
+      );
+    }
+    return content;
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, {bool compact = false}) {
     final colors = context.appColors;
+    final padding = compact
+        ? const EdgeInsets.only(top: 8, bottom: 20)
+        : const EdgeInsets.fromLTRB(16, 8, 16, 20);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+      padding: padding,
       child: Column(
         children: [
           Icon(
@@ -183,17 +228,21 @@ class _DayRow extends StatelessWidget {
   const _DayRow({
     required this.dayLabel,
     required this.dayHours,
+    this.closedLabelOverride,
     required this.isLast,
   });
 
   final String dayLabel;
   final DayWorkingHours? dayHours;
+  /// When set, show this as closed label (e.g. "Closed (holiday)") and treat as closed.
+  final String? closedLabelOverride;
   final bool isLast;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final isClosed = dayHours == null;
+    final isClosed = closedLabelOverride != null || dayHours == null;
+    final closedText = closedLabelOverride ?? context.l10n.closed;
 
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
@@ -236,7 +285,7 @@ class _DayRow extends StatelessWidget {
                 ],
                 Text(
                   isClosed
-                      ? context.l10n.closed
+                      ? closedText
                       : '${dayHours!.open} – ${dayHours!.close}',
                   style: context.appTextStyles.medium.copyWith(
                     color:

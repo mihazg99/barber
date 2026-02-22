@@ -11,6 +11,7 @@ import 'package:barber/core/theme/app_sizes.dart';
 import 'package:barber/core/theme/app_text_styles.dart';
 import 'package:barber/core/value_objects/working_hours.dart';
 import 'package:barber/core/widgets/shimmer_placeholder.dart';
+import 'package:barber/features/dashboard/presentation/widgets/location_working_hours_card.dart';
 import 'package:barber/features/home/di.dart';
 import 'package:barber/features/home/presentation/widgets/home_section_title.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
@@ -187,8 +188,20 @@ class _LocationCard extends StatelessWidget {
     'sun',
   ];
 
-  String _todayHours(BuildContext context, WorkingHoursMap hours) {
+  static String _todayKey(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  String _todayHours(
+    BuildContext context,
+    WorkingHoursMap hours,
+    List<String> closedDates,
+  ) {
     final now = DateTime.now();
+    final todayStr = _todayKey(now);
+    if (closedDates.isNotEmpty && closedDates.contains(todayStr)) {
+      return context.l10n.closedHolidayOrDate;
+    }
     final today = now.weekday;
     final key = _dayKeys[today - 1];
     final day = hours[key];
@@ -241,7 +254,11 @@ class _LocationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hoursLine = _todayHours(context, location.workingHours);
+    final hoursLine = _todayHours(
+      context,
+      location.workingHours,
+      location.closedDates,
+    );
 
     return Material(
       color: Colors.transparent,
@@ -333,7 +350,27 @@ class _LocationCard extends StatelessWidget {
                         ],
                       ),
                     ],
-                    Gap(context.appSizes.paddingSmall),
+                    Gap(6),
+                    TextButton(
+                      onPressed: () => _showLocationWorkingHoursBottomSheet(
+                        context,
+                        location,
+                      ),
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        foregroundColor: context.appColors.primaryColor,
+                      ),
+                      child: Text(
+                        context.l10n.viewWorkingHours,
+                        style: context.appTextStyles.caption.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: context.appColors.primaryColor,
+                        ),
+                      ),
+                    ),
+                    Gap(6),
                     _BookNowPill(
                       onTap:
                           () => context.push(
@@ -344,6 +381,88 @@ class _LocationCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static void _showLocationWorkingHoursBottomSheet(
+    BuildContext context,
+    LocationEntity location,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _LocationWorkingHoursBottomSheet(location: location),
+    );
+  }
+}
+
+class _LocationWorkingHoursBottomSheet extends StatelessWidget {
+  const _LocationWorkingHoursBottomSheet({required this.location});
+
+  final LocationEntity location;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final sizes = context.appSizes;
+
+    const sheetPadding = 20.0;
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: Material(
+        color: colors.menuBackgroundColor,
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              sheetPadding,
+              sheetPadding,
+              sheetPadding,
+              MediaQuery.of(context).viewInsets.bottom + sheetPadding,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        location.name,
+                        style: context.appTextStyles.h3.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(Icons.close, color: colors.secondaryTextColor),
+                    ),
+                  ],
+                ),
+                Gap(sizes.paddingSmall),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: LocationWorkingHoursCard(
+                      workingHours: location.workingHours,
+                      closedDates: location.closedDates.isNotEmpty
+                          ? location.closedDates
+                          : null,
+                      onEdit: null,
+                      showCardContainer: false,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

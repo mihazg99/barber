@@ -14,6 +14,7 @@ import 'package:barber/core/widgets/custom_textfield.dart';
 import 'package:barber/core/widgets/primary_button.dart';
 import 'package:barber/features/dashboard/di.dart';
 import 'package:barber/features/dashboard/presentation/widgets/edit_location_working_hours_dialog.dart';
+import 'package:barber/features/dashboard/presentation/widgets/location_closed_dates_card.dart';
 import 'package:barber/features/dashboard/presentation/widgets/location_working_hours_card.dart';
 import 'package:barber/features/locations/domain/entities/location_entity.dart';
 
@@ -49,6 +50,9 @@ class LocationFormPage extends HookConsumerWidget {
 
     // Working hours state - managed separately from controllers
     final workingHours = useState<WorkingHoursMap?>(location?.workingHours);
+    final closedDates = useState<List<String>>(
+      List.from(location?.closedDates ?? []),
+    );
 
     final notifier = ref.read(dashboardLocationsNotifierProvider.notifier);
     final effectiveBrandId = ref.watch(dashboardBrandIdProvider);
@@ -86,6 +90,7 @@ class LocationFormPage extends HookConsumerWidget {
         longitude: lng,
         phone: phoneController.text.trim(),
         workingHours: workingHours.value ?? {},
+        closedDates: closedDates.value,
       );
 
       if (isEdit) {
@@ -223,6 +228,11 @@ class LocationFormPage extends HookConsumerWidget {
                       workingHours.value = result;
                     }
                   },
+                ),
+                Gap(context.appSizes.paddingMedium),
+                LocationClosedDatesCard(
+                  closedDates: closedDates.value,
+                  onClosedDatesChanged: (list) => closedDates.value = list,
                 ),
                 Gap(context.appSizes.paddingLarge),
                 PrimaryButton.big(

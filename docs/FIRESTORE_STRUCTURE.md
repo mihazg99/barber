@@ -42,6 +42,7 @@ Specific shops belonging to a brand.
 | `geo_point` | Geopoint | Latitude and longitude |
 | `phone` | String | Phone number |
 | `working_hours` | Map | See [Working hours](#working-hours-map) below |
+| `closed_dates` | Array\<String\> | Optional. Dates when the location is closed (e.g. holidays). Format: `YYYY-MM-DD`. Superadmin can set these in the location form. |
 
 ### Working hours (Map)
 

@@ -223,7 +223,9 @@ final loginOverlayNotifierProvider = StateNotifierProvider.autoDispose<
 
 /// FCM push notifications: permission, token, foreground/initial message.
 /// Token is synced to the current user document when signed in.
-final pushNotificationNotifierProvider = StateNotifierProvider.autoDispose<
+/// Not autoDispose: must outlive individual widgets so FCM subscriptions
+/// (onTokenRefresh, onMessage) are never silently cancelled.
+final pushNotificationNotifierProvider = StateNotifierProvider<
   PushNotificationNotifier,
   BaseState<PushNotificationData>
 >((ref) {

@@ -34,6 +34,11 @@ class CalculateFreeSlots {
     final dateStr = _formatDate(date);
     final docId = '${barber.barberId}_$dateStr';
 
+    if (location.isClosedOnDate(date)) {
+      if (kDebugMode) print('  ❌ Location closed on $dateStr (holiday/closed date)');
+      return [];
+    }
+
     // Get working hours for the weekday.
     // When barber has no override or an empty override, use location hours (per schema).
     final weekday = _getWeekdayKey(date);

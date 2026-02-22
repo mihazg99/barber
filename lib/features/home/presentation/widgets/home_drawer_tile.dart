@@ -257,6 +257,12 @@ class HomeDrawerTile extends HookConsumerWidget {
       container.read(upcomingAppointmentProvider);
       container.read(currentUserProvider);
 
+      // Revoke FCM token before sign-out so the old user stops receiving
+      // push notifications on this device.
+      await container
+          .read(pushNotificationNotifierProvider.notifier)
+          .deleteToken();
+
       await container.read(authNotifierProvider.notifier).signOut();
       container.read(lastSignedInUserProvider.notifier).state = null;
       container.invalidate(homeNotifierProvider);

@@ -192,10 +192,10 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // Public: rewards — authenticated read; write superadmin only.
+    // Public: rewards — public read (guests + users); write superadmin only.
     // -------------------------------------------------------------------------
     match /rewards/{rewardId} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow create: if request.auth != null && isSuperadmin() && request.resource.data.brand_id == barberBrandId();
       allow update, delete: if request.auth != null && isSuperadmin() && resource.data.brand_id == barberBrandId();
     }
